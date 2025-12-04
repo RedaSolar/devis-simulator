@@ -951,28 +951,30 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
     data.append(["", "", "", "", total_ht_lbl, f"{total_ht:.2f}"])
     data.append(["", "", "", "", total_ttc_lbl, f"{total_ttc:.2f}"])
 
+    elements.append(Spacer(1, 12))
+
     table = Table(
         data,
         repeatRows=1,
-        colWidths=[90, 200, 50, 40, 70, 65],
+        colWidths=[100, 230, 45, 45, 80, 80],
     )
     table.setStyle(
         TableStyle(
             [
                 ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor(BLUE_LIGHT)),
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BLUE_MAIN)),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E6F1F7")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("VALIGN", (0, 0), (-1, 0), "MIDDLE"),
                 ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
                 ("TEXTCOLOR", (0, 1), (-1, -3), colors.black),
                 ("VALIGN", (0, 1), (-1, -3), "MIDDLE"),
-                ("ALIGN", (2, 1), (-1, -3), "CENTER"),
+                ("ALIGN", (2, 0), (5, -1), "RIGHT"),
                 ("BACKGROUND", (0, -2), (-1, -1), colors.HexColor(BLUE_MAIN)),
                 ("TEXTCOLOR", (0, -2), (-1, -1), colors.white),
                 ("FONTNAME", (0, -2), (-1, -1), "Helvetica-Bold"),
                 ("VALIGN", (0, -2), (-1, -1), "MIDDLE"),
-                ("ALIGN", (4, -2), (5, -1), "RIGHT"),
+                ("ALIGN", (2, -2), (5, -1), "RIGHT"),
                 ("TOPPADDING", (0, -2), (-1, -1), 4),
                 ("BOTTOMPADDING", (0, -2), (-1, -1), 4),
                 ("SPAN", (0, -2), (3, -2)),
@@ -980,7 +982,7 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
             ]
         )
     )
-    elements += [table, Spacer(1, 10)]
+    elements += [table, Spacer(1, 12)]
 
     # Notes
     if notes:
@@ -1096,7 +1098,16 @@ def generate_double_devis_pdf(
         spaceAfter=12,
         alignment=1
     )
+    subtitle_center = ParagraphStyle(
+        "subtitle_center",
+        parent=style_normal,
+        fontSize=12,
+        leading=14,
+        alignment=1,
+        textColor=colors.HexColor(BLUE_MAIN),
+    )
     elements.append(Paragraph("Devis Installation Photovoltaïque", title_page1))
+    elements.append(Paragraph("Projet : Installation photovoltaïque résidentielle – Casablanca", subtitle_center))
     elements.append(Spacer(1, 12))
 
     # INFOS CLIENT + DOC (côte à côte)
@@ -1134,107 +1145,195 @@ def generate_double_devis_pdf(
         textColor=colors.HexColor(BLUE_MAIN),
         spaceAfter=8,
     )
+    heading1_style = styles["Heading1"].clone("heading1_custom")
+    heading1_style.textColor = colors.HexColor(BLUE_MAIN)
+    heading2_style = styles["Heading2"].clone("heading2_custom")
+    heading2_style.textColor = colors.HexColor(BLUE_MAIN)
+    heading3_style = styles["Heading3"].clone("heading3_custom")
+    heading3_style.textColor = colors.HexColor(BLUE_MAIN)
+    def ensure_page_break():
+        if not elements or not isinstance(elements[-1], PageBreak):
+            elements.append(PageBreak())
+
+    def _extract_panel_power(value):
+        try:
+            s = str(value)
+        except Exception:
+            return 0
+        m = re.search(r"(\d+(?:[.,]\d+)?)\s*[wW]", s)
+        if m:
+            try:
+                return int(float(m.group(1).replace(",", ".")))
+            except Exception:
+                return 0
+        try:
+            return int(float(re.sub(r"[^0-9.,]", "", s).replace(",", ".")))
+        except Exception:
+            return 0
+
+    def _panels_info(df_obj):
+        total_qty = 0
+        watt = 0
+        if isinstance(df_obj, pd.DataFrame):
+            try:
+                mask = df_obj["Désignation"] == "Panneaux"
+                if mask.any():
+                    panneaux_rows = df_obj[mask]
+                    total_qty = int(panneaux_rows["Quantité"].sum())
+                    first_row = panneaux_rows.iloc[0]
+                    power_candidate = first_row.get("Power", None)
+                    if power_candidate in (None, ""):
+                        power_candidate = first_row.get("Marque", "")
+                    watt = _extract_panel_power(power_candidate)
+            except Exception:
+                pass
+        elif isinstance(df_obj, list):
+            for row_data in df_obj:
+                if isinstance(row_data, dict) and row_data.get("Désignation") == "Panneaux":
+                    total_qty += int(row_data.get("Quantité", 0) or 0)
+                    if watt == 0:
+                        power_candidate = row_data.get("Power", row_data.get("Marque", ""))
+                        watt = _extract_panel_power(power_candidate)
+        return total_qty, watt
+
+    nombre_panneaux, puissance_panneau = _panels_info(df_sans)
+    if nombre_panneaux == 0 and isinstance(df_avec, (pd.DataFrame, list)):
+        nb_alt, power_alt = _panels_info(df_avec)
+        if nb_alt:
+            nombre_panneaux = nb_alt
+        if puissance_panneau == 0:
+            puissance_panneau = power_alt
+    puissance_totale_kwc = round(nombre_panneaux * puissance_panneau / 1000, 2) if puissance_panneau else 0.0
     
-    # Calculer le nombre de panneaux et la puissance totale
-    nb_panneaux = 0
-    puissance_panneau = 0
-    try:
-        for row_data in (df_sans if isinstance(df_sans, list) else []):
-            if isinstance(row_data, dict) and row_data.get("Désignation") == "Panneaux":
-                nb_panneaux = int(row_data.get("Quantité", 0))
-                # Extraire la puissance du modèle de panneau (ex: "Canadian Solar 710W")
-                marque = str(row_data.get("Marque", ""))
-                if "710" in marque:
-                    puissance_panneau = 710
-                elif "620" in marque:
-                    puissance_panneau = 620
-                elif "590" in marque:
-                    puissance_panneau = 590
-                break
-    except Exception:
-        pass
-    
-    puissance_totale = (nb_panneaux * puissance_panneau) / 1000 if puissance_panneau > 0 else 0
-    
-    # Extraire la capacité de batterie (en kWh) si présente
-    batterie_capacite_kwh = 0.0
-    try:
-        for row_data in (df_avec if isinstance(df_avec, list) else []):
-            if isinstance(row_data, dict) and row_data.get("Désignation") == "Batterie":
-                marque_bat = str(row_data.get("Marque", ""))
-                qty_bat = int(row_data.get("Quantité", 0))
-                if "10" in marque_bat:
-                    batterie_capacite_kwh += qty_bat * 10.0
-                elif "5" in marque_bat:
-                    batterie_capacite_kwh += qty_bat * 5.0
-    except Exception:
-        pass
-    
-    # Déterminer quels scénarios sont présents
-    scenario_text = ""
-    if scenario_choice == "Sans batterie uniquement":
-        scenario_text = "scénario sans batterie"
-    elif scenario_choice == "Avec batterie uniquement":
-        scenario_text = "scénario avec batterie"
-    elif scenario_choice == "Les deux (Sans + Avec)":
-        scenario_text = "deux scénarios : sans batterie et avec batterie"
-    
-    project_summary = (
-        f"<b>Installation photovoltaïque de {nb_panneaux} panneaux de {puissance_panneau}W "
-        f"(puissance totale : {puissance_totale:.2f} kWc)</b><br/>"
-        f"avec {scenario_text}."
-    )
-    elements.append(Paragraph("<b>Résumé du projet :</b>", heading_style))
-    elements.append(Paragraph(project_summary, style_normal))
-    elements.append(Spacer(1, 12))
-    
-    # Description des deux options
-    elements.append(Paragraph("<b>Description des options :</b>", heading_style))
-    options_desc = (
-        "<b>• Option 1 - Installation SANS batterie :</b> Système connecté au réseau électrique national, "
-        "sans stockage d'énergie. L'électricité produite est consommée directement ou injectée dans le réseau.<br/>"
-        "<br/>"
-    )
-    if batterie_capacite_kwh > 0:
-        options_desc += (
-            f"<b>• Option 2 - Installation AVEC batterie :</b> Système hybride avec batterie de {batterie_capacite_kwh} kWh."
+    elements.append(
+        Paragraph(
+            "Taqinor Solutions SARLAU<br/>RC : 691213 — ICE : 003799642000067<br/>Adresse : 5 Rue Annoussour, Casablanca 20250<br/>Téléphone : 06 61 85 04 10<br/>Email : contact@taqinor.com",
+            style_normal,
         )
-    else:
-        options_desc += (
-            "<b>• Option 2 - Installation AVEC batterie :</b> Système hybride avec batterie de stockage. "
-            "Maximise l'autoconsommation et offre une autonomie énergétique."
-        )
-    elements.append(Paragraph(options_desc, style_normal))
-    elements.append(Spacer(1, 12))
-    
-    # Description des avantages
-    elements.append(Paragraph("<b>Avantages de cette installation :</b>", heading_style))
-    advantages = (
-        "• Réduction significative de vos factures d'électricité dès les premiers mois<br/>"
-        "• Production d'une énergie propre et renouvelable, adaptée au climat marocain<br/>"
-        "• Amélioration de la valeur de votre bien immobilier<br/>"
-        "• Technologie fiable, avec des garanties allant de 10 à 25 ans selon les équipements<br/>"
-        "• Accompagnement technique complet par TAQINOR, avant et après l'installation"
     )
-    elements.append(Paragraph(advantages, style_normal))
-    elements.append(Spacer(1, 16))
-    
-    # Ajouter un PageBreak après la première page
+    elements.append(Spacer(1, 6))
+    elements.append(Paragraph("RÉSUMÉ EXÉCUTIF", heading_style))
+    elements.append(Spacer(1, 12))
+    elements.append(
+        Paragraph(
+            "Ce devis présente une solution photovoltaïque sur mesure visant à réduire durablement votre facture d’électricité, améliorer votre autonomie énergétique et valoriser votre patrimoine. L’installation proposée repose sur des équipements premium (Canadian Solar, Huawei, Deye) et s’adapte à votre profil de consommation afin de maximiser votre taux d’autoconsommation et votre retour sur investissement.",
+            style_normal,
+        )
+    )
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("L’étude ci-dessous inclut :", heading_style))
+    bullet_intro = [
+        f"• Une configuration de {nombre_panneaux} panneaux de {puissance_panneau} W (puissance totale {puissance_totale_kwc:.2f} kWc)",
+        "• Une analyse comparative entre une installation SANS batterie et une installation AVEC batterie",
+        "• Une estimation économique complète (production annuelle, économies, ROI)",
+        "• Les garanties et engagements TAQINOR",
+    ]
+    for txt in bullet_intro:
+        elements.append(Paragraph(txt, style_normal))
+        elements.append(Spacer(1, 4))
+    elements.append(Spacer(1, 6))
+    elements.append(Paragraph("OBJECTIFS DU CLIENT", heading_style))
+    elements.append(Spacer(1, 12))
+    client_objectifs = [
+        "• Réduire significativement la facture d’électricité mensuelle",
+        "• Gagner en confort et en sécurité énergétique en cas de coupure",
+        "• Préserver la possibilité d’une évolution future (batterie, puissance supplémentaire)",
+    ]
+    for txt in client_objectifs:
+        elements.append(Paragraph(txt, style_normal))
+        elements.append(Spacer(1, 4))
+    elements.append(Spacer(1, 6))
+    elements.append(Paragraph("CONFIGURATION RECOMMANDÉE", heading_style))
+    elements.append(Spacer(1, 12))
+    elements.append(
+        Paragraph(
+            f"TAQINOR propose deux configurations optimisées : une installation SANS batterie, privilégiant le meilleur retour sur investissement, et une installation AVEC batterie, offrant davantage de confort et d’autonomie lors des coupures réseau. Les deux scénarios reposent sur une puissance totale installée de {puissance_totale_kwc:.2f} kWc via {nombre_panneaux} modules de {puissance_panneau} W.",
+            style_normal,
+        )
+    )
+    elements.append(Spacer(1, 6))
+    # --- Roof Layout Placeholder ---
+    elements.append(Paragraph("PLAN D’IMPLANTATION SUR LE TOIT", heading2_style if 'heading2_style' in locals() else heading_style))
+    elements.append(Spacer(1, 12))
+    roof_layout_ascii = """
++-------------------------------------------------------------+
+|                                                             |
+|                 [  ESPACE TOIT – VUE SIMPLIFIÉE  ]          |
+|                                                             |
+|     Orientation : Sud                                       |
+|     Inclinaison : 10°                                       |
+|                                                             |
+|     Exemple de disposition des panneaux :                   |
+|                                                             |
+|       [P1] [P2] [P3] [P4]                                   |
+|       [P5] [P6] [P7] [P8]                                   |
+|                                                             |
+|  *Ce schéma est indicatif. Le positionnement exact sera     |
+|   ajusté lors de la visite technique.*                       |
++-------------------------------------------------------------+
+"""
+    elements.append(Paragraph(f"<pre>{roof_layout_ascii}</pre>", style_mono if 'style_mono' in locals() else style_normal))
+    elements.append(Spacer(1, 18))
+
+    # --- System Architecture Diagram ---
+    elements.append(Paragraph("SCHÉMA FONCTIONNEL DU SYSTÈME", heading2_style if 'heading2_style' in locals() else heading_style))
+    elements.append(Spacer(1, 12))
+    system_diagram = """
+           +---------------------+
+           |   Panneaux PV       |
+           |  (Canadian Solar)   |
+           +---------+-----------+
+                     |
+                     v
+           +---------------------+
+           |   Onduleur (AC/DC)  |
+           |   Huawei / Deye     |
+           +---------+-----------+
+                     |
+                     v
+           +---------------------+
+           | Tableau AC / DC     |
+           +---------+-----------+
+                     |
+                     v
+   +----------------------------------+
+   | Réseau Maison / Appareils       |
+   +----------------------------------+
+"""
+    elements.append(Paragraph(f"<pre>{system_diagram}</pre>", style_mono if 'style_mono' in locals() else style_normal))
+    elements.append(Spacer(1, 18))
+
+    # --- One-line Electrical Diagram ---
+    elements.append(Paragraph("SCHÉMA UNIFILAIRE SIMPLIFIÉ (ONE-LINE)", heading2_style if 'heading2_style' in locals() else heading_style))
+    elements.append(Spacer(1, 12))
+    one_line = """
+Panneaux PV  --->  Onduleur  --->  Tableau AC/DC  --->  Réseau Maison
+         (DC)          |               |                   (230V AC)
+                        \--> Batterie (Option 2 uniquement)
+"""
+    elements.append(Paragraph(f"<pre>{one_line}</pre>", style_mono if 'style_mono' in locals() else style_normal))
+    elements.append(Spacer(1, 18))
     elements.append(PageBreak())
     
     # ========== PAGE 2 : OPTION SANS BATTERIE ==========
     # SECTION SANS
+    options_heading_shown = False
     if scenario_choice in ("Sans batterie uniquement", "Les deux (Sans + Avec)"):
-        heading_scenario = ParagraphStyle(
-            "heading_scenario",
-            parent=style_normal,
-            fontSize=14,
-            leading=16,
-            textColor=colors.HexColor(BLUE_MAIN),
-            spaceAfter=10,
+        ensure_page_break()
+        if not options_heading_shown:
+            elements.append(Paragraph("PRÉSENTATION DES OPTIONS", heading1_style))
+            elements.append(Spacer(1, 12))
+            options_heading_shown = True
+        elements.append(Paragraph("Option 1 : Installation SANS batterie", heading3_style))
+        elements.append(Spacer(1, 6))
+        elements.append(
+            Paragraph(
+                "Cette configuration est idéale si votre objectif principal est de réduire votre facture au meilleur coût initial.<br/>"
+                "Elle offre le meilleur retour sur investissement car toute l’énergie produite est directement utilisée par votre foyer.",
+                style_normal,
+            )
         )
-        elements.append(Paragraph("Option 1 : Installation SANS batterie", heading_scenario))
-        elements.append(Spacer(1, 8))
+        elements.append(Spacer(1, 10))
         
         sec_sans, total_sans = build_devis_section_elements(
             df_sans, notes_sans, styles, "Devis SANS batterie"
@@ -1242,23 +1341,25 @@ def generate_double_devis_pdf(
         elements += sec_sans
         elements.append(Spacer(1, 12))
 
-    # PAGE BREAK entre les deux scénarios si on affiche les deux
-    if scenario_choice == "Les deux (Sans + Avec)":
-        elements.append(PageBreak())
-        
     # ========== PAGE 3 : OPTION AVEC BATTERIE ==========
     # SECTION AVEC
     if scenario_choice in ("Avec batterie uniquement", "Les deux (Sans + Avec)"):
-        heading_scenario = ParagraphStyle(
-            "heading_scenario",
-            parent=style_normal,
-            fontSize=14,
-            leading=16,
-            textColor=colors.HexColor(BLUE_MAIN),
-            spaceAfter=10,
+        ensure_page_break()
+        if not options_heading_shown:
+            elements.append(Paragraph("PRÉSENTATION DES OPTIONS", heading1_style))
+            elements.append(Spacer(1, 12))
+            options_heading_shown = True
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph("Option 2 : Installation AVEC batterie", heading3_style))
+        elements.append(Spacer(1, 6))
+        elements.append(
+            Paragraph(
+                "Cette option apporte un confort supérieur grâce au stockage d’énergie.<br/>"
+                "Elle assure une autonomie en cas de coupure, optimise la consommation nocturne et augmente votre taux d’autoconsommation globale.",
+                style_normal,
+            )
         )
-        elements.append(Paragraph("Option 2 : Installation AVEC batterie", heading_scenario))
-        elements.append(Spacer(1, 8))
+        elements.append(Spacer(1, 10))
         
         sec_avec, total_avec = build_devis_section_elements(
             df_avec, notes_avec, styles, "Devis AVEC batterie"
@@ -1269,17 +1370,18 @@ def generate_double_devis_pdf(
     # ========== PAGE 4 : ANALYSE ÉCONOMIQUE ET ROI ==========
     # PAGE ROI GRAPHIQUE
     if roi_fig_all_buf is not None:
-        elements.append(PageBreak())
-        
-        heading_roi = ParagraphStyle(
-            "heading_roi",
-            parent=style_normal,
-            fontSize=14,
-            leading=16,
-            textColor=colors.HexColor(BLUE_MAIN),
-            spaceAfter=10,
+        ensure_page_break()
+        elements.append(Paragraph("SYNTHÈSE FINANCIÈRE & ROI", heading1_style))
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph("Analyse détaillée du retour sur investissement", heading2_style))
+        elements.append(Spacer(1, 8))
+        elements.append(
+            Paragraph(
+                "Les estimations ci-dessous présentent la production annuelle attendue, les économies générées et le temps de retour sur investissement.<br/>"
+                "Ces valeurs permettent de comparer objectivement les deux scénarios et de choisir la solution la plus rentable selon votre consommation.",
+                style_normal,
+            )
         )
-        elements.append(Paragraph("Analyse Économique et Retour sur Investissement", heading_roi))
         elements.append(Spacer(1, 12))
         
         elements.append(Paragraph("<b>Estimation des économies mensuelles</b>", style_header_top))
@@ -1303,17 +1405,17 @@ def generate_double_devis_pdf(
         if roi_summary_sans is not None:
             elements.append(Paragraph("<b>Scénario SANS batterie</b>", style_header_top))
             elements.append(Spacer(1, 4))
-            prod_ann = roi_summary_sans.get("prod_annuelle", 0.0)
-            eco_ann = roi_summary_sans.get("eco_annuelle", 0.0)
-            cout_sys = roi_summary_sans.get("cout_systeme", 0.0)
-            payback = roi_summary_sans.get("payback", None)
+            production_annuelle_sans = roi_summary_sans.get("prod_annuelle", 0.0)
+            economie_annuelle_sans = roi_summary_sans.get("eco_annuelle", 0.0)
+            investissement_sans = roi_summary_sans.get("cout_systeme", 0.0)
+            roi_sans = roi_summary_sans.get("payback", None)
             txt = (
-                f"<b>Production photovoltaïque annuelle estimée :</b> {prod_ann:,.0f} kWh/an<br/>"
-                f"<b>Économie annuelle estimée :</b> {eco_ann:,.0f} MAD/an<br/>"
-                f"<b>Coût d'investissement estimé :</b> {cout_sys:,.0f} MAD<br/>"
+                f"<b>Production photovoltaïque annuelle estimée :</b> {production_annuelle_sans:,.0f} kWh/an<br/>"
+                f"<b>Économie annuelle estimée :</b> {economie_annuelle_sans:,.0f} MAD/an<br/>"
+                f"<b>Coût d'investissement estimé :</b> {investissement_sans:,.0f} MAD<br/>"
             )
-            if payback is not None:
-                txt += f"<b>Temps de retour sur investissement :</b> {payback:.1f} années<br/>"
+            if roi_sans is not None:
+                txt += f"<b>Temps de retour sur investissement :</b> {roi_sans:.1f} années<br/>"
             else:
                 txt += "<b>Temps de retour sur investissement :</b> non calculable (économie annuelle nulle)<br/>"
             elements.append(Paragraph(txt, style_normal))
@@ -1322,37 +1424,25 @@ def generate_double_devis_pdf(
         if roi_summary_avec is not None:
             elements.append(Paragraph("<b>Scénario AVEC batterie</b>", style_header_top))
             elements.append(Spacer(1, 4))
-            prod_ann = roi_summary_avec.get("prod_annuelle", 0.0)
-            eco_ann = roi_summary_avec.get("eco_annuelle", 0.0)
-            cout_sys = roi_summary_avec.get("cout_systeme", 0.0)
-            payback = roi_summary_avec.get("payback", None)
+            production_annuelle_avec = roi_summary_avec.get("prod_annuelle", 0.0)
+            economie_annuelle_avec = roi_summary_avec.get("eco_annuelle", 0.0)
+            investissement_avec = roi_summary_avec.get("cout_systeme", 0.0)
+            roi_avec = roi_summary_avec.get("payback", None)
             txt = (
-                f"<b>Production photovoltaïque annuelle estimée :</b> {prod_ann:,.0f} kWh/an<br/>"
-                f"<b>Économie annuelle estimée :</b> {eco_ann:,.0f} MAD/an<br/>"
-                f"<b>Coût d'investissement estimé :</b> {cout_sys:,.0f} MAD<br/>"
+                f"<b>Production photovoltaïque annuelle estimée :</b> {production_annuelle_avec:,.0f} kWh/an<br/>"
+                f"<b>Économie annuelle estimée :</b> {economie_annuelle_avec:,.0f} MAD/an<br/>"
+                f"<b>Coût d'investissement estimé :</b> {investissement_avec:,.0f} MAD<br/>"
             )
-            if payback is not None:
-                txt += f"<b>Temps de retour sur investissement :</b> {payback:.1f} années<br/>"
+            if roi_avec is not None:
+                txt += f"<b>Temps de retour sur investissement :</b> {roi_avec:.1f} années<br/>"
             else:
                 txt += "<b>Temps de retour sur investissement :</b> non calculable (économie annuelle nulle)<br/>"
             elements.append(Paragraph(txt, style_normal))
             elements.append(Spacer(1, 10))
 
     # ========== PAGE 5 : GARANTIES ET POURQUOI TAQINOR ==========
-    elements.append(PageBreak())
-
-    # ========== PAGE 5 : GARANTIES ET POURQUOI TAQINOR ==========
-    elements.append(PageBreak())
-    
-    heading_warranty = ParagraphStyle(
-        "heading_warranty",
-        parent=style_normal,
-        fontSize=14,
-        leading=16,
-        textColor=colors.HexColor(BLUE_MAIN),
-        spaceAfter=10,
-    )
-    elements.append(Paragraph("Garanties et Engagement Qualité", heading_warranty))
+    ensure_page_break()
+    elements.append(Paragraph("GARANTIES & CONDITIONS GÉNÉRALES", heading1_style))
     elements.append(Spacer(1, 12))
     
     # Section Garanties
@@ -1400,23 +1490,15 @@ def generate_double_devis_pdf(
     elements.append(Paragraph(warranty_details, style_normal))
     elements.append(Spacer(1, 12))
     
-    # Section Pourquoi TAQINOR
-    elements.append(Paragraph("<b>Pourquoi choisir TAQINOR ?</b>", style_header_top))
-    elements.append(Spacer(1, 6))
-    
-    why_taqinor = (
-        "<b>✓ Expertise reconnue :</b> Spécialiste en solutions photovoltaïques et batteries depuis plus de 10 ans<br/>"
-        "<b>✓ Équipements de qualité :</b> Marques réputées (Huawei, Deye, Canadian Solar)<br/>"
-        "<b>✓ Accompagnement complet :</b> Études gratuites, devis précis, installation professionnelle<br/>"
-        "<b>✓ Suivi technique :</b> Maintenance et support 24/7 après installation<br/>"
-        "<b>✓ Rentabilité garantie :</b> Étude ROI personnalisée avec simulation de production<br/>"
-        "<b>✓ Respect des normes :</b> Conformité aux standards marocains et internationaux"
-    )
-    elements.append(Paragraph(why_taqinor, style_normal))
-    elements.append(Spacer(1, 12))
-    
     # Section Conditions
     elements.append(Paragraph("<b>Conditions générales</b>", style_header_top))
+    elements.append(Spacer(1, 6))
+    elements.append(
+        Paragraph(
+            "Les conditions ci-dessous définissent le cadre contractuel de l’offre TAQINOR pour votre installation photovoltaïque.",
+            style_normal,
+        )
+    )
     elements.append(Spacer(1, 6))
     
     conditions = (
@@ -1426,6 +1508,31 @@ def generate_double_devis_pdf(
         "• La réalisation de ces travaux ne peut débuter sans signature du devis"
     )
     elements.append(Paragraph(conditions, style_normal))
+    
+    # Page Pourquoi TAQINOR
+    ensure_page_break()
+    elements.append(Paragraph("POURQUOI CHOISIR TAQINOR ?", heading1_style))
+    elements.append(Spacer(1, 12))
+    pourquoi_lines = [
+        "• Installation réalisée par des ingénieurs spécialisés dans le solaire",
+        "• Matériel premium : Huawei, Deye, Canadian Solar",
+        "• Service après-vente disponible 7j/7 (WhatsApp & téléphone)",
+        "• Installation propre, sécurisée et conforme aux normes",
+        "• Optimisation anti-injection quand nécessaire",
+        "• Suivi de production en temps réel via application mobile",
+        "• Possibilité d’évolution future de l’installation",
+    ]
+    for line in pourquoi_lines:
+        elements.append(Paragraph(line, style_normal))
+        elements.append(Spacer(1, 4))
+    elements.append(Spacer(1, 10))
+    elements.append(
+        Paragraph(
+            "Notre équipe reste à votre disposition pour toute question complémentaire ou adaptation de cette proposition. La planification de l’installation sera effectuée dès validation du devis et organisation logistique avec le client.",
+            style_normal,
+        )
+    )
+    elements.append(Spacer(1, 6))
 
     # FOOTER
     # Footer content to be drawn on the last page only (at fixed bottom position)

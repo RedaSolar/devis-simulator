@@ -594,15 +594,15 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
         idx = mask_pan.idxmax()
         if nb_panneaux > 0:
             df.at[idx, "Quantité"] = nb_panneaux
-        # Prefer 'Canadien Solar' 710W if available, otherwise pick first brand/power
+        # Prefer 'Canadian Solar' 710W if available, otherwise pick first brand/power
         pan_dict = catalog.get("Panneaux", {})
         sel_brand = None
         sel_power = None
         sell_price = None
         buy_price = None
         if pan_dict:
-            if "Canadien Solar" in pan_dict and "710" in pan_dict["Canadien Solar"]:
-                sel_brand = "Canadien Solar"
+            if "Canadian Solar" in pan_dict and "710" in pan_dict["Canadian Solar"]:
+                sel_brand = "Canadian Solar"
                 sel_power = "710"
                 sell_price = pan_dict[sel_brand][sel_power].get("sell_ttc")
                 buy_price = pan_dict[sel_brand][sel_power].get("buy_ttc")
@@ -1142,7 +1142,7 @@ def generate_double_devis_pdf(
         for row_data in (df_sans if isinstance(df_sans, list) else []):
             if isinstance(row_data, dict) and row_data.get("Désignation") == "Panneaux":
                 nb_panneaux = int(row_data.get("Quantité", 0))
-                # Extraire la puissance du modèle de panneau (ex: "Canadien 710W")
+                # Extraire la puissance du modèle de panneau (ex: "Canadian Solar 710W")
                 marque = str(row_data.get("Marque", ""))
                 if "710" in marque:
                     puissance_panneau = 710
@@ -1156,6 +1156,20 @@ def generate_double_devis_pdf(
     
     puissance_totale = (nb_panneaux * puissance_panneau) / 1000 if puissance_panneau > 0 else 0
     
+    # Extraire la capacité de batterie (en kWh) si présente
+    batterie_capacite_kwh = 0.0
+    try:
+        for row_data in (df_avec if isinstance(df_avec, list) else []):
+            if isinstance(row_data, dict) and row_data.get("Désignation") == "Batterie":
+                marque_bat = str(row_data.get("Marque", ""))
+                qty_bat = int(row_data.get("Quantité", 0))
+                if "10" in marque_bat:
+                    batterie_capacite_kwh += qty_bat * 10.0
+                elif "5" in marque_bat:
+                    batterie_capacite_kwh += qty_bat * 5.0
+    except Exception:
+        pass
+    
     # Déterminer quels scénarios sont présents
     scenario_text = ""
     if scenario_choice == "Sans batterie uniquement":
@@ -1167,21 +1181,40 @@ def generate_double_devis_pdf(
     
     project_summary = (
         f"<b>Installation photovoltaïque de {nb_panneaux} panneaux de {puissance_panneau}W "
-        f"(puissance totale : {puissance_totale:.1f} kWc)</b><br/>"
+        f"(puissance totale : {puissance_totale:.2f} kWc)</b><br/>"
         f"avec {scenario_text}."
     )
     elements.append(Paragraph("<b>Résumé du projet :</b>", heading_style))
     elements.append(Paragraph(project_summary, style_normal))
     elements.append(Spacer(1, 12))
     
+    # Description des deux options
+    elements.append(Paragraph("<b>Description des options :</b>", heading_style))
+    options_desc = (
+        "<b>• Option 1 - Installation SANS batterie :</b> Système connecté au réseau électrique national, "
+        "sans stockage d'énergie. L'électricité produite est consommée directement ou injectée dans le réseau.<br/>"
+        "<br/>"
+    )
+    if batterie_capacite_kwh > 0:
+        options_desc += (
+            f"<b>• Option 2 - Installation AVEC batterie :</b> Système hybride avec batterie de {batterie_capacite_kwh} kWh."
+        )
+    else:
+        options_desc += (
+            "<b>• Option 2 - Installation AVEC batterie :</b> Système hybride avec batterie de stockage. "
+            "Maximise l'autoconsommation et offre une autonomie énergétique."
+        )
+    elements.append(Paragraph(options_desc, style_normal))
+    elements.append(Spacer(1, 12))
+    
     # Description des avantages
     elements.append(Paragraph("<b>Avantages de cette installation :</b>", heading_style))
     advantages = (
-        "• Réduction de vos factures d'électricité<br/>"
-        "• Production d'énergie propre et renouvelable<br/>"
-        "• Augmentation de la valeur immobilière<br/>"
-        "• Technologie éprouvée avec garantie 10-25 ans<br/>"
-        "• Accompagnement technique complet par TAQINOR"
+        "• Réduction significative de vos factures d'électricité dès les premiers mois<br/>"
+        "• Production d'une énergie propre et renouvelable, adaptée au climat marocain<br/>"
+        "• Amélioration de la valeur de votre bien immobilier<br/>"
+        "• Technologie fiable, avec des garanties allant de 10 à 25 ans selon les équipements<br/>"
+        "• Accompagnement technique complet par TAQINOR, avant et après l'installation"
     )
     elements.append(Paragraph(advantages, style_normal))
     elements.append(Spacer(1, 16))
@@ -1330,7 +1363,7 @@ def generate_double_devis_pdf(
     
     warranty_details = (
         "<b>• Onduleurs Huawei et Deye :</b> 10 ans de garantie constructeur<br/>"
-        "<b>• Panneaux solaires Canadien :</b> 12 ans de garantie<br/>"
+        "<b>• Panneaux solaires Canadian Solar :</b> 12 ans de garantie<br/>"
     )
     
     # Détecter le type de structure utilisé dans les deux scénarios (préférence aluminium si présent)
@@ -1373,7 +1406,7 @@ def generate_double_devis_pdf(
     
     why_taqinor = (
         "<b>✓ Expertise reconnue :</b> Spécialiste en solutions photovoltaïques et batteries depuis plus de 10 ans<br/>"
-        "<b>✓ Équipements de qualité :</b> Marques réputées (Huawei, Deye, Canadien Solar)<br/>"
+        "<b>✓ Équipements de qualité :</b> Marques réputées (Huawei, Deye, Canadian Solar)<br/>"
         "<b>✓ Accompagnement complet :</b> Études gratuites, devis précis, installation professionnelle<br/>"
         "<b>✓ Suivi technique :</b> Maintenance et support 24/7 après installation<br/>"
         "<b>✓ Rentabilité garantie :</b> Étude ROI personnalisée avec simulation de production<br/>"
@@ -1496,6 +1529,9 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
 
         if designation == "Onduleur réseau":
             pref_brand = st.session_state.get("ondu_res_brand")
+
+
+
             pref_power = st.session_state.get("ondu_res_power")
             pref_phase = st.session_state.get("ondu_res_phase")
         else:
@@ -1776,8 +1812,8 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
         default_brand_idx = 0
         if default_brand and default_brand in available_brands:
             default_brand_idx = available_brands.index(default_brand)
-        elif available_brands and "Canadien Solar" in available_brands:
-            default_brand_idx = available_brands.index("Canadien Solar")
+        elif available_brands and "Canadian Solar" in available_brands:
+            default_brand_idx = available_brands.index("Canadian Solar")
         
         brand_final = cols[0].selectbox("Marque", available_brands, index=default_brand_idx, key=f"sel_brand_{designation}_{label}")
         
@@ -2351,6 +2387,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
             overrides.get("Transport", {}).get("Quantité", 1),
             overrides.get("Transport", {}).get("TVA (%)", 20),
             catalog_now,
+
             default_sell=overrides.get("Transport", {}).get("Prix Unit. TTC", None),
             default_buy=overrides.get("Transport", {}).get("Prix Achat TTC", None),
         ),

@@ -265,5 +265,11 @@
       "sell_ttc": 800.0,
       "buy_ttc": 500.0
     }
+  },
+  "Installation": {
+    "__default__": {
+      "sell_ttc": 5000.0,
+      "buy_ttc": 4000.0
+    }
   }
 }

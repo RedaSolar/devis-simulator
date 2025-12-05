@@ -6,7 +6,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import mm
+from reportlab.lib.units import mm, cm
 from reportlab.platypus import (
     SimpleDocTemplate,
     Table,
@@ -24,6 +24,7 @@ from reportlab.graphics.shapes import Drawing, Line, Rect, String
 from reportlab.lib.colors import HexColor
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfgen import canvas
 import matplotlib.pyplot as plt
 from io import BytesIO
 
@@ -73,7 +74,7 @@ IMAGE_FILES = {
     "Socles": img_candidates("socles"),
     "Accessoires": img_candidates("accessoires"),
     "Tableau De Protection AC/DC": img_candidates("tableau_protection"),
-    "Instalation": img_candidates("installation"),
+    "Installation": img_candidates("installation"),
     "Transport": img_candidates("transport"),
     "Suivi journalier, maintenance chaque 12 mois pendent 2 ans": img_candidates("suivi_maintenance"),
 }
@@ -120,49 +121,64 @@ def interpoler_factures(hiver, ete):
 
 def build_roi_figure(mois, factures, eco_sans, eco_avec):
     taqinor_graph_style()
-    fig, ax = plt.subplots(figsize=(6, 3.0))
-    x = range(len(mois))
+    fig, ax = plt.subplots(figsize=(6.2, 3.2))
+    x = list(range(len(mois)))
+    bar_width = 0.35
+
+    bars_sans = ax.bar(
+        [i - bar_width / 2 for i in x],
+        eco_sans,
+        width=bar_width,
+        color=BLUE_MAIN,
+        label="Économie SANS batterie",
+        alpha=0.9,
+    )
+    bars_avec = ax.bar(
+        [i + bar_width / 2 for i in x],
+        eco_avec,
+        width=bar_width,
+        color=ORANGE_ACCENT,
+        label="Économie AVEC batterie",
+        alpha=0.9,
+    )
 
     ax.plot(
         x,
-        eco_sans,
+        factures,
         marker="o",
         linestyle="-",
-        linewidth=1.5,
-        color=BLUE_MAIN,
-        label="Économie mensuelle – SANS batterie",
-    )
-    ax.plot(
-        x,
-        eco_avec,
-        marker="o",
-        linestyle="--",
-        linewidth=1.5,
-        color=ORANGE_ACCENT,
-        label="Économie mensuelle – AVEC batterie",
-    )
-    ax.plot(
-        x,
-        factures,
-        marker="s",
-        linestyle=":",
-        linewidth=1.2,
+        linewidth=1.0,
         color=GREY_NEUTRAL,
         label="Facture sans PV",
     )
 
-    ax.set_title("Estimation des économies mensuelles")
+    ax.set_title("Estimation des économies mensuelles", pad=8, fontsize=11)
     ax.set_xlabel("Mois")
     ax.set_ylabel("Montant (MAD)")
-    ax.set_xticks(list(x))
+    ax.set_xticks(x)
     ax.set_xticklabels(mois)
     ax.set_axisbelow(True)
     ax.set_ylim(bottom=0)
-    ax.margins(y=0.05)
+    ax.margins(y=0.08)
     for spine in ["top", "right"]:
         ax.spines[spine].set_visible(False)
-    ax.grid(axis="y", alpha=0.25, linestyle="--")
-    ax.legend(loc="best", frameon=False)
+    ax.grid(axis="y", alpha=0.2, linestyle="--", linewidth=0.8)
+    ax.legend(loc="upper left", frameon=False)
+
+    # Optionally add value labels on bars for a premium touch (small and subtle)
+    for bars in (bars_sans, bars_avec):
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                height + (max(factures) * 0.01),
+                f"{height:,.0f}".replace(",", " "),
+                ha="center",
+                va="bottom",
+                fontsize=7,
+                color=TEXT_DARK,
+            )
+
     plt.tight_layout()
     return fig
 
@@ -204,15 +220,15 @@ CANONICALS = [
     "Socles",
     "Accessoires",
     "Tableau De Protection AC/DC",
-    "Instalation",
+    "Installation",
     "Transport",
     "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
 ]
 CANON_MAP = {c.lower(): c for c in CANONICALS}
 CANON_MAP.update(
     {
-        "installation": "Instalation",
-        "installation + transport": "Instalation",
+        "installation": "Installation",
+        "installation + transport": "Installation",
         "structures en acier galvanisé": "Structures",
         "transport": "Transport",
     }
@@ -289,7 +305,7 @@ def load_catalog():
         "Smart Meter": {"__default__": {"sell_ttc": 0.0, "buy_ttc": 0.0}},
         "Wifi Dongle": {"__default__": {"sell_ttc": 0.0, "buy_ttc": 0.0}},
         "Tableau De Protection AC/DC": {"__default__": {"sell_ttc": 0.0, "buy_ttc": 0.0}},
-        "Instalation": {"__default__": {"sell_ttc": 0.0, "buy_ttc": 0.0}},
+        "Installation": {"__default__": {"sell_ttc": 0.0, "buy_ttc": 0.0}},
         "Transport": {"__default__": {"sell_ttc": 0.0, "buy_ttc": 0.0}},
         "Suivi journalier, maintenance chaque 12 mois pendent 2 ans": {
             "__default__": {"sell_ttc": 0.0, "buy_ttc": 0.0}
@@ -991,8 +1007,11 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
 def build_devis_section_elements(df, notes, styles, scenario_title):
     elements = []
     style_normal = styles["Normal"]
-    style_normal.fontSize = 9
-    style_normal.leading = 11
+    style_normal.fontName = "Helvetica"
+    style_normal.fontSize = 10
+    style_normal.leading = 13
+    style_normal.textColor = colors.HexColor(TEXT_DARK)
+    style_normal.spaceAfter = 6
 
     style_header = ParagraphStyle(
         "header",
@@ -1027,6 +1046,12 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
     df["Total HT"] = df["Prix Unit. HT"] * df["Quantité"]
     df["Total TTC"] = df["Prix Unit. TTC"] * df["Quantité"]
     total_ht, total_ttc = float(df["Total HT"].sum()), float(df["Total TTC"].sum())
+    def fmt_money(val):
+        try:
+            v = float(val)
+        except Exception:
+            return str(val)
+        return f"{v:,.2f}".replace(",", " ") + "\u00a0MAD"
 
     # Titre scénario (grand, encadré et coloré)
     title_style = ParagraphStyle("scenario_title", parent=style_normal, fontSize=14, leading=16, alignment=1)
@@ -1192,12 +1217,15 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
             img_cell.hAlign = "CENTER"
         else:
             img_cell = Table(
-                [[""]],
+                [[Paragraph("Photo", style_small)]],
                 colWidths=[45],
                 rowHeights=[45],
                 style=TableStyle(
                     [
                         ("BOX", (0, 0), (-1, -1), 0.5, colors.grey),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#777777")),
                     ]
                 ),
             )
@@ -1209,15 +1237,15 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
                 spec_cell,
                 garantie_cell,
                 int(r["Quantité"]),
-                f"{r['Prix Unit. TTC']:.2f}",
-                f"{r['Total TTC']:.2f}",
+                fmt_money(r["Prix Unit. TTC"]),
+                fmt_money(r["Total TTC"]),
             ]
         )
 
-    total_ht_lbl = Paragraph("<b>TOTAL HT</b>", style_header_white)
-    total_ttc_lbl = Paragraph("<b>TOTAL TTC</b>", style_header_white)
-    data.append(["", "", "", "", "", total_ht_lbl, f"{total_ht:.2f}"])
-    data.append(["", "", "", "", "", total_ttc_lbl, f"{total_ttc:.2f}"])
+    total_ht_lbl = Paragraph("<b>TOTAL HT</b>", style_normal)
+    total_ttc_lbl = Paragraph("<b>TOTAL TTC</b>", style_normal)
+    data.append(["", "", "", "", "", total_ht_lbl, fmt_money(total_ht)])
+    data.append(["", "", "", "", "", total_ttc_lbl, fmt_money(total_ttc)])
 
     elements.append(Spacer(1, 12))
 
@@ -1227,58 +1255,69 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
             repeatRows=1,
         )
 
+        last_row = len(data_table) - 1
+        before_last_row = len(data_table) - 2
+        body_end = before_last_row - 1
+
         style = TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0A5275")),
+                # Header styling
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BLUE_MAIN)),
                 ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("ALIGN", (0, 0), (-1, 0), "CENTER"),
                 ("VALIGN", (0, 0), (-1, 0), "MIDDLE"),
-                ("FONTSIZE", (0, 0), (-1, 0), 8),
+                ("FONTSIZE", (0, 0), (-1, 0), 8.5),
+                ("TOPPADDING", (0, 0), (-1, 0), 7),
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 7),
+                ("LINEBELOW", (0, 0), (-1, 0), 1.0, colors.white),
+                # Body styling
                 ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
                 ("FONTSIZE", (0, 1), (-1, -1), 8),
-                ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#CCCCCC")),
-                ("INNERGRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#DDDDDD")),
                 ("TEXTCOLOR", (0, 1), (-1, -1), colors.HexColor("#222222")),
+                ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#CCCCCC")),
+                ("INNERGRID", (0, 1), (-1, -3), 0.3, colors.HexColor("#DDDDDD")),
                 ("LEFTPADDING", (0, 1), (-1, -1), 6),
                 ("RIGHTPADDING", (0, 1), (-1, -1), 6),
-                ("TOPPADDING", (0, 1), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
-                ("TOPPADDING", (0, 0), (-1, 0), 5),
-                ("BOTTOMPADDING", (0, 0), (-1, 0), 5),
+                ("TOPPADDING", (0, 1), (-1, -3), 5),
+                ("BOTTOMPADDING", (0, 1), (-1, -3), 5),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("ALIGN", (0, 1), (0, -1), "CENTER"),
                 ("ALIGN", (1, 1), (2, -1), "LEFT"),
-                ("ALIGN", (3, 1), (3, -1), "CENTER"),
-                ("ALIGN", (4, 1), (-1, -1), "RIGHT"),
+                ("ALIGN", (3, 1), (3, -3), "CENTER"),
+                ("ALIGN", (4, 1), (4, -1), "RIGHT"),
+                ("ALIGN", (5, 1), (5, -1), "RIGHT"),
+                ("ALIGN", (6, 1), (6, -1), "RIGHT"),
                 ("ALIGN", (0, 0), (-1, 0), "CENTER"),
                 ("WORDWRAP", (1, 1), (2, -1), None),
             ]
         )
 
-        style.add(
-            "ROWBACKGROUNDS",
-            (0, 1),
-            (-1, -1),
-            (colors.white, colors.HexColor("#F7F9FA")),
-        )
+        if body_end >= 1:
+            style.add(
+                "ROWBACKGROUNDS",
+                (0, 1),
+                (-1, body_end),
+                (colors.white, colors.HexColor(BLUE_LIGHT)),
+            )
 
-        last_row = len(data_table) - 1
-        before_last_row = len(data_table) - 2
-        style.add("BACKGROUND", (0, before_last_row), (-1, before_last_row), colors.HexColor("#F0F0F0"))
-        style.add("FONTNAME", (0, before_last_row), (-1, before_last_row), "Helvetica-Bold")
-        style.add("BACKGROUND", (0, last_row), (-1, last_row), colors.HexColor("#D8D8D8"))
-        style.add("FONTNAME", (0, last_row), (-1, last_row), "Helvetica-Bold")
+        style.add("SPAN", (0, before_last_row), (5, before_last_row))
+        style.add("SPAN", (0, last_row), (5, last_row))
+        style.add("BACKGROUND", (0, before_last_row), (-1, last_row), colors.whitesmoke)
+        style.add("FONTNAME", (0, before_last_row), (-1, last_row), "Helvetica-Bold")
+        style.add("LINEABOVE", (0, before_last_row), (-1, before_last_row), 1, colors.HexColor(TEXT_DARK))
+        style.add("TOPPADDING", (0, before_last_row), (-1, last_row), 6)
+        style.add("BOTTOMPADDING", (0, before_last_row), (-1, last_row), 6)
 
         table.setStyle(style)
         table._argW = [
-            45,   # Photo
-            120,  # Désignation
-            150,  # Spécifications techniques
-            60,   # Garantie
-            30,   # Quantité
-            60,   # Prix Unit
-            80,   # Total TTC
+            1.6 * cm,  # Photo
+            4.6 * cm,  # Désignation
+            4.6 * cm,  # Spécifications techniques
+            2.4 * cm,  # Garantie
+            1.1 * cm,  # Quantité
+            2.7 * cm,  # Prix Unit
+            2.7 * cm,  # Total TTC
         ]
         return table
 
@@ -1313,6 +1352,7 @@ def generate_double_devis_pdf(
     roi_summary_avec,
     roi_fig_all_buf,
     scenario_choice,
+    recommended_option=None,
 ):
     safe_client = re.sub(r"[^A-Za-z0-9]", "_", client_name or "Client")
     file_name = f"{doc_type}_{safe_client}_{int(doc_number)}.pdf"
@@ -1321,22 +1361,61 @@ def generate_double_devis_pdf(
     doc = SimpleDocTemplate(
         str(pdf_path),
         pagesize=A4,
-        rightMargin=12,  # ~4 mm
-        leftMargin=12,   # ~4 mm
-        topMargin=35,
-        bottomMargin=40,
+        rightMargin=56,  # ~2 cm
+        leftMargin=56,   # ~2 cm
+        topMargin=50,
+        bottomMargin=45,
     )
     elements = []
     styles = getSampleStyleSheet()
-    style_normal = styles["Normal"]
-    style_normal.fontSize = 9
-    style_normal.leading = 11
-    style_small = styles["Normal"].clone("small")
-    style_small.fontSize = 9
-    style_small.leading = 11
+    style_normal = ParagraphStyle(
+        "body",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=10,
+        leading=13,
+        textColor=colors.HexColor(TEXT_DARK),
+        spaceAfter=6,
+    )
+    style_body = style_normal
+    style_small = ParagraphStyle(
+        "small",
+        parent=style_body,
+        fontSize=9,
+        leading=11,
+    )
+    style_bullet = ParagraphStyle(
+        "bullet",
+        parent=style_body,
+        leftIndent=14,
+        bulletIndent=0,
+        spaceAfter=4,
+    )
+    style_h1 = ParagraphStyle(
+        "style_h1",
+        parent=styles["Heading1"],
+        fontName="Helvetica-Bold",
+        fontSize=17,
+        leading=21,
+        textColor=colors.HexColor(BLUE_MAIN),
+        spaceBefore=18,
+        spaceAfter=8,
+        alignment=0,
+    )
+    style_h2 = ParagraphStyle(
+        "style_h2",
+        parent=styles["Heading2"],
+        fontName="Helvetica-Bold",
+        fontSize=13.5,
+        leading=17,
+        textColor=colors.HexColor(TEXT_DARK),
+        spaceBefore=12,
+        spaceAfter=6,
+        alignment=0,
+    )
     style_company = ParagraphStyle(
         "company",
-        parent=style_normal,
+        parent=style_body,
         fontSize=9,
         leading=14,
     )
@@ -1435,30 +1514,51 @@ def generate_double_devis_pdf(
     puissance_totale_kwc = round(nombre_panneaux * puissance_panneau / 1000, 2) if puissance_panneau else 0.0
     
     # ========== PAGE 1 : PRÉSENTATION DU PROJET ==========
-    heading_style = ParagraphStyle(
-        "heading",
-        parent=style_normal,
-        fontSize=16,
-        leading=20,
-        textColor=colors.HexColor("#0A5275"),
-        spaceAfter=0,
-        spaceBefore=0,
-        alignment=0,
-        fontName="Helvetica-Bold",
-    )
-    heading2_for_intro = heading2_style if "heading2_style" in locals() else heading_style
+    heading_style = style_h1
+    heading2_for_intro = style_h1
 
-    # --- HERO BAND WITH LOGO + TITLE (PAGE 1 ONLY) ---
-    elements.append(Spacer(1, 10))
-
+    # --- PREMIUM HEADER BAR (PAGE 1 ONLY) ---
     if "LOGO_PATH" in globals() and LOGO_PATH.exists():
-        logo = Image(str(LOGO_PATH), width=80, height=34)
+        logo = Image(str(LOGO_PATH), width=120)
     else:
-        logo = Image("taqinor_logo.png", width=80, height=34)
+        logo = Image("taqinor_logo.png", width=120)
+    # Preserve aspect ratio
+    try:
+        logo.drawHeight = logo.drawWidth * logo.imageHeight / logo.imageWidth
+    except Exception:
+        pass
+
+    contact_para = Paragraph(
+        "TAQINOR Solutions — contact@taqinor.com — +212 6 61 85 04 10",
+        ParagraphStyle(
+            "contact_line",
+            parent=style_small,
+            fontSize=8,
+            leading=10,
+            textColor=colors.HexColor(TEXT_DARK),
+        ),
+    )
+    logo_row = Table([[logo, contact_para]], colWidths=[140, 340])
+    logo_row.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BLUE_LIGHT)),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (0, 0), (0, 0), "LEFT"),
+                ("ALIGN", (1, 0), (1, 0), "RIGHT"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    elements.append(logo_row)
+    elements.append(Spacer(1, 12))
 
     title_para = Paragraph("Devis Installation Photovoltaïque", cover_title_style)
     subtitle_para = Paragraph(
-        "Solution premium et sur-mesure pour votre autonomie énergétique",
+        "<i>Solution premium et sur-mesure pour votre autonomie énergétique</i>",
         cover_subtitle_style,
     )
 
@@ -1477,157 +1577,76 @@ def generate_double_devis_pdf(
         )
     )
 
-    hero_table = Table(
-        [[logo, right_block]],
-        colWidths=[90, 380],
-    )
+    hero_table = Table([[right_block]], colWidths=[480], hAlign="CENTER")
     hero_table.setStyle(
         TableStyle(
             [
                 ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#E6F1F7")),
                 ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#0A5275")),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 10),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ("LEFTPADDING", (0, 0), (-1, -1), 12),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+                ("TOPPADDING", (0, 0), (-1, -1), 10),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
             ]
         )
     )
 
     elements.append(hero_table)
-    elements.append(Spacer(1, 14))
+    elements.append(Spacer(1, 12))
 
-    # Cartes premium Client / Détails du devis
-    card_title_style = ParagraphStyle(
-        "card_title",
+    # --- SUMMARY BOX (CLIENT & PROJET) ---
+    summary_label_style = ParagraphStyle(
+        "summary_label",
         parent=style_normal,
-        fontSize=11,
-        leading=13,
-        textColor=colors.white,
+        fontSize=9,
+        leading=11,
+        textColor=colors.HexColor(TEXT_DARK),
         fontName="Helvetica-Bold",
     )
-    card_body_style = ParagraphStyle(
-        "card_body",
+    summary_value_style = ParagraphStyle(
+        "summary_value",
         parent=style_normal,
         fontSize=9,
-        leading=12,
-        textColor=colors.HexColor("#1E2A38"),
+        leading=11,
+        textColor=colors.HexColor(TEXT_DARK),
     )
 
-    client_data = [
-        [Paragraph("Client", card_title_style)],
-        [Paragraph(f"Nom : {client_name or '-'}", card_body_style)],
-        [Paragraph(f"Adresse : {client_address or '-'}", card_body_style)],
-        [Paragraph(f"Téléphone : {client_phone or '-'}", card_body_style)],
+    config_text = f"{nombre_panneaux} x {puissance_panneau} W"
+    summary_rows = [
+        [Paragraph("Client", summary_label_style), Paragraph(client_name or "-", summary_value_style)],
+        [Paragraph("Adresse", summary_label_style), Paragraph(client_address or "-", summary_value_style)],
+        [Paragraph("Téléphone", summary_label_style), Paragraph(client_phone or "-", summary_value_style)],
+        [Paragraph("Numéro du devis", summary_label_style), Paragraph(f"{int(doc_number)}", summary_value_style)],
+        [Paragraph("Date d’émission", summary_label_style), Paragraph(today, summary_value_style)],
+        [Paragraph("Puissance totale installée", summary_label_style), Paragraph(f"{puissance_totale_kwc:.2f} kWc", summary_value_style)],
+        [Paragraph("Configuration proposée", summary_label_style), Paragraph(config_text, summary_value_style)],
     ]
-    client_table = Table(client_data, colWidths=[280])
-    client_table.setStyle(
+
+    summary_table = Table(summary_rows, colWidths=[180, 300], hAlign="CENTER")
+    summary_table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0A5275")),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#CCCCCC")),
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(BLUE_LIGHT)),
+                ("BOX", (0, 0), (-1, -1), 1.0, colors.HexColor(BLUE_MAIN)),
+                ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D5E6F2")),
                 ("LEFTPADDING", (0, 0), (-1, -1), 8),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ("TOPPADDING", (0, 0), (-1, -1), 8),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-            ]
-        )
-    )
-
-    details_data = [
-        [Paragraph("Détails du devis", card_title_style)],
-        [Paragraph(f"Numéro du devis : {int(doc_number)}", card_body_style)],
-        [Paragraph(f"Date d'émission : {today}", card_body_style)],
-    ]
-    details_table = Table(details_data, colWidths=[200])
-    details_table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0A5275")),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#CCCCCC")),
-                ("LEFTPADDING", (0, 0), (-1, -1), 8),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ("TOPPADDING", (0, 0), (-1, -1), 8),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-            ]
-        )
-    )
-
-    top_tables = Table([[client_table, details_table]], colWidths=[280, 200])
-    top_tables.setStyle(
-        TableStyle(
-            [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-            ]
-        )
-    )
-    elements.append(top_tables)
-    elements.append(Spacer(1, 14))
-
-    # Mini-résumé visuel (puissance / modules / référence)
-    chip_style = ParagraphStyle(
-        "chip",
-        parent=style_normal,
-        alignment=1,
-        fontSize=9,
-        leading=12,
-        textColor=colors.HexColor("#0A1F33"),
-    )
-    chips_row = [
-        Paragraph(f"<b>{puissance_totale_kwc:.2f} kWc</b><br/><font size=8>Puissance totale installée</font>", chip_style),
-        Paragraph(f"<b>{nombre_panneaux} modules</b><br/><font size=8>{puissance_panneau} W par panneau</font>", chip_style),
-        Paragraph(f"<b>{doc_type} n°{int(doc_number)}</b><br/><font size=8>Émis le {today}</font>", chip_style),
-    ]
-    chips_table = Table([chips_row], colWidths=[160, 160, 160], hAlign="CENTER")
-    chips_table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#EFF5FB")),
-                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#C7D8E8")),
-                ("LEFTPADDING", (0, 0), (-1, -1), 10),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
-                ("TOPPADDING", (0, 0), (-1, -1), 10),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ]
         )
     )
-    elements.append(chips_table)
-    elements.append(Spacer(1, 18))
+
+    elements.append(Spacer(1, 12))
+    elements.append(summary_table)
+    elements.append(Spacer(1, 12))
 
     # RÉSUMÉ DU PROJET
-    heading1_style = styles["Heading1"].clone("heading1_custom")
-    heading1_style.fontSize = 16
-    heading1_style.leading = 20
-    heading1_style.textColor = colors.HexColor("#0A5275")
-    heading1_style.fontName = "Helvetica-Bold"
-    heading1_style.spaceBefore = 0
-    heading1_style.spaceAfter = 0
-    heading1_style.alignment = 0
-    heading2_style = styles["Heading2"].clone("heading2_custom")
-    heading2_style.fontSize = 16
-    heading2_style.leading = 20
-    heading2_style.textColor = colors.HexColor("#0A5275")
-    heading2_style.fontName = "Helvetica-Bold"
-    heading2_style.spaceBefore = 0
-    heading2_style.spaceAfter = 0
-    heading2_style.alignment = 0
-    heading3_style = styles["Heading3"].clone("heading3_custom")
-    heading3_style.fontSize = 16
-    heading3_style.leading = 20
-    heading3_style.textColor = colors.HexColor("#0A5275")
-    heading3_style.fontName = "Helvetica-Bold"
-    heading3_style.spaceBefore = 0
-    heading3_style.spaceAfter = 0
-    heading3_style.alignment = 0
+    heading1_style = style_h1
+    heading2_style = style_h2
+    heading3_style = style_h2
     def ensure_page_break():
         if not elements or not isinstance(elements[-1], PageBreak):
             elements.append(PageBreak())
@@ -1636,40 +1655,50 @@ def generate_double_devis_pdf(
         line.add(Line(0, 0, 480, 0, strokeColor=colors.HexColor("#E0E0E0"), strokeWidth=0.7))
         elements.append(line)
     
-    elements.append(Spacer(1, 18))
-    elements.append(Paragraph("RÉSUMÉ EXÉCUTIF", heading_style))
-    elements.append(Spacer(1, 10))
+    # heading style already adds top spacing
+    elements.append(Paragraph("RÉSUMÉ EXÉCUTIF", heading1_style))
+    elements.append(Spacer(1, 8))
     elements.append(
         Paragraph(
             "Ce devis présente une solution photovoltaïque sur mesure visant à réduire durablement votre facture d’électricité, améliorer votre autonomie énergétique et valoriser votre patrimoine. L’installation proposée repose sur des équipements premium (Canadian Solar, Huawei, Deye) et s’adapte à votre profil de consommation afin de maximiser votre taux d’autoconsommation et votre retour sur investissement.",
             style_normal,
         )
     )
-    elements.append(Spacer(1, 8))
-    elements.append(Paragraph("L’étude ci-dessous inclut :", heading_style))
+    elements.append(Spacer(1, 6))
+    elements.append(Paragraph("L’étude ci-dessous inclut :", heading1_style))
     bullet_intro = [
-        f"• Une configuration de {nombre_panneaux} panneaux de {puissance_panneau} W (puissance totale {puissance_totale_kwc:.2f} kWc)",
-        "• Une analyse comparative entre une installation SANS batterie et une installation AVEC batterie",
-        "• Une estimation économique complète (production annuelle, économies, ROI)",
-        "• Les garanties et engagements TAQINOR",
+        f"Une configuration de {nombre_panneaux} panneaux de {puissance_panneau} W (puissance totale {puissance_totale_kwc:.2f} kWc)",
+        "Une analyse comparative entre une installation SANS batterie et une installation AVEC batterie",
+        "Une estimation économique complète (production annuelle, économies, ROI)",
+        "Les garanties et engagements TAQINOR",
     ]
-    for txt in bullet_intro:
-        elements.append(Paragraph(txt, style_normal))
-        elements.append(Spacer(1, 4))
-    elements.append(Spacer(1, 18))
-    elements.append(Paragraph("OBJECTIFS DU CLIENT", heading_style))
-    elements.append(Spacer(1, 10))
+    elements.append(
+        ListFlowable(
+            [ListItem(Paragraph(txt, style_bullet)) for txt in bullet_intro],
+            bulletType="bullet",
+            bulletText="•",
+            leftIndent=14,
+        )
+    )
+    elements.append(Spacer(1, 12))
+    elements.append(Paragraph("OBJECTIFS DU CLIENT", heading1_style))
+    elements.append(Spacer(1, 8))
     client_objectifs = [
-        "• Réduire significativement la facture d’électricité mensuelle",
-        "• Gagner en confort et en sécurité énergétique en cas de coupure",
-        "• Préserver la possibilité d’une évolution future (batterie, puissance supplémentaire)",
+        "Réduire significativement la facture d’électricité mensuelle",
+        "Gagner en confort et en sécurité énergétique en cas de coupure",
+        "Préserver la possibilité d’une évolution future (batterie, puissance supplémentaire)",
     ]
-    for txt in client_objectifs:
-        elements.append(Paragraph(txt, style_normal))
-        elements.append(Spacer(1, 4))
-    elements.append(Spacer(1, 18))
-    elements.append(Paragraph("CONFIGURATION RECOMMANDÉE", heading_style))
-    elements.append(Spacer(1, 10))
+    elements.append(
+        ListFlowable(
+            [ListItem(Paragraph(txt, style_bullet)) for txt in client_objectifs],
+            bulletType="bullet",
+            bulletText="•",
+            leftIndent=14,
+        )
+    )
+    elements.append(Spacer(1, 12))
+    elements.append(Paragraph("CONFIGURATION RECOMMANDÉE", heading1_style))
+    elements.append(Spacer(1, 8))
     elements.append(
         Paragraph(
             f"TAQINOR propose deux configurations optimisées : une installation SANS batterie, privilégiant le meilleur retour sur investissement, et une installation AVEC batterie, offrant davantage de confort et d’autonomie lors des coupures réseau. Les deux scénarios reposent sur une puissance totale installée de {puissance_totale_kwc:.2f} kWc via {nombre_panneaux} modules de {puissance_panneau} W.",
@@ -1677,21 +1706,22 @@ def generate_double_devis_pdf(
         )
     )
     elements.append(Spacer(1, 6))
-    elements.append(PageBreak())
-    
+
     # ========== PAGE 2 : OPTION SANS BATTERIE ==========
     # SECTION SANS
     options_heading_shown = False
     if scenario_choice in ("Sans batterie uniquement", "Les deux (Sans + Avec)"):
-        ensure_page_break()
+        elements.append(PageBreak())
         if not options_heading_shown:
-            elements.append(Spacer(1, 18))
+            elements.append(Spacer(1, 12))
             add_divider()
             elements.append(Spacer(1, 6))
             elements.append(Paragraph("PRÉSENTATION DES OPTIONS", heading1_style))
-            elements.append(Spacer(1, 10))
+            elements.append(Spacer(1, 8))
             options_heading_shown = True
         elements.append(Paragraph("Option 1 : Installation SANS batterie", heading3_style))
+        elements.append(Spacer(1, 6))
+        elements.append(Paragraph("Solution optimisée pour le meilleur retour sur investissement.", style_normal))
         elements.append(Spacer(1, 6))
         elements.append(
             Paragraph(
@@ -1700,7 +1730,7 @@ def generate_double_devis_pdf(
                 style_normal,
             )
         )
-        elements.append(Spacer(1, 10))
+        elements.append(Spacer(1, 8))
         
         sec_sans, total_sans = build_devis_section_elements(
             df_sans, notes_sans, styles, "Devis SANS batterie"
@@ -1711,15 +1741,17 @@ def generate_double_devis_pdf(
     # ========== PAGE 3 : OPTION AVEC BATTERIE ==========
     # SECTION AVEC
     if scenario_choice in ("Avec batterie uniquement", "Les deux (Sans + Avec)"):
-        ensure_page_break()
+        elements.append(PageBreak())
         if not options_heading_shown:
-            elements.append(Spacer(1, 18))
+            elements.append(Spacer(1, 12))
             add_divider()
             elements.append(Spacer(1, 6))
             elements.append(Paragraph("PRÉSENTATION DES OPTIONS", heading1_style))
-            elements.append(Spacer(1, 10))
+            elements.append(Spacer(1, 8))
             options_heading_shown = True
         elements.append(Paragraph("Option 2 : Installation AVEC batterie", heading3_style))
+        elements.append(Spacer(1, 6))
+        elements.append(Paragraph("Solution orientée confort et autonomie grâce à la batterie.", style_normal))
         elements.append(Spacer(1, 6))
         elements.append(
             Paragraph(
@@ -1728,7 +1760,7 @@ def generate_double_devis_pdf(
                 style_normal,
             )
         )
-        elements.append(Spacer(1, 10))
+        elements.append(Spacer(1, 8))
         
         sec_avec, total_avec = build_devis_section_elements(
             df_avec, notes_avec, styles, "Devis AVEC batterie"
@@ -1739,113 +1771,142 @@ def generate_double_devis_pdf(
     # ========== PAGE 4 : ANALYSE ÉCONOMIQUE ET ROI ==========
     # PAGE ROI GRAPHIQUE
     if roi_fig_all_buf is not None:
-        ensure_page_break()
-        elements.append(Spacer(1, 18))
+        elements.append(Spacer(1, 12))
         add_divider()
         elements.append(Spacer(1, 6))
         elements.append(Paragraph("SYNTHÈSE FINANCIÈRE & ROI", heading1_style))
-        elements.append(Spacer(1, 10))
+        elements.append(Spacer(1, 8))
         elements.append(Paragraph("Analyse détaillée du retour sur investissement", heading2_style))
         elements.append(Spacer(1, 8))
-        elements.append(
-            Paragraph(
-                "Les estimations ci-dessous présentent la production annuelle attendue, les économies générées et le temps de retour sur investissement.<br/>"
-                "Ces valeurs permettent de comparer objectivement les deux scénarios et de choisir la solution la plus rentable selon votre consommation.",
-                style_normal,
+
+        def fmt_nb(val, suffix=""):
+            try:
+                v = float(val)
+            except Exception:
+                return "—"
+            return f"{v:,.2f}".replace(",", " ") + (f" {suffix}" if suffix else "")
+
+        def fmt_int(val, suffix=""):
+            try:
+                v = float(val)
+            except Exception:
+                return "—"
+            return f"{v:,.0f}".replace(",", " ") + (f" {suffix}" if suffix else "")
+
+        sans_prod = fmt_int(roi_summary_sans.get("prod_annuelle", 0.0) if roi_summary_sans else "—", "kWh/an")
+        sans_eco = fmt_int(roi_summary_sans.get("eco_annuelle", 0.0) if roi_summary_sans else "—", "MAD/an")
+        sans_inv = fmt_int(roi_summary_sans.get("cout_systeme", 0.0) if roi_summary_sans else "—", "MAD")
+        sans_payback = fmt_nb(roi_summary_sans.get("payback") if roi_summary_sans else "—", "années") if roi_summary_sans and roi_summary_sans.get("payback") is not None else "—"
+
+        avec_prod = fmt_int(roi_summary_avec.get("prod_annuelle", 0.0) if roi_summary_avec else "—", "kWh/an")
+        avec_eco = fmt_int(roi_summary_avec.get("eco_annuelle", 0.0) if roi_summary_avec else "—", "MAD/an")
+        avec_inv = fmt_int(roi_summary_avec.get("cout_systeme", 0.0) if roi_summary_avec else "—", "MAD")
+        avec_payback = fmt_nb(roi_summary_avec.get("payback") if roi_summary_avec else "—", "années") if roi_summary_avec and roi_summary_avec.get("payback") is not None else "—"
+
+        puissance_sans = f"{puissance_totale_kwc:.2f} kWc"
+        puissance_avec = puissance_sans
+
+        summary_rows = [
+            ["Puissance installée", puissance_sans, puissance_avec],
+            ["Investissement TTC", sans_inv, avec_inv],
+            ["Production annuelle estimée", sans_prod, avec_prod],
+            ["Économie annuelle estimée", sans_eco, avec_eco],
+            ["Temps de retour sur investissement", sans_payback, avec_payback],
+        ]
+        summary_table = Table(
+            [
+                [
+                    Paragraph("", style_normal),
+                    Paragraph("<b>Scénario SANS batterie</b>", style_header_top),
+                    Paragraph("<b>Scénario AVEC batterie</b>", style_header_top),
+                ]
+            ]
+            + [[Paragraph(label, style_normal), Paragraph(val_s, style_normal), Paragraph(val_a, style_normal)] for label, val_s, val_a in summary_rows],
+            colWidths=[210, 135, 135],
+            hAlign="CENTER",
+        )
+        summary_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BLUE_MAIN)),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("TOPPADDING", (0, 0), (-1, 0), 7),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 7),
+                    ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor(BLUE_MAIN)),
+                    ("INNERGRID", (0, 1), (-1, -1), 0.3, colors.HexColor("#D5E6F2")),
+                    ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), (colors.white, colors.HexColor(BLUE_LIGHT))),
+                    ("LEFTPADDING", (0, 1), (-1, -1), 6),
+                    ("RIGHTPADDING", (0, 1), (-1, -1), 6),
+                    ("TOPPADDING", (0, 1), (-1, -1), 5),
+                    ("BOTTOMPADDING", (0, 1), (-1, -1), 5),
+                    ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+                ]
             )
         )
+        elements.append(summary_table)
         elements.append(Spacer(1, 12))
-        
+
+        # Recommandation encadrée (affichée uniquement si sélectionnée)
+        if recommended_option and recommended_option.lower() not in ("aucune recommandation", "aucune recommandation (client libre de choisir)"):
+            reco_label = f"Recommandation TAQINOR : {recommended_option}"
+            reco_text = Paragraph(f"<b>{reco_label}</b>", style_normal)
+            reco_tbl = Table([[reco_text]], colWidths=[480], hAlign="CENTER")
+            reco_tbl.setStyle(
+                TableStyle(
+                    [
+                        ("BOX", (0, 0), (-1, -1), 1, colors.HexColor(BLUE_MAIN)),
+                        ("BACKGROUND", (0, 0), (-1, -1), colors.white),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                        ("TOPPADDING", (0, 0), (-1, -1), 6),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                    ]
+                )
+            )
+            elements.append(reco_tbl)
+            elements.append(Spacer(1, 10))
+
         elements.append(Paragraph("<b>Estimation des économies mensuelles</b>", style_header_top))
         elements.append(Spacer(1, 6))
         roi_fig_all_buf.seek(0)
-        elements.append(Image(roi_fig_all_buf, width=420, height=260))
+        elements.append(Image(roi_fig_all_buf, width=360, height=200))
+        elements.append(Spacer(1, 6))
+        elements.append(Paragraph("Comparaison des économies mensuelles avec et sans batterie.", style_normal))
         elements.append(Spacer(1, 10))
 
-        # Explication du graphique
-        elements.append(Paragraph("<b>Interprétation du graphique</b>", style_header_top))
-        elements.append(Spacer(1, 4))
-        expl = (
-            "Le graphique ci-dessus présente l'estimation des économies mensuelles générées par l'installation photovoltaïque "
-            "sur 12 mois. Chaque série correspond à un scénario : économies sans batterie et économies avec batterie. "
-            "Ces valeurs servent à comparer l'impact financier mensuel entre les deux configurations et à alimenter le calcul de retour sur investissement."
-        )
-        elements.append(Paragraph(expl, style_normal))
-        elements.append(Spacer(1, 12))
-
-        # Résumés ROI pour les deux scénarios (rassemblés après le graphique)
-        if roi_summary_sans is not None:
-            elements.append(Paragraph("<b>Scénario SANS batterie</b>", style_header_top))
-            elements.append(Spacer(1, 4))
-            production_annuelle_sans = roi_summary_sans.get("prod_annuelle", 0.0)
-            economie_annuelle_sans = roi_summary_sans.get("eco_annuelle", 0.0)
-            investissement_sans = roi_summary_sans.get("cout_systeme", 0.0)
-            roi_sans = roi_summary_sans.get("payback", None)
-            txt = (
-                f"<b>Production photovoltaïque annuelle estimée :</b> {production_annuelle_sans:,.0f} kWh/an<br/>"
-                f"<b>Économie annuelle estimée :</b> {economie_annuelle_sans:,.0f} MAD/an<br/>"
-                f"<b>Coût d'investissement estimé :</b> {investissement_sans:,.0f} MAD<br/>"
-            )
-            if roi_sans is not None:
-                txt += f"<b>Temps de retour sur investissement :</b> {roi_sans:.1f} années<br/>"
-            else:
-                txt += "<b>Temps de retour sur investissement :</b> non calculable (économie annuelle nulle)<br/>"
-            elements.append(Paragraph(txt, style_normal))
-            elements.append(Spacer(1, 10))
-
-        if roi_summary_avec is not None:
-            elements.append(Paragraph("<b>Scénario AVEC batterie</b>", style_header_top))
-            elements.append(Spacer(1, 4))
-            production_annuelle_avec = roi_summary_avec.get("prod_annuelle", 0.0)
-            economie_annuelle_avec = roi_summary_avec.get("eco_annuelle", 0.0)
-            investissement_avec = roi_summary_avec.get("cout_systeme", 0.0)
-            roi_avec = roi_summary_avec.get("payback", None)
-            txt = (
-                f"<b>Production photovoltaïque annuelle estimée :</b> {production_annuelle_avec:,.0f} kWh/an<br/>"
-                f"<b>Économie annuelle estimée :</b> {economie_annuelle_avec:,.0f} MAD/an<br/>"
-                f"<b>Coût d'investissement estimé :</b> {investissement_avec:,.0f} MAD<br/>"
-            )
-            if roi_avec is not None:
-                txt += f"<b>Temps de retour sur investissement :</b> {roi_avec:.1f} années<br/>"
-            else:
-                txt += "<b>Temps de retour sur investissement :</b> non calculable (économie annuelle nulle)<br/>"
-            elements.append(Paragraph(txt, style_normal))
-            elements.append(Spacer(1, 10))
-
         # Hypothèses de calcul & profil de consommation
-        elements.append(Spacer(1, 12))
         elements.append(Paragraph("Hypothèses de calcul & profil de consommation", heading2_style if "heading2_style" in locals() else heading_style))
         elements.append(Spacer(1, 6))
-        hypotheses_text = (
-            "Les estimations de production, d’économies et de temps de retour sur investissement sont basées sur les "
-            "hypothèses suivantes :"
-        )
-        elements.append(Paragraph(hypotheses_text, style_normal))
-        elements.append(Spacer(1, 4))
         hypotheses_items = [
-            "Facture d’électricité moyenne prise en compte : valeur estimée à partir de vos dernières factures (ajustable après communication des données réelles).",
-            "Tarif unitaire moyen de l’électricité : basé sur le barème SRM/LYDEC/ONEE en vigueur au moment de l’étude (hors évolutions futures éventuelles).",
-            "Production annuelle photovoltaïque estimée : déterminée à partir de l’irradiation locale, de l’orientation et de l’inclinaison des panneaux, et d’un rendement système réaliste.",
-            "Taux d’autoconsommation estimé : part de la production consommée directement sur site, en fonction de votre profil horaire de consommation.",
-            "Durée de vie de l’installation considérée : 20 à 25 ans, avec éventuel remplacement de certains composants (onduleurs) en cours de vie.",
-            "Les calculs n’intègrent pas les éventuelles hausses futures du prix de l’électricité, qui peuvent encore améliorer la rentabilité réelle."
+            "Tarif SRM/LYDEC/ONEE en vigueur au moment de l’étude.",
+            "Profil de consommation basé sur vos dernières factures (ajustable).",
+            "Production estimée selon irradiation locale, orientation et inclinaison.",
+            "Rendement système réaliste avec pertes usuelles.",
+            "Taux d’autoconsommation estimé selon votre profil horaire.",
+            "Durée de vie considérée 20–25 ans (remplacement onduleur éventuel).",
+            "Évolutions tarifaires futures non intégrées (pourraient améliorer le ROI).",
         ]
-        hypotheses_list = ListFlowable(
-            [ListItem(Paragraph(item, style_normal)) for item in hypotheses_items],
-            bulletType="bullet",
-            start="•",
-            leftIndent=18,
+        elements.append(
+            ListFlowable(
+                [ListItem(Paragraph(item, style_bullet)) for item in hypotheses_items],
+                bulletType="bullet",
+                bulletText="•",
+                leftIndent=14,
+            )
         )
-        elements.append(hypotheses_list)
         elements.append(Spacer(1, 16))
 
     # ========== PAGE 5 : GARANTIES ET POURQUOI TAQINOR ==========
     ensure_page_break()
-    elements.append(Spacer(1, 18))
+    elements.append(Spacer(1, 12))
     add_divider()
     elements.append(Spacer(1, 6))
     elements.append(Paragraph("GARANTIES & CONDITIONS GÉNÉRALES", heading1_style))
-    elements.append(Spacer(1, 10))
+    elements.append(Spacer(1, 8))
     
     # Section Garanties
     elements.append(Paragraph("<b>Couverture de garantie</b>", style_header_top))
@@ -1853,10 +1914,10 @@ def generate_double_devis_pdf(
     elements.append(Paragraph("<b>Tous nos équipements sont garantis au minimum 10 ans.</b>", style_normal))
     elements.append(Spacer(1, 8))
     
-    warranty_details = (
-        "<b>• Onduleurs Huawei et Deye :</b> 10 ans de garantie constructeur<br/>"
-        "<b>• Panneaux solaires Canadian Solar :</b> 12 ans de garantie<br/>"
-    )
+    warranty_points = [
+        "Onduleurs Huawei et Deye : 10 ans de garantie constructeur",
+        "Panneaux solaires Canadian Solar : 12 ans de garantie",
+    ]
     
     # Détecter le type de structure utilisé dans les deux scénarios (préférence aluminium si présent)
     struct_used = None
@@ -1883,13 +1944,20 @@ def generate_double_devis_pdf(
             break
     
     if struct_used == "aluminium":
-        warranty_details += "<b>• Structures en aluminium :</b> 25 ans de garantie<br/>"
+        warranty_points.append("Structures en aluminium : 25 ans de garantie")
     elif struct_used == "acier":
-        warranty_details += "<b>• Structures en acier galvanisé :</b> 20 ans de garantie<br/>"
+        warranty_points.append("Structures en acier galvanisé : 20 ans de garantie")
     else:
-        warranty_details += "<b>• Structures :</b> garantie selon type utilisé (acier galvanisé 20 ans ou aluminium 25 ans)<br/>"
+        warranty_points.append("Structures : garantie selon type utilisé (acier galvanisé 20 ans ou aluminium 25 ans)")
     
-    elements.append(Paragraph(warranty_details, style_normal))
+    elements.append(
+        ListFlowable(
+            [ListItem(Paragraph(item, style_bullet)) for item in warranty_points],
+            bulletType="bullet",
+            bulletText="•",
+            leftIndent=14,
+        )
+    )
     elements.append(Spacer(1, 12))
     
     # Section Conditions
@@ -1903,27 +1971,34 @@ def generate_double_devis_pdf(
     )
     elements.append(Spacer(1, 6))
     
-    conditions = (
-        "• Ce devis est valable <b>30 jours</b> à compter de sa date d'émission<br/>"
-        "• Toute commande implique l'adhésion sans réserve à nos conditions générales de vente<br/>"
-        "• Les prix indiqués incluent la TVA 20%<br/>"
-        "• La réalisation de ces travaux ne peut débuter sans signature du devis"
+    conditions = [
+        "Ce devis est valable <b>30 jours</b> à compter de sa date d'émission",
+        "Toute commande implique l'adhésion sans réserve à nos conditions générales de vente",
+        "Les prix indiqués incluent la TVA 20%",
+        "La réalisation de ces travaux ne peut débuter sans signature du devis",
+    ]
+    elements.append(
+        ListFlowable(
+            [ListItem(Paragraph(item, style_bullet)) for item in conditions],
+            bulletType="bullet",
+            bulletText="•",
+            leftIndent=14,
+        )
     )
-    elements.append(Paragraph(conditions, style_normal))
     elements.append(Spacer(1, 10))
     elements.append(Paragraph("Conditions financières & modalités de paiement", heading3_style if "heading3_style" in locals() else heading_style))
     elements.append(Spacer(1, 4))
     conditions_financieres_items = [
-        "Un acompte de 50% du montant TTC est demandé à la commande pour lancer l’approvisionnement du matériel.",
-        "Le solde est à régler à hauteur de 40% à la fin de la pose et des tests fonctionnels, et 10% à la réception définitive de l’installation.",
+        "Un acompte de 30% du montant TTC est demandé à la commande pour lancer l’approvisionnement du matériel.",
+        "Le solde de 70% est à régler à la fin de la pose, des tests fonctionnels et de la mise en service.",
         "Toute modification significative du projet (changement de matériel, modification de surface disponible, contraintes techniques particulières) pourra entraîner une révision du devis.",
         "Les paiements peuvent être effectués par virement bancaire ou par tout autre moyen accepté par TAQINOR et précisé sur la facture."
     ]
     conditions_financieres_list = ListFlowable(
-        [ListItem(Paragraph(item, style_normal)) for item in conditions_financieres_items],
+        [ListItem(Paragraph(item, style_bullet)) for item in conditions_financieres_items],
         bulletType="bullet",
-        start="•",
-        leftIndent=18,
+        bulletText="•",
+        leftIndent=14,
     )
     elements.append(conditions_financieres_list)
     elements.append(Spacer(1, 10))
@@ -1945,33 +2020,38 @@ def generate_double_devis_pdf(
         "Toute contrainte découverte lors de la visite technique (toiture fragile, accès compliqué, non-conformité électrique majeure, etc.) pourra faire l’objet d’un avenant de devis avant démarrage des travaux."
     ]
     perimetre_list = ListFlowable(
-        [ListItem(Paragraph(item, style_normal)) for item in perimetre_items],
+        [ListItem(Paragraph(item, style_bullet)) for item in perimetre_items],
         bulletType="bullet",
-        start="•",
-        leftIndent=18,
+        bulletText="•",
+        leftIndent=14,
     )
     elements.append(perimetre_list)
     elements.append(Spacer(1, 12))
     
     # Page Pourquoi TAQINOR
     ensure_page_break()
-    elements.append(Spacer(1, 18))
+    elements.append(Spacer(1, 12))
     add_divider()
     elements.append(Spacer(1, 6))
     elements.append(Paragraph("POURQUOI CHOISIR TAQINOR ?", heading1_style))
-    elements.append(Spacer(1, 10))
+    elements.append(Spacer(1, 8))
     pourquoi_lines = [
-        "• Installation réalisée par des ingénieurs spécialisés dans le solaire",
-        "• Matériel premium : Huawei, Deye, Canadian Solar",
-        "• Service après-vente disponible 7j/7 (WhatsApp & téléphone)",
-        "• Installation propre, sécurisée et conforme aux normes",
-        "• Optimisation anti-injection quand nécessaire",
-        "• Suivi de production en temps réel via application mobile",
-        "• Possibilité d’évolution future de l’installation",
+        "Installation réalisée par des ingénieurs spécialisés dans le solaire",
+        "Matériel premium : Huawei, Deye, Canadian Solar",
+        "Service après-vente disponible 7j/7 (WhatsApp & téléphone)",
+        "Installation propre, sécurisée et conforme aux normes",
+        "Optimisation anti-injection quand nécessaire",
+        "Suivi de production en temps réel via application mobile",
+        "Possibilité d’évolution future de l’installation",
     ]
-    for line in pourquoi_lines:
-        elements.append(Paragraph(line, style_normal))
-        elements.append(Spacer(1, 4))
+    elements.append(
+        ListFlowable(
+            [ListItem(Paragraph(line, style_bullet)) for line in pourquoi_lines],
+            bulletType="bullet",
+            bulletText="•",
+            leftIndent=14,
+        )
+    )
     elements.append(Spacer(1, 10))
     elements.append(
         Paragraph(
@@ -1979,32 +2059,55 @@ def generate_double_devis_pdf(
             style_normal,
         )
     )
+    elements.append(Spacer(1, 12))
+
+    elements.append(Paragraph("Étapes suivantes", heading1_style))
     elements.append(Spacer(1, 6))
+    elements.append(
+        Paragraph(
+            "Pour valider ce devis, merci de nous retourner ce document signé ou de nous confirmer par e-mail / WhatsApp. Nous planifierons ensuite la visite technique et la date d’installation.",
+            style_normal,
+        )
+    )
+    elements.append(Spacer(1, 12))
+    elements.append(Paragraph("Signature du client : ___________________________    Date : ___ / ___ / ______", style_normal))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("Signature TAQINOR : ___________________________    Date : ___ / ___ / ______", style_normal))
+    elements.append(Spacer(1, 12))
 
     # Footer on every page
-    def draw_footer(canvas, doc):
-        canvas.saveState()
+    class NumberedCanvas(canvas.Canvas):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self._saved_page_states = []
 
-        width, height = A4
+        def showPage(self):
+            self._saved_page_states.append(dict(self.__dict__))
+            self._startPage()
 
-        # Ligne de séparation
-        canvas.setStrokeColor(colors.HexColor("#E5E5E5"))
-        canvas.setLineWidth(0.5)
-        canvas.line(20 * mm, 14 * mm, width - 20 * mm, 14 * mm)
+        def save(self):
+            page_count = len(self._saved_page_states)
+            for state in self._saved_page_states:
+                self.__dict__.update(state)
+                self.draw_footer(page_count)
+                super().showPage()
+            super().save()
 
-        # Texte footer
-        footer_text = (
-            "TAQINOR Solutions SARLAU — RC 691213 | ICE 003799642000067   "
-            "contact@taqinor.com   +212 6 61 85 04 10"
-        )
+        def draw_footer(self, page_count):
+            width, height = A4
+            self.setStrokeColor(colors.HexColor("#E5E5E5"))
+            self.setLineWidth(0.5)
+            self.line(20 * mm, 14 * mm, width - 20 * mm, 14 * mm)
 
-        canvas.setFont("Helvetica", 8)
-        canvas.setFillColor(colors.HexColor("#7A7A7A"))
-        canvas.drawCentredString(width / 2.0, 8 * mm, footer_text)
+            left_text = "TAQINOR Solutions — contact@taqinor.com — +212 6 61 85 04 10"
+            right_text = f"Page {self._pageNumber} / {page_count}"
 
-        canvas.restoreState()
+            self.setFont("Helvetica", 8)
+            self.setFillColor(colors.HexColor(TEXT_DARK))
+            self.drawString(20 * mm, 8 * mm, left_text)
+            self.drawRightString(width - 20 * mm, 8 * mm, right_text)
 
-    doc.build(elements, onFirstPage=draw_footer, onLaterPages=draw_footer)
+    doc.build(elements, canvasmaker=NumberedCanvas)
     return pdf_path
 
 # ---------- PDF FACTURE SIMPLE ----------
@@ -2031,6 +2134,7 @@ def generate_single_pdf(df_in, client_name, client_address, client_phone,
         roi_summary_avec=None,
         roi_fig_all_buf=roi_buf,
         scenario_choice="Sans batterie uniquement",
+        recommended_option=None,
     )
     return pdf_path_final, file_name
 
@@ -2514,6 +2618,12 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         ["Sans batterie uniquement", "Avec batterie uniquement", "Les deux (Sans + Avec)"],
         index=2
     )
+    recommended_option = st.selectbox(
+        "Recommandation TAQINOR à afficher dans le PDF :",
+        ["Aucune recommandation", "Option SANS batterie", "Option AVEC batterie"],
+        index=0,
+        help="Choisissez l’option à mettre en avant dans le bandeau ROI, ou aucune recommandation.",
+    )
 
     # Puissance PV
     st.subheader("⚡ Puissance PV pour le ROI et le devis")
@@ -2618,7 +2728,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
             {"Désignation": "Socles", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Accessoires", "Marque": "", "Quantité": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Tableau De Protection AC/DC", "Marque": "", "Quantité": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
-            {"Désignation": "Instalation", "Marque": "", "Quantité": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"Désignation": "Installation", "Marque": "", "Quantité": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Transport", "Marque": "", "Quantité": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
         ]
@@ -2671,7 +2781,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
             "Socles": "Socles béton",
             "Accessoires": "Accessoires & câblage",
             "Tableau De Protection AC/DC": "Tableau de protection AC/DC",
-            "Instalation": "Installation",
+            "Installation": "Installation",
             "Transport": "Transport",
             "Suivi journalier, maintenance chaque 12 mois pendent 2 ans": "Suivi journalier & maintenance (2 ans)",
         }
@@ -2907,13 +3017,13 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
             default_buy=overrides.get("Tableau De Protection AC/DC", {}).get("Prix Achat TTC", None),
         ),
         line_editor(
-            "Instalation",
             "Installation",
-            overrides.get("Instalation", {}).get("Quantité", 1),
-            overrides.get("Instalation", {}).get("TVA (%)", 20),
+            "Installation",
+            overrides.get("Installation", {}).get("Quantité", 1),
+            overrides.get("Installation", {}).get("TVA (%)", 20),
             catalog_now,
-            default_sell=overrides.get("Instalation", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Instalation", {}).get("Prix Achat TTC", None),
+            default_sell=overrides.get("Installation", {}).get("Prix Unit. TTC", None),
+            default_buy=overrides.get("Installation", {}).get("Prix Achat TTC", None),
         ),
         line_editor(
             "Transport",
@@ -3326,6 +3436,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
             roi_summary_avec=roi_summary_avec if scenario_choice != "Sans batterie uniquement" else None,
             roi_fig_all_buf=roi_fig_all_buf,
             scenario_choice=scenario_choice,
+            recommended_option=recommended_option,
         )
 
         st.success(f"Devis généré ✅ → {pdf_path}")

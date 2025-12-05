@@ -1435,25 +1435,6 @@ def generate_double_devis_pdf(
     puissance_totale_kwc = round(nombre_panneaux * puissance_panneau / 1000, 2) if puissance_panneau else 0.0
     
     # ========== PAGE 1 : PRÉSENTATION DU PROJET ==========
-    # TITRE PAGE 1 — bandeau premium
-    hero_title_style = ParagraphStyle(
-        "HeroTitle",
-        parent=styles["Heading1"],
-        alignment=1,
-        fontSize=24,
-        leading=28,
-        spaceAfter=2,
-        textColor=colors.HexColor(BLUE_MAIN),
-    )
-    hero_subtitle_style = ParagraphStyle(
-        "HeroSubtitle",
-        parent=styles["Normal"],
-        alignment=1,
-        fontSize=12,
-        leading=16,
-        spaceAfter=0,
-        textColor=colors.HexColor("#1F2A44"),
-    )
     heading_style = ParagraphStyle(
         "heading",
         parent=style_normal,
@@ -1467,47 +1448,55 @@ def generate_double_devis_pdf(
     )
     heading2_for_intro = heading2_style if "heading2_style" in locals() else heading_style
 
-    # Bandeau premium : logo + titre/sous-titre
+    # --- HERO BAND WITH LOGO + TITLE (PAGE 1 ONLY) ---
+    elements.append(Spacer(1, 10))
+
     if "LOGO_PATH" in globals() and LOGO_PATH.exists():
-        logo = Image(str(LOGO_PATH), width=120, height=51)
+        logo = Image(str(LOGO_PATH), width=80, height=34)
     else:
-        logo = Image("taqinor_logo.png", width=120, height=51)
+        logo = Image("taqinor_logo.png", width=80, height=34)
 
-    try:
-        title_style = style_title
-    except NameError:
-        title_style = hero_title_style if "hero_title_style" in locals() else styles["Heading1"]
+    title_para = Paragraph("Devis Installation Photovoltaïque", cover_title_style)
+    subtitle_para = Paragraph(
+        "Solution premium et sur-mesure pour votre autonomie énergétique",
+        cover_subtitle_style,
+    )
 
-    try:
-        subtitle_style = style_subtitle
-    except NameError:
-        subtitle_style = ParagraphStyle(
-            "Subtitle",
-            parent=styles["Normal"],
-            fontSize=11,
-            leading=14,
-            textColor=colors.HexColor("#555555"),
-        )
-
-    title_para = Paragraph("Devis Installation Photovoltaïque", title_style)
-    subtitle_para = Paragraph("Solution premium et sur-mesure pour votre autonomie énergétique", subtitle_style)
-    right_block = [title_para, subtitle_para]
-
-    header_table = Table([[logo, right_block]], colWidths=[120, 360])
-    header_table.setStyle(
+    right_block = Table(
+        [[title_para], [subtitle_para]],
+        colWidths=[380],
+    )
+    right_block.setStyle(
         TableStyle(
             [
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
             ]
         )
     )
-    elements.append(Spacer(1, 8))
-    elements.append(header_table)
-    elements.append(Spacer(1, 16))
+
+    hero_table = Table(
+        [[logo, right_block]],
+        colWidths=[90, 380],
+    )
+    hero_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#E6F1F7")),
+                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#0A5275")),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
+    )
+
+    elements.append(hero_table)
+    elements.append(Spacer(1, 14))
 
     # Cartes premium Client / Détails du devis
     card_title_style = ParagraphStyle(

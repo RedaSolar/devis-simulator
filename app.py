@@ -23,7 +23,7 @@ from reportlab.platypus import (
 from reportlab.graphics.shapes import Drawing, Line, Rect, String
 from reportlab.lib.colors import HexColor
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 import matplotlib.pyplot as plt
 from io import BytesIO
 
@@ -31,6 +31,8 @@ from io import BytesIO
 BLUE_MAIN = "#0A5275"        # Bleu TAQINOR
 BLUE_LIGHT = "#E6F1F7"
 TEXT_DARK = "#222222"
+ORANGE_ACCENT = "#F28E2B"
+GREY_NEUTRAL = "#555555"
 
 # ---------- CONSTANTES ROI / PRODUCTION ----------
 GHI = [83.99, 96.79, 133.43, 155.30, 175.28, 179.62, 179.56, 161.17, 137.03, 111.59, 81.91, 74.61]
@@ -117,14 +119,51 @@ def interpoler_factures(hiver, ete):
     return [*premiere, *seconde]
 
 def build_roi_figure(mois, factures, eco_sans, eco_avec):
-    fig, ax = plt.subplots(figsize=(9, 5))
-    ax.bar(mois, factures, alpha=0.3, label="Facture sans PV")
-    ax.plot(mois, eco_sans, "o--", label="Économie mensuelle – SANS batterie")
-    ax.plot(mois, eco_avec, "s--", label="Économie mensuelle – AVEC batterie")
-    ax.set_ylabel("Montant (MAD)")
+    taqinor_graph_style()
+    fig, ax = plt.subplots(figsize=(6, 3.0))
+    x = range(len(mois))
+
+    ax.plot(
+        x,
+        eco_sans,
+        marker="o",
+        linestyle="-",
+        linewidth=1.5,
+        color=BLUE_MAIN,
+        label="Économie mensuelle – SANS batterie",
+    )
+    ax.plot(
+        x,
+        eco_avec,
+        marker="o",
+        linestyle="--",
+        linewidth=1.5,
+        color=ORANGE_ACCENT,
+        label="Économie mensuelle – AVEC batterie",
+    )
+    ax.plot(
+        x,
+        factures,
+        marker="s",
+        linestyle=":",
+        linewidth=1.2,
+        color=GREY_NEUTRAL,
+        label="Facture sans PV",
+    )
+
     ax.set_title("Estimation des économies mensuelles")
-    ax.legend()
-    ax.grid(True, axis="y", alpha=0.3)
+    ax.set_xlabel("Mois")
+    ax.set_ylabel("Montant (MAD)")
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(mois)
+    ax.set_axisbelow(True)
+    ax.set_ylim(bottom=0)
+    ax.margins(y=0.05)
+    for spine in ["top", "right"]:
+        ax.spines[spine].set_visible(False)
+    ax.grid(axis="y", alpha=0.25, linestyle="--")
+    ax.legend(loc="best", frameon=False)
+    plt.tight_layout()
     return fig
 
 def roi_figure_buffer(mois, factures, eco_sans, eco_avec):
@@ -134,6 +173,24 @@ def roi_figure_buffer(mois, factures, eco_sans, eco_avec):
     plt.close(fig)
     buf.seek(0)
     return buf
+
+# ---------- GRAPHIQUES TAQINOR ----------
+def taqinor_graph_style():
+    plt.rcParams.update(
+        {
+            "font.size": 9,
+            "axes.titlesize": 11,
+            "axes.labelsize": 9,
+            "xtick.labelsize": 8,
+            "ytick.labelsize": 8,
+            "legend.fontsize": 8,
+        }
+    )
+
+
+def _taqinor_graph_style():
+    # Backward-compat wrapper to keep any legacy calls working
+    return taqinor_graph_style()
 
 # ---------- CANONICALS ----------
 CANONICALS = [
@@ -420,20 +477,51 @@ def create_monthly_savings_chart(months, monthly_sans, monthly_avec):
     monthly_avec: liste de 12 valeurs (économies mensuelles scénario AVEC batterie)
     Retourne un buffer PNG (BytesIO) utilisable par ReportLab.Image.
     """
-    fig, ax = plt.subplots(figsize=(6, 3))
+    taqinor_graph_style()
+    fig, ax = plt.subplots(figsize=(6, 2.6))
 
     x = range(len(months))
     width = 0.35
 
-    ax.bar([i - width / 2 for i in x], monthly_sans, width=width, label="Sans batterie")
-    ax.bar([i + width / 2 for i in x], monthly_avec, width=width, label="Avec batterie")
+    bars_sans = ax.bar(
+        [i - width / 2 for i in x],
+        monthly_sans,
+        width=width,
+        label="Sans batterie",
+        color=BLUE_MAIN,
+    )
+    bars_avec = ax.bar(
+        [i + width / 2 for i in x],
+        monthly_avec,
+        width=width,
+        label="Avec batterie",
+        color=ORANGE_ACCENT,
+    )
 
+    ax.set_title("Économies mensuelles estimées")
+    ax.set_ylabel("Économies mensuelles (MAD)")
     ax.set_xticks(list(x))
     ax.set_xticklabels(months)
-    ax.set_ylabel("Économies mensuelles (MAD)")
-    ax.set_title("Économies mensuelles estimées")
-    ax.grid(axis="y", alpha=0.3)
-    ax.legend()
+    ax.set_axisbelow(True)
+    ax.set_ylim(bottom=0)
+    ax.margins(y=0.05)
+
+    for spine in ["top", "right"]:
+        ax.spines[spine].set_visible(False)
+    ax.grid(axis="y", alpha=0.25, linestyle="--")
+
+    for bar in list(bars_sans) + list(bars_avec):
+        height = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            height + 10,
+            f"{int(round(height))}",
+            ha="center",
+            va="bottom",
+            fontsize=7,
+        )
+
+    ax.legend(frameon=False, loc="upper left")
 
     plt.tight_layout()
 
@@ -906,7 +994,6 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
     style_normal.fontSize = 9
     style_normal.leading = 11
 
-    from reportlab.lib.styles import ParagraphStyle
     style_header = ParagraphStyle(
         "header",
         parent=style_normal,
@@ -942,7 +1029,6 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
     total_ht, total_ttc = float(df["Total HT"].sum()), float(df["Total TTC"].sum())
 
     # Titre scénario (grand, encadré et coloré)
-    from reportlab.lib.styles import ParagraphStyle
     title_style = ParagraphStyle("scenario_title", parent=style_normal, fontSize=14, leading=16, alignment=1)
     title_para = Paragraph(f"<b>{scenario_title}</b>", title_style)
     title_tbl = Table([[title_para]], colWidths=[480])
@@ -1130,8 +1216,8 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
 
     total_ht_lbl = Paragraph("<b>TOTAL HT</b>", style_header_white)
     total_ttc_lbl = Paragraph("<b>TOTAL TTC</b>", style_header_white)
-    data.append(["", "", "", "", total_ht_lbl, f"{total_ht:.2f}", ""])
-    data.append(["", "", "", "", total_ttc_lbl, f"{total_ttc:.2f}", ""])
+    data.append(["", "", "", "", "", total_ht_lbl, f"{total_ht:.2f}"])
+    data.append(["", "", "", "", "", total_ttc_lbl, f"{total_ttc:.2f}"])
 
     elements.append(Spacer(1, 12))
 
@@ -1143,31 +1229,39 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
 
         style = TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E6F1F7")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#0A5275")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0A5275")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("ALIGN", (0, 0), (-1, 0), "CENTER"),
                 ("VALIGN", (0, 0), (-1, 0), "MIDDLE"),
-                ("FONTSIZE", (0, 0), (-1, 0), 7),
+                ("FONTSIZE", (0, 0), (-1, 0), 8),
                 ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 1), (-1, -1), 7),
-                ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#CCCCCC")),
-                ("LEFTPADDING", (0, 0), (-1, -1), 2),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 2),
-                ("TOPPADDING", (0, 0), (-1, -1), 1.5),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5),
+                ("FONTSIZE", (0, 1), (-1, -1), 8),
+                ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#CCCCCC")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#DDDDDD")),
+                ("TEXTCOLOR", (0, 1), (-1, -1), colors.HexColor("#222222")),
+                ("LEFTPADDING", (0, 1), (-1, -1), 6),
+                ("RIGHTPADDING", (0, 1), (-1, -1), 6),
+                ("TOPPADDING", (0, 1), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, 0), 5),
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 5),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ALIGN", (4, 1), (-1, -1), "RIGHT"),
-                ("ALIGN", (4, 0), (-1, 0), "CENTER"),
-                ("WORDWRAP", (0, 0), (0, 0), None),
                 ("ALIGN", (0, 1), (0, -1), "CENTER"),
-                ("VALIGN", (0, 1), (0, -1), "MIDDLE"),
+                ("ALIGN", (1, 1), (2, -1), "LEFT"),
+                ("ALIGN", (3, 1), (3, -1), "CENTER"),
+                ("ALIGN", (4, 1), (-1, -1), "RIGHT"),
+                ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+                ("WORDWRAP", (1, 1), (2, -1), None),
             ]
         )
 
-        for row_idx in range(1, len(data_table) - 2):
-            if row_idx % 2 == 0:
-                style.add("BACKGROUND", (0, row_idx), (-1, row_idx), colors.HexColor("#FAFAFA"))
+        style.add(
+            "ROWBACKGROUNDS",
+            (0, 1),
+            (-1, -1),
+            (colors.white, colors.HexColor("#F7F9FA")),
+        )
 
         last_row = len(data_table) - 1
         before_last_row = len(data_table) - 2
@@ -1178,13 +1272,13 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
 
         table.setStyle(style)
         table._argW = [
-            60,   # Photo
-            145,  # Désignation
-            160,  # Spécifications techniques
-            75,   # Garantie
-            35,   # Quantité
-            48,   # Prix Unit
-            48,   # Total TTC
+            45,   # Photo
+            120,  # Désignation
+            150,  # Spécifications techniques
+            60,   # Garantie
+            30,   # Quantité
+            60,   # Prix Unit
+            80,   # Total TTC
         ]
         return table
 
@@ -1240,7 +1334,6 @@ def generate_double_devis_pdf(
     style_small = styles["Normal"].clone("small")
     style_small.fontSize = 9
     style_small.leading = 11
-    from reportlab.lib.styles import ParagraphStyle
     style_company = ParagraphStyle(
         "company",
         parent=style_normal,
@@ -1252,6 +1345,41 @@ def generate_double_devis_pdf(
         parent=style_normal,
         fontSize=11,
         leading=13,
+    )
+    cover_title_style = ParagraphStyle(
+        "cover_title_style",
+        parent=styles["Heading1"],
+        fontSize=22,
+        leading=26,
+        textColor=colors.HexColor("#0A5275"),
+        alignment=0,
+    )
+
+    cover_subtitle_style = ParagraphStyle(
+        "cover_subtitle_style",
+        parent=styles["Normal"],
+        fontSize=11,
+        leading=14,
+        textColor=colors.HexColor("#555555"),
+        alignment=0,
+    )
+
+    cover_label_style = ParagraphStyle(
+        "cover_label_style",
+        parent=styles["Normal"],
+        fontSize=8,
+        leading=10,
+        textColor=colors.HexColor("#777777"),
+        uppercase=True,
+    )
+
+    cover_value_style = ParagraphStyle(
+        "cover_value_style",
+        parent=styles["Normal"],
+        fontSize=11,
+        leading=13,
+        textColor=colors.HexColor("#222222"),
+        spaceAfter=2,
     )
 
     today = datetime.now().strftime("%d/%m/%Y")
@@ -1307,50 +1435,14 @@ def generate_double_devis_pdf(
     puissance_totale_kwc = round(nombre_panneaux * puissance_panneau / 1000, 2) if puissance_panneau else 0.0
     
     # ========== PAGE 1 : PRÉSENTATION DU PROJET ==========
-    # HEADER GLOBAL (logo left, company small text top-right)
-    if LOGO_PATH.exists():
-        left = [Image(str(LOGO_PATH), width=200, height=200)]
-    else:
-        left = [Paragraph("<b>TAQINOR</b>", styles["Title"])]
-
-    right = [Spacer(1, 1)]
-    header = Table([[left, right]], colWidths=[240, 240])
-    header.setStyle(
-        TableStyle(
-            [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("ALIGN", (1, 0), (1, 0), "RIGHT"),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ]
-        )
-    )
-    elements += [header, Spacer(1, 4)]
-
-    separator = Drawing(450, 1)
-    separator.add(Line(0, 0, 450, 0))
-    elements.append(separator)
-    elements.append(Spacer(1, 12))
-
-    line_tbl = Table([[""]], colWidths=[480])
-    line_tbl.setStyle(
-        TableStyle(
-            [
-                ("LINEBELOW", (0, 0), (-1, -1), 1.0, colors.HexColor(BLUE_MAIN)),
-            ]
-        )
-    )
-    elements += [line_tbl, Spacer(1, 6)]
-
     # TITRE PAGE 1 — bandeau premium
     hero_title_style = ParagraphStyle(
         "HeroTitle",
         parent=styles["Heading1"],
         alignment=1,
-        fontSize=22,
-        leading=26,
-        spaceAfter=4,
+        fontSize=24,
+        leading=28,
+        spaceAfter=2,
         textColor=colors.HexColor(BLUE_MAIN),
     )
     hero_subtitle_style = ParagraphStyle(
@@ -1358,50 +1450,63 @@ def generate_double_devis_pdf(
         parent=styles["Normal"],
         alignment=1,
         fontSize=12,
-        leading=15,
-        spaceAfter=6,
-        textColor=colors.HexColor("#4A4A4A"),
-    )
-    hero_tagline_style = ParagraphStyle(
-        "HeroTagline",
-        parent=styles["Normal"],
-        alignment=1,
-        fontSize=9,
-        leading=12,
+        leading=16,
+        spaceAfter=0,
         textColor=colors.HexColor("#1F2A44"),
     )
     heading_style = ParagraphStyle(
         "heading",
         parent=style_normal,
-        fontSize=12,
-        leading=14,
-        textColor=colors.HexColor(BLUE_MAIN),
-        spaceAfter=8,
+        fontSize=16,
+        leading=20,
+        textColor=colors.HexColor("#0A5275"),
+        spaceAfter=0,
+        spaceBefore=0,
+        alignment=0,
+        fontName="Helvetica-Bold",
     )
     heading2_for_intro = heading2_style if "heading2_style" in locals() else heading_style
 
-    hero_data = [
-        [Paragraph("Devis Installation Photovoltaïque", hero_title_style)],
-        [Paragraph("Projet : Installation photovoltaïque résidentielle – Casablanca", hero_subtitle_style)],
-        [Paragraph("Solution premium et sur-mesure pour votre autonomie énergétique", hero_tagline_style)],
-    ]
-    hero_table = Table(hero_data, colWidths=[480], hAlign="CENTER")
-    hero_table.setStyle(
+    # Bandeau premium : logo + titre/sous-titre
+    if "LOGO_PATH" in globals() and LOGO_PATH.exists():
+        logo = Image(str(LOGO_PATH), width=120, height=51)
+    else:
+        logo = Image("taqinor_logo.png", width=120, height=51)
+
+    try:
+        title_style = style_title
+    except NameError:
+        title_style = hero_title_style if "hero_title_style" in locals() else styles["Heading1"]
+
+    try:
+        subtitle_style = style_subtitle
+    except NameError:
+        subtitle_style = ParagraphStyle(
+            "Subtitle",
+            parent=styles["Normal"],
+            fontSize=11,
+            leading=14,
+            textColor=colors.HexColor("#555555"),
+        )
+
+    title_para = Paragraph("Devis Installation Photovoltaïque", title_style)
+    subtitle_para = Paragraph("Solution premium et sur-mesure pour votre autonomie énergétique", subtitle_style)
+    right_block = [title_para, subtitle_para]
+
+    header_table = Table([[logo, right_block]], colWidths=[120, 360])
+    header_table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#EAF3FA")),
-                ("BOX", (0, 0), (-1, -1), 1.2, colors.HexColor(BLUE_MAIN)),
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 12),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 12),
-                ("TOPPADDING", (0, 0), (-1, -1), 12),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
             ]
         )
     )
-    elements.append(Spacer(1, 10))
-    elements.append(hero_table)
+    elements.append(Spacer(1, 8))
+    elements.append(header_table)
     elements.append(Spacer(1, 16))
 
     # Cartes premium Client / Détails du devis
@@ -1411,6 +1516,7 @@ def generate_double_devis_pdf(
         fontSize=11,
         leading=13,
         textColor=colors.white,
+        fontName="Helvetica-Bold",
     )
     card_body_style = ParagraphStyle(
         "card_body",
@@ -1426,18 +1532,18 @@ def generate_double_devis_pdf(
         [Paragraph(f"Adresse : {client_address or '-'}", card_body_style)],
         [Paragraph(f"Téléphone : {client_phone or '-'}", card_body_style)],
     ]
-    client_table = Table(client_data, colWidths=[260])
+    client_table = Table(client_data, colWidths=[280])
     client_table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BLUE_MAIN)),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#F7FAFD")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0A5275")),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
                 ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#C7D8E8")),
+                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#CCCCCC")),
                 ("LEFTPADDING", (0, 0), (-1, -1), 8),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ("TOPPADDING", (0, 0), (-1, -1), 8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
             ]
         )
     )
@@ -1447,23 +1553,23 @@ def generate_double_devis_pdf(
         [Paragraph(f"Numéro du devis : {int(doc_number)}", card_body_style)],
         [Paragraph(f"Date d'émission : {today}", card_body_style)],
     ]
-    details_table = Table(details_data, colWidths=[220])
+    details_table = Table(details_data, colWidths=[200])
     details_table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BLUE_MAIN)),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#F7FAFD")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0A5275")),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
                 ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#C7D8E8")),
+                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#CCCCCC")),
                 ("LEFTPADDING", (0, 0), (-1, -1), 8),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ("TOPPADDING", (0, 0), (-1, -1), 8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
             ]
         )
     )
 
-    top_tables = Table([[client_table, details_table]], colWidths=[260, 220])
+    top_tables = Table([[client_table, details_table]], colWidths=[280, 200])
     top_tables.setStyle(
         TableStyle(
             [
@@ -1510,17 +1616,40 @@ def generate_double_devis_pdf(
 
     # RÉSUMÉ DU PROJET
     heading1_style = styles["Heading1"].clone("heading1_custom")
-    heading1_style.textColor = colors.HexColor(BLUE_MAIN)
+    heading1_style.fontSize = 16
+    heading1_style.leading = 20
+    heading1_style.textColor = colors.HexColor("#0A5275")
+    heading1_style.fontName = "Helvetica-Bold"
+    heading1_style.spaceBefore = 0
+    heading1_style.spaceAfter = 0
+    heading1_style.alignment = 0
     heading2_style = styles["Heading2"].clone("heading2_custom")
-    heading2_style.textColor = colors.HexColor(BLUE_MAIN)
+    heading2_style.fontSize = 16
+    heading2_style.leading = 20
+    heading2_style.textColor = colors.HexColor("#0A5275")
+    heading2_style.fontName = "Helvetica-Bold"
+    heading2_style.spaceBefore = 0
+    heading2_style.spaceAfter = 0
+    heading2_style.alignment = 0
     heading3_style = styles["Heading3"].clone("heading3_custom")
-    heading3_style.textColor = colors.HexColor(BLUE_MAIN)
+    heading3_style.fontSize = 16
+    heading3_style.leading = 20
+    heading3_style.textColor = colors.HexColor("#0A5275")
+    heading3_style.fontName = "Helvetica-Bold"
+    heading3_style.spaceBefore = 0
+    heading3_style.spaceAfter = 0
+    heading3_style.alignment = 0
     def ensure_page_break():
         if not elements or not isinstance(elements[-1], PageBreak):
             elements.append(PageBreak())
+    def add_divider():
+        line = Drawing(480, 1)
+        line.add(Line(0, 0, 480, 0, strokeColor=colors.HexColor("#E0E0E0"), strokeWidth=0.7))
+        elements.append(line)
     
+    elements.append(Spacer(1, 18))
     elements.append(Paragraph("RÉSUMÉ EXÉCUTIF", heading_style))
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 10))
     elements.append(
         Paragraph(
             "Ce devis présente une solution photovoltaïque sur mesure visant à réduire durablement votre facture d’électricité, améliorer votre autonomie énergétique et valoriser votre patrimoine. L’installation proposée repose sur des équipements premium (Canadian Solar, Huawei, Deye) et s’adapte à votre profil de consommation afin de maximiser votre taux d’autoconsommation et votre retour sur investissement.",
@@ -1538,9 +1667,9 @@ def generate_double_devis_pdf(
     for txt in bullet_intro:
         elements.append(Paragraph(txt, style_normal))
         elements.append(Spacer(1, 4))
-    elements.append(Spacer(1, 6))
+    elements.append(Spacer(1, 18))
     elements.append(Paragraph("OBJECTIFS DU CLIENT", heading_style))
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 10))
     client_objectifs = [
         "• Réduire significativement la facture d’électricité mensuelle",
         "• Gagner en confort et en sécurité énergétique en cas de coupure",
@@ -1549,9 +1678,9 @@ def generate_double_devis_pdf(
     for txt in client_objectifs:
         elements.append(Paragraph(txt, style_normal))
         elements.append(Spacer(1, 4))
-    elements.append(Spacer(1, 6))
+    elements.append(Spacer(1, 18))
     elements.append(Paragraph("CONFIGURATION RECOMMANDÉE", heading_style))
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 10))
     elements.append(
         Paragraph(
             f"TAQINOR propose deux configurations optimisées : une installation SANS batterie, privilégiant le meilleur retour sur investissement, et une installation AVEC batterie, offrant davantage de confort et d’autonomie lors des coupures réseau. Les deux scénarios reposent sur une puissance totale installée de {puissance_totale_kwc:.2f} kWc via {nombre_panneaux} modules de {puissance_panneau} W.",
@@ -1559,63 +1688,6 @@ def generate_double_devis_pdf(
         )
     )
     elements.append(Spacer(1, 6))
-    elements.append(Paragraph("PLAN D’IMPLANTATION SUR LE TOIT", heading2_style if 'heading2_style' in locals() else heading_style))
-    elements.append(Spacer(1, 8))
-
-    d_roof = Drawing(400, 180)
-    d_roof.add(Rect(10, 40, 380, 120, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#F5FAFD")))
-    d_roof.add(String(20, 145, "Orientation : Sud • Inclinaison : 10°", fontName="Helvetica", fontSize=9, fillColor=HexColor("#333333")))
-    panel_w = 70
-    panel_h = 25
-    x0 = 25
-    y1 = 105
-    y2 = 70
-    for i in range(4):
-        d_roof.add(Rect(x0 + i * (panel_w + 5), y1, panel_w, panel_h, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#E6F1F7")))
-        d_roof.add(Rect(x0 + i * (panel_w + 5), y2, panel_w, panel_h, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#E6F1F7")))
-    d_roof.add(String(20, 50, "*Schéma indicatif. Le positionnement exact sera ajusté lors de la visite technique.", fontName="Helvetica-Oblique", fontSize=8, fillColor=HexColor("#555555")))
-    elements.append(d_roof)
-    elements.append(Spacer(1, 18))
-
-    elements.append(Paragraph("SCHÉMA FONCTIONNEL DU SYSTÈME", heading2_style if 'heading2_style' in locals() else heading_style))
-    elements.append(Spacer(1, 8))
-
-    d_sys = Drawing(400, 160)
-    d_sys.add(Rect(20, 90, 100, 40, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#F5FAFD")))
-    d_sys.add(Rect(150, 90, 100, 40, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#F5FAFD")))
-    d_sys.add(Rect(280, 90, 100, 40, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#F5FAFD")))
-    d_sys.add(String(30, 105, "Panneaux PV", fontName="Helvetica", fontSize=9))
-    d_sys.add(String(160, 105, "Onduleur", fontName="Helvetica", fontSize=9))
-    d_sys.add(String(290, 105, "Tableau AC/DC", fontName="Helvetica", fontSize=9))
-    d_sys.add(Rect(150, 25, 100, 40, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#F5FAFD")))
-    d_sys.add(String(160, 40, "Réseau maison", fontName="Helvetica", fontSize=9))
-    d_sys.add(Line(120, 110, 150, 110))
-    d_sys.add(Line(250, 110, 280, 110))
-    d_sys.add(Line(330, 90, 200, 65))
-    d_sys.add(Line(200, 65, 200, 65))
-    elements.append(d_sys)
-    elements.append(Spacer(1, 18))
-
-    elements.append(Paragraph("SCHÉMA UNIFILAIRE SIMPLIFIÉ (ONE-LINE)", heading2_style if 'heading2_style' in locals() else heading_style))
-    elements.append(Spacer(1, 8))
-
-    d_one = Drawing(400, 120)
-    d_one.add(Rect(20, 60, 80, 30, strokeColor=HexColor("#0A5275")))
-    d_one.add(Rect(130, 60, 80, 30, strokeColor=HexColor("#0A5275")))
-    d_one.add(Rect(240, 60, 80, 30, strokeColor=HexColor("#0A5275")))
-    d_one.add(Rect(350, 60, 80, 30, strokeColor=HexColor("#0A5275")))
-    d_one.add(String(25, 70, "Panneaux PV", fontSize=8))
-    d_one.add(String(140, 70, "Onduleur", fontSize=8))
-    d_one.add(String(245, 70, "Tableau AC/DC", fontSize=8))
-    d_one.add(String(355, 70, "Réseau maison", fontSize=8))
-    d_one.add(Line(100, 75, 130, 75))
-    d_one.add(Line(210, 75, 240, 75))
-    d_one.add(Line(320, 75, 350, 75))
-    d_one.add(Rect(240, 15, 80, 30, strokeColor=HexColor("#0A5275")))
-    d_one.add(String(250, 25, "Batterie", fontSize=8))
-    d_one.add(Line(280, 60, 280, 45))
-    elements.append(d_one)
-    elements.append(Spacer(1, 18))
     elements.append(PageBreak())
     
     # ========== PAGE 2 : OPTION SANS BATTERIE ==========
@@ -1624,8 +1696,11 @@ def generate_double_devis_pdf(
     if scenario_choice in ("Sans batterie uniquement", "Les deux (Sans + Avec)"):
         ensure_page_break()
         if not options_heading_shown:
+            elements.append(Spacer(1, 18))
+            add_divider()
+            elements.append(Spacer(1, 6))
             elements.append(Paragraph("PRÉSENTATION DES OPTIONS", heading1_style))
-            elements.append(Spacer(1, 12))
+            elements.append(Spacer(1, 10))
             options_heading_shown = True
         elements.append(Paragraph("Option 1 : Installation SANS batterie", heading3_style))
         elements.append(Spacer(1, 6))
@@ -1649,10 +1724,12 @@ def generate_double_devis_pdf(
     if scenario_choice in ("Avec batterie uniquement", "Les deux (Sans + Avec)"):
         ensure_page_break()
         if not options_heading_shown:
+            elements.append(Spacer(1, 18))
+            add_divider()
+            elements.append(Spacer(1, 6))
             elements.append(Paragraph("PRÉSENTATION DES OPTIONS", heading1_style))
-            elements.append(Spacer(1, 12))
+            elements.append(Spacer(1, 10))
             options_heading_shown = True
-        elements.append(Spacer(1, 12))
         elements.append(Paragraph("Option 2 : Installation AVEC batterie", heading3_style))
         elements.append(Spacer(1, 6))
         elements.append(
@@ -1674,19 +1751,11 @@ def generate_double_devis_pdf(
     # PAGE ROI GRAPHIQUE
     if roi_fig_all_buf is not None:
         ensure_page_break()
-        economie_annuelle_sans = 10591
-        economie_annuelle_avec = 12562
-        monthly_sans = [economie_annuelle_sans / 12.0] * 12
-        monthly_avec = [economie_annuelle_avec / 12.0] * 12
-        mois_labels = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"]
-        buf_savings_chart = create_monthly_savings_chart(mois_labels, monthly_sans, monthly_avec)
-        img_savings_chart = Image(buf_savings_chart, width=400, height=200)
-        elements.append(Paragraph("GRAPHIQUE DE PRODUCTION & ROI", heading2_style if 'heading2_style' in locals() else heading_style))
-        elements.append(Spacer(1, 6))
-        elements.append(img_savings_chart)
         elements.append(Spacer(1, 18))
+        add_divider()
+        elements.append(Spacer(1, 6))
         elements.append(Paragraph("SYNTHÈSE FINANCIÈRE & ROI", heading1_style))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 10))
         elements.append(Paragraph("Analyse détaillée du retour sur investissement", heading2_style))
         elements.append(Spacer(1, 8))
         elements.append(
@@ -1783,8 +1852,11 @@ def generate_double_devis_pdf(
 
     # ========== PAGE 5 : GARANTIES ET POURQUOI TAQINOR ==========
     ensure_page_break()
+    elements.append(Spacer(1, 18))
+    add_divider()
+    elements.append(Spacer(1, 6))
     elements.append(Paragraph("GARANTIES & CONDITIONS GÉNÉRALES", heading1_style))
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 10))
     
     # Section Garanties
     elements.append(Paragraph("<b>Couverture de garantie</b>", style_header_top))
@@ -1894,8 +1966,11 @@ def generate_double_devis_pdf(
     
     # Page Pourquoi TAQINOR
     ensure_page_break()
+    elements.append(Spacer(1, 18))
+    add_divider()
+    elements.append(Spacer(1, 6))
     elements.append(Paragraph("POURQUOI CHOISIR TAQINOR ?", heading1_style))
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 10))
     pourquoi_lines = [
         "• Installation réalisée par des ingénieurs spécialisés dans le solaire",
         "• Matériel premium : Huawei, Deye, Canadian Solar",
@@ -1929,20 +2004,14 @@ def generate_double_devis_pdf(
         canvas.line(20 * mm, 14 * mm, width - 20 * mm, 14 * mm)
 
         # Texte footer
-        footer_left = "TAQINOR Solutions SARLAU — RC 691213 | ICE 003799642000067"
-        footer_right = "contact@taqinor.com | +212 6 61 85 04 10"
-        page_text = f"Page {doc.page}"
+        footer_text = (
+            "TAQINOR Solutions SARLAU — RC 691213 | ICE 003799642000067   "
+            "contact@taqinor.com   +212 6 61 85 04 10"
+        )
 
-        canvas.setFont("Helvetica", 7)
-
-        # Texte gauche
-        canvas.drawString(20 * mm, 8 * mm, footer_left)
-
-        # Texte droite
-        canvas.drawRightString(width - 20 * mm, 8 * mm, footer_right)
-
-        # Numéro de page centré
-        canvas.drawCentredString(width / 2.0, 5 * mm, page_text)
+        canvas.setFont("Helvetica", 8)
+        canvas.setFillColor(colors.HexColor("#7A7A7A"))
+        canvas.drawCentredString(width / 2.0, 8 * mm, footer_text)
 
         canvas.restoreState()
 

@@ -1,0 +1,120 @@
+﻿import streamlit as st
+import pandas as pd
+import json, re
+from pathlib import Path
+from datetime import datetime
+import matplotlib.pyplot as plt
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Table,
+    TableStyle,
+    Image,
+    Paragraph,
+    Spacer,
+    PageBreak,
+    Preformatted,
+    HRFlowable,
+    ListFlowable,
+    ListItem,
+)
+from reportlab.graphics.shapes import Drawing, Line, Rect, String
+from reportlab.lib.colors import HexColor
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+import matplotlib.pyplot as plt
+from io import BytesIO
+
+# ---------- CONSTANTES VISUELLES ----------
+BLUE_MAIN = "#0A5275"        # Bleu TAQINOR
+BLUE_LIGHT = "#E6F1F7"
+TEXT_DARK = "#222222"
+ORANGE_ACCENT = "#F28E2B"
+GREY_NEUTRAL = "#555555"
+
+# ---------- CONSTANTES ROI / PRODUCTION ----------
+GHI = [83.99, 96.79, 133.43, 155.30, 175.28, 179.62, 179.56, 161.17, 137.03, 111.59, 81.91, 74.61]
+MOIS = ["Jan","FÃ©v","Mar","Avr","Mai","Juin","Juil","AoÃ»t","Sep","Oct","Nov","DÃ©c"]
+EFFICIENCY = 0.8  # rendement global
+KWH_PRICE = 2.0   # MAD/kWh FIXE (utilisÃ© en interne â€” ne pas afficher dans les PDF/UI)
+
+# ---------- DOSSIERS ----------
+BASE_DIR = Path(".")
+CONFIG_FILE = BASE_DIR / "config.json"
+DEVIS_HISTORY_FILE = BASE_DIR / "devis_history.json"
+LOGO_PATH = BASE_DIR / "logo.png"
+CATALOG_FILE = BASE_DIR / "brand_catalog.json"
+CUSTOM_LINES_FILE = BASE_DIR / "custom_line_templates.json"
+
+DEVIS_DIR = BASE_DIR / "devis_client"
+FACTURES_DIR = BASE_DIR / "factures_client"
+PICTURES_DIR = BASE_DIR / "pictures"
+
+for d in [DEVIS_DIR, FACTURES_DIR, PICTURES_DIR]:
+    d.mkdir(exist_ok=True)
+
+def img_candidates(name_base: str):
+    return [
+        PICTURES_DIR / f"{name_base}.png",
+        PICTURES_DIR / f"{name_base}.jpg",
+        PICTURES_DIR / f"{name_base}.jpeg",
+    ]
+
+IMAGE_FILES = {
+    "Onduleur rÃ©seau": img_candidates("onduler") + img_candidates("onduleur"),
+    "Onduleur hybride": img_candidates("onduler") + img_candidates("onduleur"),
+    "Smart Meter": img_candidates("smart_meter"),
+    "Wifi Dongle": img_candidates("wifi_dongle"),
+    "Panneaux": img_candidates("panneaux"),
+    "Batterie": img_candidates("batterie"),
+    "Structures": img_candidates("structures"),
+    "Socles": img_candidates("socles"),
+    "Accessoires": img_candidates("accessoires"),
+    "Tableau De Protection AC/DC": img_candidates("tableau_protection"),
+    "Instalation": img_candidates("installation"),
+    "Transport": img_candidates("transport"),
+    "Suivi journalier, maintenance chaque 12 mois pendent 2 ans": img_candidates("suivi_maintenance"),
+}
+
+# ---------- INIT CONFIG / HISTORY ----------
+if CONFIG_FILE.exists():
+    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        config = json.load(f)
+else:
+    config = {"devis_counter": 1, "facture_counter": 1}
+
+if DEVIS_HISTORY_FILE.exists():
+    with open(DEVIS_HISTORY_FILE, "r", encoding="utf-8") as f:
+        devis_history = json.load(f)
+else:
+    devis_history = {}
+
+# ---------- SESSION STATE ----------
+if "custom_lines_sans" not in st.session_state:
+    st.session_state.custom_lines_sans = []
+
+if "custom_lines_avec" not in st.session_state:
+    st.session_state.custom_lines_avec = []
+
+if "notes_sans" not in st.session_state:
+    st.session_state.notes_sans = []
+
+if "notes_avec" not in st.session_state:
+    st.session_state.notes_avec = []
+
+if "roi_fact_init" not in st.session_state:
+    st.session_state.roi_fact_init = {m: 2000.0 for m in MOIS}
+
+if "df_common_overrides" not in st.session_state:
+    st.session_state.df_common_overrides = None
+
+# ---------- FONCTIONS AIDE ROI ----------
+def interpoler_factures(hiver, ete):
+    if ete == 0:
+        return [hiver] * 12
+    premiere = [hiver + (ete - hiver) / 6 * i for i in range(7)]
+    seconde = [ete - (ete - hiver) / 4 * i for i in range(5)]
+    return [*premiere, *seconde]
+

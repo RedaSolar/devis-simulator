@@ -1,0 +1,82 @@
+
+def create_monthly_savings_chart(months, monthly_sans, monthly_avec):
+    """
+    months: liste de labels ["Jan", "Fév", ...]
+    monthly_sans: liste de 12 valeurs (économies mensuelles scénario SANS batterie)
+    monthly_avec: liste de 12 valeurs (économies mensuelles scénario AVEC batterie)
+    Retourne un buffer PNG (BytesIO) utilisable par ReportLab.Image.
+    """
+    taqinor_graph_style()
+    fig, ax = plt.subplots(figsize=(6, 2.6))
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("#F9FBFD")
+
+    x = range(len(months))
+    width = 0.35
+
+    ax.bar(
+        [i - width / 2 for i in x],
+        monthly_sans,
+        width=width,
+        label="Sans batterie",
+        color="#0A5275",
+        edgecolor="white",
+        linewidth=0.4,
+    )
+    ax.bar(
+        [i + width / 2 for i in x],
+        monthly_avec,
+        width=width,
+        label="Avec batterie",
+        color="#F28E2B",
+        edgecolor="white",
+        linewidth=0.4,
+    )
+
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(months)
+    ax.set_ylabel("Économies mensuelles (MAD)")
+    ax.set_title("Économies mensuelles estimées")
+    ax.set_axisbelow(True)
+    ax.set_ylim(bottom=0)
+    ax.margins(y=0.05)
+    for spine in ["top", "right"]:
+        ax.spines[spine].set_visible(False)
+    ax.grid(axis="y", alpha=0.25, linestyle="--")
+    for bar in list(ax.containers[0]) + list(ax.containers[1]):
+        height = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            height + 10,
+            f"{int(round(height))}",
+            ha="center",
+            va="bottom",
+            fontsize=7,
+        )
+    ax.legend(frameon=False, loc="upper left", ncol=2)
+
+    plt.tight_layout()
+
+    buf = BytesIO()
+    fig.savefig(buf, format="png", dpi=150)
+    plt.close(fig)
+    buf.seek(0)
+    return buf
+
+
+def create_monthly_production_chart(months, production_kwh):
+    """
+    months: liste de labels de mois, ex: ['Jan', 'Fév', ...]
+    production_kwh: liste de valeurs mensuelles en kWh
+    Retourne un buffer d'image PNG (BytesIO) prêt à être utilisé par ReportLab.
+    """
+    fig, ax = plt.subplots(figsize=(6, 3))
+
+    ax.bar(months, production_kwh)
+    ax.set_ylabel("Production (kWh)")
+    ax.set_title("Production annuelle estimée par mois")
+    ax.grid(axis="y", alpha=0.3)
+
+    plt.tight_layout()
+
+    buf = BytesIO()

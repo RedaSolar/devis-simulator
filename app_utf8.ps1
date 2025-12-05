@@ -1,12 +1,9 @@
-import streamlit as st
+﻿import streamlit as st
 import pandas as pd
 import json, re
 from pathlib import Path
 from datetime import datetime
-import matplotlib.pyplot as plt
-from io import BytesIO
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import mm
 from reportlab.platypus import (
     SimpleDocTemplate,
     Table,
@@ -15,11 +12,7 @@ from reportlab.platypus import (
     Paragraph,
     Spacer,
     PageBreak,
-    Preformatted,
-    HRFlowable,
 )
-from reportlab.graphics.shapes import Drawing, Line, Rect, String
-from reportlab.lib.colors import HexColor
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 import matplotlib.pyplot as plt
@@ -32,9 +25,9 @@ TEXT_DARK = "#222222"
 
 # ---------- CONSTANTES ROI / PRODUCTION ----------
 GHI = [83.99, 96.79, 133.43, 155.30, 175.28, 179.62, 179.56, 161.17, 137.03, 111.59, 81.91, 74.61]
-MOIS = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Août","Sep","Oct","Nov","Déc"]
+MOIS = ["Jan","F├®v","Mar","Avr","Mai","Juin","Juil","Ao├╗t","Sep","Oct","Nov","D├®c"]
 EFFICIENCY = 0.8  # rendement global
-KWH_PRICE = 2.0   # MAD/kWh FIXE (utilisé en interne — ne pas afficher dans les PDF/UI)
+KWH_PRICE = 2.0   # MAD/kWh FIXE (utilis├® en interne ÔÇö ne pas afficher dans les PDF/UI)
 
 # ---------- DOSSIERS ----------
 BASE_DIR = Path(".")
@@ -59,7 +52,7 @@ def img_candidates(name_base: str):
     ]
 
 IMAGE_FILES = {
-    "Onduleur réseau": img_candidates("onduler") + img_candidates("onduleur"),
+    "Onduleur r├®seau": img_candidates("onduler") + img_candidates("onduleur"),
     "Onduleur hybride": img_candidates("onduler") + img_candidates("onduleur"),
     "Smart Meter": img_candidates("smart_meter"),
     "Wifi Dongle": img_candidates("wifi_dongle"),
@@ -117,10 +110,10 @@ def interpoler_factures(hiver, ete):
 def build_roi_figure(mois, factures, eco_sans, eco_avec):
     fig, ax = plt.subplots(figsize=(9, 5))
     ax.bar(mois, factures, alpha=0.3, label="Facture sans PV")
-    ax.plot(mois, eco_sans, "o--", label="Économie mensuelle – SANS batterie")
-    ax.plot(mois, eco_avec, "s--", label="Économie mensuelle – AVEC batterie")
+    ax.plot(mois, eco_sans, "o--", label="├ëconomie mensuelle ÔÇô SANS batterie")
+    ax.plot(mois, eco_avec, "s--", label="├ëconomie mensuelle ÔÇô AVEC batterie")
     ax.set_ylabel("Montant (MAD)")
-    ax.set_title("Estimation des économies mensuelles")
+    ax.set_title("Estimation des ├®conomies mensuelles")
     ax.legend()
     ax.grid(True, axis="y", alpha=0.3)
     return fig
@@ -135,7 +128,7 @@ def roi_figure_buffer(mois, factures, eco_sans, eco_avec):
 
 # ---------- CANONICALS ----------
 CANONICALS = [
-    "Onduleur réseau",
+    "Onduleur r├®seau",
     "Onduleur hybride",
     "Smart Meter",
     "Wifi Dongle",
@@ -154,7 +147,7 @@ CANON_MAP.update(
     {
         "installation": "Instalation",
         "installation + transport": "Instalation",
-        "structures en acier galvanisé": "Structures",
+        "structures en acier galvanis├®": "Structures",
         "transport": "Transport",
     }
 )
@@ -289,8 +282,8 @@ def save_catalog(catalog):
 
 def _catalog_key_for_designation(designation: str) -> str:
     # Normalize keys so that variant designations map to their catalog base keys
-    if designation in ("Onduleur réseau", "Onduleur hybride"):
-        return "Onduleur Injection" if designation == "Onduleur réseau" else "Onduleur Hybride"
+    if designation in ("Onduleur r├®seau", "Onduleur hybride"):
+        return "Onduleur Injection" if designation == "Onduleur r├®seau" else "Onduleur Hybride"
     if designation in ("Panneaux", "Batterie"):
         return designation
     if isinstance(designation, str) and designation.startswith("Structures"):
@@ -369,17 +362,17 @@ def _num(s):
 
 def sanitize_df(df):
     df = df.copy()
-    orig = df["Désignation"].astype(str).str.strip()
+    orig = df["D├®signation"].astype(str).str.strip()
     canon = orig.str.lower().map(CANON_MAP)
-    df["Désignation"] = canon.fillna(orig)
+    df["D├®signation"] = canon.fillna(orig)
     df["Marque"] = df["Marque"].astype(str).apply(lambda x: x.title().strip() if x else "")
-    for c in ["Quantité", "Prix Achat TTC", "Prix Unit. TTC", "TVA (%)"]:
+    for c in ["Quantit├®", "Prix Achat TTC", "Prix Unit. TTC", "TVA (%)"]:
         df[c] = df[c].apply(_num).clip(lower=0)
     return df
 
 def learn_from_df(df, catalog):
     for _, r in df.iterrows():
-        des = r["Désignation"]
+        des = r["D├®signation"]
         base_key = _catalog_key_for_designation(des)
         brand = r.get("Marque", "")
         sell, buy = _num(r.get("Prix Unit. TTC", 0)), _num(r.get("Prix Achat TTC", 0))
@@ -410,92 +403,10 @@ def get_dynamic_image(photo_key: str):
             return str(p)
     return None
 
-
-def create_monthly_savings_chart(months, monthly_sans, monthly_avec):
-    """
-    months: liste de labels ["Jan", "Fév", ...]
-    monthly_sans: liste de 12 valeurs (économies mensuelles scénario SANS batterie)
-    monthly_avec: liste de 12 valeurs (économies mensuelles scénario AVEC batterie)
-    Retourne un buffer PNG (BytesIO) utilisable par ReportLab.Image.
-    """
-    fig, ax = plt.subplots(figsize=(6, 3))
-
-    x = range(len(months))
-    width = 0.35
-
-    ax.bar([i - width / 2 for i in x], monthly_sans, width=width, label="Sans batterie")
-    ax.bar([i + width / 2 for i in x], monthly_avec, width=width, label="Avec batterie")
-
-    ax.set_xticks(list(x))
-    ax.set_xticklabels(months)
-    ax.set_ylabel("Économies mensuelles (MAD)")
-    ax.set_title("Économies mensuelles estimées")
-    ax.grid(axis="y", alpha=0.3)
-    ax.legend()
-
-    plt.tight_layout()
-
-    buf = BytesIO()
-    fig.savefig(buf, format="png", dpi=150)
-    plt.close(fig)
-    buf.seek(0)
-    return buf
-
-
-def create_monthly_production_chart(months, production_kwh):
-    """
-    months: liste de labels de mois, ex: ['Jan', 'Fév', ...]
-    production_kwh: liste de valeurs mensuelles en kWh
-    Retourne un buffer d'image PNG (BytesIO) prêt à être utilisé par ReportLab.
-    """
-    fig, ax = plt.subplots(figsize=(6, 3))
-
-    ax.bar(months, production_kwh)
-    ax.set_ylabel("Production (kWh)")
-    ax.set_title("Production annuelle estimée par mois")
-    ax.grid(axis="y", alpha=0.3)
-
-    plt.tight_layout()
-
-    buf = BytesIO()
-    fig.savefig(buf, format="png", dpi=150)
-    plt.close(fig)
-    buf.seek(0)
-    return buf
-
-
-def create_cumulative_savings_chart(years, yearly_savings):
-    """
-    years: liste des années, ex: [1, 2, ..., 20]
-    yearly_savings: liste des économies annuelles (MAD/an)
-    Affiche la courbe des économies cumulées sur la durée.
-    """
-    cumulative = []
-    total = 0
-    for val in yearly_savings:
-        total += val
-        cumulative.append(total)
-
-    fig, ax = plt.subplots(figsize=(6, 3))
-
-    ax.plot(years, cumulative, marker="o")
-    ax.set_xlabel("Années")
-    ax.set_ylabel("Économies cumulées (MAD)")
-    ax.set_title("Projection des économies cumulées sur 20 ans")
-    ax.grid(True, alpha=0.3)
-
-    plt.tight_layout()
-
-    buf = BytesIO()
-    fig.savefig(buf, format="png", dpi=150)
-    plt.close(fig)
-    buf.seek(0)
-    return buf
-
 # ---------- AUTO-CHOIX ONDULEUR & STRUCTURES & PANNEAUX ----------
 def get_onduleur_powers_and_phases(catalog, onduleur_type: str, brand: str):
     """
-    Récupère les puissances et phases disponibles pour une marque d'onduleur.
+    R├®cup├¿re les puissances et phases disponibles pour une marque d'onduleur.
     Retourne : dict {power_str: phase_str, ...} ex: {"5": "Monophase", "10": "Monophase", "15": "Triphase"}
     """
     result = {}
@@ -536,7 +447,7 @@ def parse_kw_from_brand(name: str):
 
 def select_inverter_for_power(catalog, onduleur_type: str, puissance_kwp: float):
     """
-    Sélectionne un onduleur basé sur le type (Injection ou Hybride) et la puissance.
+    S├®lectionne un onduleur bas├® sur le type (Injection ou Hybride) et la puissance.
     Retourne le plus petit onduleur avec puissance >= puissance_kwp.
     onduleur_type: "Onduleur Injection" ou "Onduleur Hybride"
     Retourne: {marque, power, phase, sell, buy} ou None
@@ -548,7 +459,7 @@ def select_inverter_for_power(catalog, onduleur_type: str, puissance_kwp: float)
         if marque == "__default__" or not isinstance(powers_dict, dict):
             continue
         
-        # Itérer sur les puissances disponibles pour cette marque
+        # It├®rer sur les puissances disponibles pour cette marque
         for power_str, power_info in powers_dict.items():
             if isinstance(power_info, dict):
                 # Parse numeric kW from power_str like '10', '10_Monophase' or '10 kW'
@@ -678,11 +589,11 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
         nb_panneaux = 0
 
     # Panneaux
-    mask_pan = df["Désignation"] == "Panneaux"
+    mask_pan = df["D├®signation"] == "Panneaux"
     if mask_pan.any():
         idx = mask_pan.idxmax()
         if nb_panneaux > 0:
-            df.at[idx, "Quantité"] = nb_panneaux
+            df.at[idx, "Quantit├®"] = nb_panneaux
         # Prefer 'Canadian Solar' 710W if available, otherwise pick first brand/power
         pan_dict = catalog.get("Panneaux", {})
         sel_brand = None
@@ -723,38 +634,38 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
             st.session_state["pan_brand"] = sel_brand
             st.session_state["pan_power"] = float(sel_power) if sel_power is not None else None
 
-        # Socles en béton : 2 par panneau
-        mask_socles = df["Désignation"] == "Socles"
+        # Socles en b├®ton : 2 par panneau
+        mask_socles = df["D├®signation"] == "Socles"
         if mask_socles.any():
             idx_soc = mask_socles.idxmax()
             if nb_panneaux > 0:
-                df.at[idx_soc, "Quantité"] = int(nb_panneaux * 2)
+                df.at[idx_soc, "Quantit├®"] = int(nb_panneaux * 2)
 
     # Structures : acier <30kW, alu >=30kW (1 structure par panneau)
-    mask_struct_acier = df["Désignation"] == "Structures acier"
-    mask_struct_aluminium = df["Désignation"] == "Structures aluminium"
+    mask_struct_acier = df["D├®signation"] == "Structures acier"
+    mask_struct_aluminium = df["D├®signation"] == "Structures aluminium"
     if nb_panneaux > 0:
         if puissance_kwp < 30:
             # utiliser acier
             if mask_struct_acier.any():
                 idx = mask_struct_acier.idxmax()
-                df.at[idx, "Quantité"] = nb_panneaux
-                df.at[idx, "CustomLabel"] = "Structures en acier galvanisé"
+                df.at[idx, "Quantit├®"] = nb_panneaux
+                df.at[idx, "CustomLabel"] = "Structures en acier galvanis├®"
             if mask_struct_aluminium.any():
                 idx2 = mask_struct_aluminium.idxmax()
-                df.at[idx2, "Quantité"] = 0
+                df.at[idx2, "Quantit├®"] = 0
         else:
             # utiliser aluminium
             if mask_struct_aluminium.any():
                 idx = mask_struct_aluminium.idxmax()
-                df.at[idx, "Quantité"] = nb_panneaux
+                df.at[idx, "Quantit├®"] = nb_panneaux
                 df.at[idx, "CustomLabel"] = "Structures en aluminium"
             if mask_struct_acier.any():
                 idx2 = mask_struct_acier.idxmax()
-                df.at[idx2, "Quantité"] = 0
+                df.at[idx2, "Quantit├®"] = 0
 
-    # Onduleur réseau (Injection) → Sélectionner par puissance
-    mask_ondu_res = df["Désignation"] == "Onduleur réseau"
+    # Onduleur r├®seau (Injection) ÔåÆ S├®lectionner par puissance
+    mask_ondu_res = df["D├®signation"] == "Onduleur r├®seau"
     info_hw = None
     if mask_ondu_res.any():
         idx = mask_ondu_res.idxmax()
@@ -772,14 +683,14 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
                 nb_ondu = int(_math.ceil(puissance_kwp / float(info_hw["power"]))) if puissance_kwp > 0 else 0
             else:
                 nb_ondu = 1
-            df.at[idx, "Quantité"] = max(0, nb_ondu)
+            df.at[idx, "Quantit├®"] = max(0, nb_ondu)
             if df.at[idx, "Prix Unit. TTC"] == 0 and info_hw["sell"] is not None:
                 df.at[idx, "Prix Unit. TTC"] = info_hw["sell"]
             if df.at[idx, "Prix Achat TTC"] == 0 and info_hw["buy"] is not None:
                 df.at[idx, "Prix Achat TTC"] = info_hw["buy"]
 
-    # Onduleur hybride → Sélectionner par puissance
-    mask_ondu_hyb = df["Désignation"] == "Onduleur hybride"
+    # Onduleur hybride ÔåÆ S├®lectionner par puissance
+    mask_ondu_hyb = df["D├®signation"] == "Onduleur hybride"
     if mask_ondu_hyb.any():
         idx = mask_ondu_hyb.idxmax()
         info_deye = select_inverter_for_power(catalog, "Onduleur Hybride", puissance_kwp)
@@ -796,18 +707,18 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
                 nb_ondu_h = int(_math.ceil(puissance_kwp / float(info_deye["power"]))) if puissance_kwp > 0 else 0
             else:
                 nb_ondu_h = 1
-            df.at[idx, "Quantité"] = max(0, nb_ondu_h)
+            df.at[idx, "Quantit├®"] = max(0, nb_ondu_h)
             if df.at[idx, "Prix Unit. TTC"] == 0 and info_deye["sell"] is not None:
                 df.at[idx, "Prix Unit. TTC"] = info_deye["sell"]
             if df.at[idx, "Prix Achat TTC"] == 0 and info_deye["buy"] is not None:
                 df.at[idx, "Prix Achat TTC"] = info_deye["buy"]
 
-    # Pour TOUS les items, chercher les prix dans le catalogue si pas déjà remplis
+    # Pour TOUS les items, chercher les prix dans le catalogue si pas d├®j├á remplis
     for idx, row in df.iterrows():
-        des = row.get("Désignation")
+        des = row.get("D├®signation")
         if not isinstance(des, str):
             continue
-        # Si Prix Unit. TTC est à 0 ou vide, chercher dans le catalogue
+        # Si Prix Unit. TTC est ├á 0 ou vide, chercher dans le catalogue
         if row.get("Prix Unit. TTC") == 0 or pd.isna(row.get("Prix Unit. TTC")):
             sell_price, buy_price = get_prices(catalog, des, row.get("Marque", ""))
             if sell_price is not None:
@@ -815,38 +726,38 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
             if buy_price is not None and (row.get("Prix Achat TTC") == 0 or pd.isna(row.get("Prix Achat TTC"))):
                 df.at[idx, "Prix Achat TTC"] = buy_price
 
-    # Si Huawei utilisé → Smart Meter + Wifi Dongle auto (quantité 1 + prix du catalog si dispo)
+    # Si Huawei utilis├® ÔåÆ Smart Meter + Wifi Dongle auto (quantit├® 1 + prix du catalog si dispo)
     if info_hw is not None:
         for des in ["Smart Meter", "Wifi Dongle"]:
-            mask = df["Désignation"] == des
+            mask = df["D├®signation"] == des
             if mask.any():
                 idx = mask.idxmax()
-                if df.at[idx, "Quantité"] == 0:
-                    df.at[idx, "Quantité"] = 1
+                if df.at[idx, "Quantit├®"] == 0:
+                    df.at[idx, "Quantit├®"] = 1
                 sell, buy = get_prices(catalog, des, "")
                 if df.at[idx, "Prix Unit. TTC"] == 0 and sell is not None:
                     df.at[idx, "Prix Unit. TTC"] = sell
                 if df.at[idx, "Prix Achat TTC"] == 0 and buy is not None:
                     df.at[idx, "Prix Achat TTC"] = buy
 
-    # Batterie pour scénario AVEC : Deyness, taille = puissance du système (en kWh)
-    # Algo : 2×5kWh → 1×10kWh (consolidation), puis rajouter des 5kWh ou 10kWh si besoin
+    # Batterie pour sc├®nario AVEC : Deyness, taille = puissance du syst├¿me (en kWh)
+    # Algo : 2├ù5kWh ÔåÆ 1├ù10kWh (consolidation), puis rajouter des 5kWh ou 10kWh si besoin
     import math
     
-    mask_bat = df["Désignation"] == "Batterie"
+    mask_bat = df["D├®signation"] == "Batterie"
     if mask_bat.any() and puissance_kwp > 0:
         # Find all Battery rows (first and potentially second)
         bat_indices = df[mask_bat].index.tolist()
         idx_bat_primary = bat_indices[0] if bat_indices else None
         idx_bat_secondary = bat_indices[1] if len(bat_indices) > 1 else None
         
-        # Calculer le nombre de batteries 5kWh nécessaires
+        # Calculer le nombre de batteries 5kWh n├®cessaires
         nb_bat_5kwh = math.ceil(puissance_kwp / 5.0)
-        # Consolidation : convertir 2×5kWh en 1×10kWh
+        # Consolidation : convertir 2├ù5kWh en 1├ù10kWh
         nb_bat_10kwh = nb_bat_5kwh // 2
         remaining_5kwh = nb_bat_5kwh % 2
         
-        # Chercher Deyness 10kWh et 5kWh en priorité
+        # Chercher Deyness 10kWh et 5kWh en priorit├®
         bat_dict = catalog.get("Batterie", {})
         dey_10_info = None
         dey_5_info = None
@@ -864,7 +775,7 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
         if idx_bat_primary is not None:
             if nb_bat_10kwh > 0 and dey_10_info:
                 df.at[idx_bat_primary, "Marque"] = dey_10_info[0]
-                df.at[idx_bat_primary, "Quantité"] = nb_bat_10kwh
+                df.at[idx_bat_primary, "Quantit├®"] = nb_bat_10kwh
                 if df.at[idx_bat_primary, "Prix Unit. TTC"] == 0 and dey_10_info[1] is not None:
                     df.at[idx_bat_primary, "Prix Unit. TTC"] = dey_10_info[1]
                 if df.at[idx_bat_primary, "Prix Achat TTC"] == 0 and dey_10_info[2] is not None:
@@ -872,14 +783,14 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
             elif dey_5_info:
                 # Fallback: use 5kWh if 10kWh not available
                 df.at[idx_bat_primary, "Marque"] = dey_5_info[0]
-                df.at[idx_bat_primary, "Quantité"] = nb_bat_5kwh
+                df.at[idx_bat_primary, "Quantit├®"] = nb_bat_5kwh
                 if df.at[idx_bat_primary, "Prix Unit. TTC"] == 0 and dey_5_info[1] is not None:
                     df.at[idx_bat_primary, "Prix Unit. TTC"] = dey_5_info[1]
                 if df.at[idx_bat_primary, "Prix Achat TTC"] == 0 and dey_5_info[2] is not None:
                     df.at[idx_bat_primary, "Prix Achat TTC"] = dey_5_info[2]
             else:
                 # Last resort: fill with catalog default
-                df.at[idx_bat_primary, "Quantité"] = max(1, nb_bat_10kwh or nb_bat_5kwh)
+                df.at[idx_bat_primary, "Quantit├®"] = max(1, nb_bat_10kwh or nb_bat_5kwh)
                 sell, buy = get_prices(catalog, "Batterie", "")
                 if df.at[idx_bat_primary, "Prix Unit. TTC"] == 0 and sell is not None:
                     df.at[idx_bat_primary, "Prix Unit. TTC"] = sell
@@ -889,7 +800,7 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
         # Fill secondary battery row with remaining 5kWh (if exists and needed)
         if idx_bat_secondary is not None and remaining_5kwh > 0 and dey_5_info:
             df.at[idx_bat_secondary, "Marque"] = dey_5_info[0]
-            df.at[idx_bat_secondary, "Quantité"] = remaining_5kwh
+            df.at[idx_bat_secondary, "Quantit├®"] = remaining_5kwh
             if df.at[idx_bat_secondary, "Prix Unit. TTC"] == 0 and dey_5_info[1] is not None:
                 df.at[idx_bat_secondary, "Prix Unit. TTC"] = dey_5_info[1]
             if df.at[idx_bat_secondary, "Prix Achat TTC"] == 0 and dey_5_info[2] is not None:
@@ -919,10 +830,10 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
     )
 
     df = sanitize_df(df.copy())
-    # Inclure toutes les lignes avec Quantité > 0, même si le prix est à 0.0
-    # (L'utilisateur peut vouloir renseigner la quantité puis renseigner le prix manuellement;
-    #  on doit afficher ces lignes et les compter dans le récapitulatif.)
-    df = df[(df["Quantité"] > 0)].reset_index(drop=True)
+    # Inclure toutes les lignes avec Quantit├® > 0, m├¬me si le prix est ├á 0.0
+    # (L'utilisateur peut vouloir renseigner la quantit├® puis renseigner le prix manuellement;
+    #  on doit afficher ces lignes et les compter dans le r├®capitulatif.)
+    df = df[(df["Quantit├®"] > 0)].reset_index(drop=True)
     
     # Clean CustomLabel: Remove dict artifacts (from deserialization issues)
     if "CustomLabel" in df.columns:
@@ -935,11 +846,11 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
             elif isinstance(custom_label, str) and custom_label.strip().lower() == "nan":
                 df.at[idx, "CustomLabel"] = ""
     df["Prix Unit. HT"] = df["Prix Unit. TTC"] / (1 + df["TVA (%)"] / 100)
-    df["Total HT"] = df["Prix Unit. HT"] * df["Quantité"]
-    df["Total TTC"] = df["Prix Unit. TTC"] * df["Quantité"]
+    df["Total HT"] = df["Prix Unit. HT"] * df["Quantit├®"]
+    df["Total TTC"] = df["Prix Unit. TTC"] * df["Quantit├®"]
     total_ht, total_ttc = float(df["Total HT"].sum()), float(df["Total TTC"].sum())
 
-    # Titre scénario (grand, encadré et coloré)
+    # Titre sc├®nario (grand, encadr├® et color├®)
     from reportlab.lib.styles import ParagraphStyle
     title_style = ParagraphStyle("scenario_title", parent=style_normal, fontSize=14, leading=16, alignment=1)
     title_para = Paragraph(f"<b>{scenario_title}</b>", title_style)
@@ -962,88 +873,16 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
 
     header_row = [
         Paragraph("<b>Photo</b>", style_header_white),
-        Paragraph("<b>Désignation</b>", style_header_white),
-        Paragraph("<b>Spécifications techniques</b>", style_header_white),
-        Paragraph("<b>Garantie</b>", style_header_white),
-        Paragraph("<b>Qté</b>", style_header_white),
-        Paragraph("<b>PU TTC (MAD)</b>", style_header_white),
-        Paragraph("<b>Total TTC (MAD)</b>", style_header_white),
+        Paragraph("<b>D├®signation</b>", style_header_white),
+        Paragraph("<b>Quantit├®</b>", style_header_white),
+        Paragraph("<b>TVA (%)</b>", style_header_white),
+        Paragraph("<b>Prix Unit. TTC</b>", style_header_white),
+        Paragraph("<b>Total TTC</b>", style_header_white),
     ]
     data = [header_row]
 
-    spec_map = {
-        "smart meter": (
-            "Compteur intelligent pour suivi et limitation de puissance",
-            "2 ans",
-        ),
-        "wifi dongle": (
-            "Communication et supervision à distance via application",
-            "2 ans",
-        ),
-        "panneaux – canadian solar 710w": (
-            "Modules 710 Wc, haute performance, technologie mono",
-            "12 ans produit",
-        ),
-        "panneaux - canadian solar 710w": (
-            "Modules 710 Wc, haute performance, technologie mono",
-            "12 ans produit",
-        ),
-        "structures acier": (
-            "Structure acier galvanisé adaptée à la toiture",
-            "20 ans",
-        ),
-        "socles": (
-            "Socles de support et lestage pour structure",
-            "—",
-        ),
-        "accessoires": (
-            "Câblage, connecteurs, protections AC/DC",
-            "—",
-        ),
-        "tableau de protection ac/dc": (
-            "Tableau de protection AC/DC complet",
-            "—",
-        ),
-        "installation": (
-            "Main d’œuvre, mise en service et tests",
-            "Garantie de bonne exécution",
-        ),
-        "instalation": (
-            "Main d’œuvre, mise en service et tests",
-            "Garantie de bonne exécution",
-        ),
-        "transport": (
-            "Acheminement du matériel jusqu’au site",
-            "—",
-        ),
-        "batterie – deyness 5kwh": (
-            "Batterie lithium 5 kWh pour stockage et secours",
-            "10 ans",
-        ),
-        "batterie - deyness 5kwh": (
-            "Batterie lithium 5 kWh pour stockage et secours",
-            "10 ans",
-        ),
-        "onduleur réseau": (
-            "Onduleur 5 kW monophasé haute efficacité",
-            "10 ans",
-        ),
-        "onduleur rŽseau": (
-            "Onduleur 5 kW monophasé haute efficacité",
-            "10 ans",
-        ),
-        "onduleur rÇ¸seau": (
-            "Onduleur 5 kW monophasé haute efficacité",
-            "10 ans",
-        ),
-        "onduleur hybride": (
-            "Onduleur 5 kW monophasé haute efficacité",
-            "10 ans",
-        ),
-    }
-
     for _, r in df.iterrows():
-        des = r["Désignation"]
+        des = r["D├®signation"]
         custom_label = r.get("CustomLabel", "")
         
         # Clean custom_label: remove dict, empty, or "nan" values
@@ -1063,31 +902,14 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
             des_txt = des
 
         # Add brand name for relevant items
-        if r.get("Marque") and des in ("Onduleur réseau", "Onduleur hybride", "Panneaux", "Batterie"):
-            des_txt = f"{des_txt} – {r['Marque']}"
+        if r.get("Marque") and des in ("Onduleur r├®seau", "Onduleur hybride", "Panneaux", "Batterie"):
+            des_txt = f"{des_txt} ÔÇô {r['Marque']}"
 
         # Ensure we always pass a string to Paragraph (ReportLab fails on non-strings)
         if des_txt is None:
             des_txt = ""
         des_txt = str(des_txt).strip()
         des_cell = Paragraph(des_txt, style_normal)
-
-        spec_txt = "—"
-        garantie_txt = "—"
-        des_key = des_txt.lower()
-        if des_key in spec_map:
-            spec_txt, garantie_txt = spec_map[des_key]
-        elif "panneaux" in des_key:
-            spec_txt = "Modules solaires haute performance"
-            garantie_txt = "12 ans produit"
-        elif "batterie" in des_key:
-            spec_txt = "Batterie lithium pour stockage et secours"
-            garantie_txt = "10 ans"
-        elif "onduleur" in des_key:
-            spec_txt = "Onduleur haute efficacité"
-            garantie_txt = "10 ans"
-        spec_cell = Paragraph(spec_txt, style_normal)
-        garantie_cell = Paragraph(garantie_txt, style_normal)
 
         photo_key = ""
         if "PhotoKey" in r and isinstance(r["PhotoKey"], str):
@@ -1100,13 +922,12 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
             img_path = get_first_existing_image(des)
 
         if img_path:
-            img_cell = Image(img_path, width=45, height=45)
-            img_cell.hAlign = "CENTER"
+            img_cell = Image(img_path, width=80, height=80)
         else:
             img_cell = Table(
                 [[""]],
-                colWidths=[45],
-                rowHeights=[45],
+                colWidths=[80],
+                rowHeights=[80],
                 style=TableStyle(
                     [
                         ("BOX", (0, 0), (-1, -1), 0.5, colors.grey),
@@ -1118,9 +939,8 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
             [
                 img_cell,
                 des_cell,
-                spec_cell,
-                garantie_cell,
-                int(r["Quantité"]),
+                int(r["Quantit├®"]),
+                f"{r['TVA (%)']:.0f}",
                 f"{r['Prix Unit. TTC']:.2f}",
                 f"{r['Total TTC']:.2f}",
             ]
@@ -1128,66 +948,39 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
 
     total_ht_lbl = Paragraph("<b>TOTAL HT</b>", style_header_white)
     total_ttc_lbl = Paragraph("<b>TOTAL TTC</b>", style_header_white)
-    data.append(["", "", "", "", total_ht_lbl, f"{total_ht:.2f}", ""])
-    data.append(["", "", "", "", total_ttc_lbl, f"{total_ttc:.2f}", ""])
+    data.append(["", "", "", "", total_ht_lbl, f"{total_ht:.2f}"])
+    data.append(["", "", "", "", total_ttc_lbl, f"{total_ttc:.2f}"])
 
-    elements.append(Spacer(1, 12))
-
-    def make_premium_table(data_table):
-        table = Table(
-            data_table,
-            repeatRows=1,
-        )
-
-        style = TableStyle(
+    table = Table(
+        data,
+        repeatRows=1,
+        colWidths=[90, 200, 50, 40, 70, 65],
+    )
+    table.setStyle(
+        TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E6F1F7")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#0A5275")),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor(BLUE_LIGHT)),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BLUE_MAIN)),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("ALIGN", (0, 0), (-1, 0), "CENTER"),
                 ("VALIGN", (0, 0), (-1, 0), "MIDDLE"),
-                ("FONTSIZE", (0, 0), (-1, 0), 7),
-                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 1), (-1, -1), 7),
-                ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#CCCCCC")),
-                ("LEFTPADDING", (0, 0), (-1, -1), 3),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 3),
-                ("TOPPADDING", (0, 0), (-1, -1), 2),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ALIGN", (4, 1), (-1, -1), "RIGHT"),
-                ("ALIGN", (4, 0), (-1, 0), "CENTER"),
-                ("WORDWRAP", (0, 0), (0, 0), None),
-                ("ALIGN", (0, 1), (0, -1), "CENTER"),
-                ("VALIGN", (0, 1), (0, -1), "MIDDLE"),
+                ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
+                ("TEXTCOLOR", (0, 1), (-1, -3), colors.black),
+                ("VALIGN", (0, 1), (-1, -3), "MIDDLE"),
+                ("ALIGN", (2, 1), (-1, -3), "CENTER"),
+                ("BACKGROUND", (0, -2), (-1, -1), colors.HexColor(BLUE_MAIN)),
+                ("TEXTCOLOR", (0, -2), (-1, -1), colors.white),
+                ("FONTNAME", (0, -2), (-1, -1), "Helvetica-Bold"),
+                ("VALIGN", (0, -2), (-1, -1), "MIDDLE"),
+                ("ALIGN", (4, -2), (5, -1), "RIGHT"),
+                ("TOPPADDING", (0, -2), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, -2), (-1, -1), 4),
+                ("SPAN", (0, -2), (3, -2)),
+                ("SPAN", (0, -1), (3, -1)),
             ]
         )
-
-        for row_idx in range(1, len(data_table) - 2):
-            if row_idx % 2 == 0:
-                style.add("BACKGROUND", (0, row_idx), (-1, row_idx), colors.HexColor("#FAFAFA"))
-
-        last_row = len(data_table) - 1
-        before_last_row = len(data_table) - 2
-        style.add("BACKGROUND", (0, before_last_row), (-1, before_last_row), colors.HexColor("#F0F0F0"))
-        style.add("FONTNAME", (0, before_last_row), (-1, before_last_row), "Helvetica-Bold")
-        style.add("BACKGROUND", (0, last_row), (-1, last_row), colors.HexColor("#D8D8D8"))
-        style.add("FONTNAME", (0, last_row), (-1, last_row), "Helvetica-Bold")
-
-        table.setStyle(style)
-        table._argW = [
-            60,   # Photo
-            130,  # Désignation
-            160,  # Spécifications techniques
-            80,   # Garantie
-            40,   # Quantité
-            80,   # Prix Unit
-            80,   # Total TTC
-        ]
-        return table
-
-    table = make_premium_table(data)
-    elements += [table, Spacer(1, 12)]
+    )
+    elements += [table, Spacer(1, 10)]
 
     # Notes
     if notes:
@@ -1254,14 +1047,21 @@ def generate_double_devis_pdf(
 
     today = datetime.now().strftime("%d/%m/%Y")
     
-    # ========== PAGE 1 : PRÉSENTATION DU PROJET ==========
+    # ========== PAGE 1 : PR├ëSENTATION DU PROJET ==========
     # HEADER GLOBAL (logo left, company small text top-right)
     if LOGO_PATH.exists():
         left = [Image(str(LOGO_PATH), width=200, height=200)]
     else:
         left = [Paragraph("<b>TAQINOR</b>", styles["Title"])]
 
-    right = [Spacer(1, 1)]
+    company_txt = (
+        "<b>TAQINOR Solutions SARLAU</b><br/>"
+        "RC 691213 | ICE 003799642000067<br/>"
+        "5 Rue Annoussour, Casablanca 20250<br/>"
+        "T├®l : 0661 85 04 10<br/>"
+        "Email : contact@taqinor.com"
+    )
+    right = [Paragraph(company_txt, style_company)]
     header = Table([[left, right]], colWidths=[240, 240])
     header.setStyle(
         TableStyle(
@@ -1276,11 +1076,6 @@ def generate_double_devis_pdf(
     )
     elements += [header, Spacer(1, 4)]
 
-    separator = Drawing(450, 1)
-    separator.add(Line(0, 0, 450, 0))
-    elements.append(separator)
-    elements.append(Spacer(1, 12))
-
     line_tbl = Table([[""]], colWidths=[480])
     line_tbl.setStyle(
         TableStyle(
@@ -1292,23 +1087,45 @@ def generate_double_devis_pdf(
     elements += [line_tbl, Spacer(1, 6)]
 
     # TITRE PAGE 1
-    style_title = ParagraphStyle(
-        "Title",
-        parent=styles["Heading1"],
-        alignment=1,
-        fontSize=20,
-        leading=24,
-        spaceAfter=6,
-        textColor=colors.HexColor("#0A5275"),
+    title_page1 = ParagraphStyle(
+        "title_page1",
+        parent=style_normal,
+        fontSize=18,
+        leading=22,
+        textColor=colors.HexColor(BLUE_MAIN),
+        spaceAfter=12,
+        alignment=1
     )
-    style_subtitle = ParagraphStyle(
-        "Subtitle",
-        parent=styles["Normal"],
-        alignment=1,
-        fontSize=11,
-        leading=14,
-        textColor=colors.HexColor("#555555"),
+    elements.append(Paragraph("Devis Installation Photovolta├»que", title_page1))
+    elements.append(Spacer(1, 12))
+
+    # INFOS CLIENT + DOC (c├┤te ├á c├┤te)
+    client_info = (
+        f"<b>Client :</b><br/>{client_name or '-'}<br/>{client_address or '-'}<br/>{client_phone or '-'}"
     )
+    doc_info = (
+        f"<b>Num├®ro du {doc_type} :</b> {int(doc_number)}<br/>"
+        f"<b>Date d'├®mission :</b> {today}"
+    )
+    info = Table(
+        [
+            [
+                Paragraph(client_info, style_normal),
+                Paragraph(doc_info, style_normal),
+            ]
+        ],
+        colWidths=[310, 170],
+    )
+    info.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]
+        )
+    )
+    elements += [info, Spacer(1, 20)]
+
+    # R├ëSUM├ë DU PROJET
     heading_style = ParagraphStyle(
         "heading",
         parent=style_normal,
@@ -1317,250 +1134,107 @@ def generate_double_devis_pdf(
         textColor=colors.HexColor(BLUE_MAIN),
         spaceAfter=8,
     )
-    heading2_for_intro = heading2_style if "heading2_style" in locals() else heading_style
-
-    elements.append(Spacer(1, 10))
-    elements.append(Paragraph("Devis Installation Photovoltaïque", style_title))
-    elements.append(Paragraph("Projet : Installation photovoltaïque résidentielle – Casablanca", style_subtitle))
-    elements.append(Spacer(1, 16))
-
-    client_data = [
-        ["Client"],
-        [f"Nom : {client_name or '-'}"],
-        [f"Adresse : {client_address or '-'}"],
-        [f"Téléphone : {client_phone or '-'}"],
-    ]
-    client_table = Table(client_data, colWidths=[260])
-    client_table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#E6F1F7")),
-                ("TEXTCOLOR", (0, 0), (0, 0), colors.HexColor("#0A5275")),
-                ("FONTNAME", (0, 0), (0, 0), "Helvetica-Bold"),
-                ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#CCCCCC")),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
-                ("LEFTPADDING", (0, 0), (-1, -1), 5),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-                ("TOPPADDING", (0, 0), (-1, -1), 3),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-            ]
-        )
-    )
-
-    details_data = [
-        ["Détails du devis"],
-        [f"Numéro du devis : {int(doc_number)}"],
-        [f"Date d'émission : {today}"],
-    ]
-    details_table = Table(details_data, colWidths=[220])
-    details_table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#E6F1F7")),
-                ("TEXTCOLOR", (0, 0), (0, 0), colors.HexColor("#0A5275")),
-                ("FONTNAME", (0, 0), (0, 0), "Helvetica-Bold"),
-                ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#CCCCCC")),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
-                ("LEFTPADDING", (0, 0), (-1, -1), 5),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-                ("TOPPADDING", (0, 0), (-1, -1), 3),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-            ]
-        )
-    )
-
-    top_tables = Table([[client_table, details_table]], colWidths=[260, 220])
-    top_tables.setStyle(
-        TableStyle(
-            [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-            ]
-        )
-    )
-    elements.append(top_tables)
-    elements.append(Spacer(1, 20))
-
-    # RÉSUMÉ DU PROJET
-    heading1_style = styles["Heading1"].clone("heading1_custom")
-    heading1_style.textColor = colors.HexColor(BLUE_MAIN)
-    heading2_style = styles["Heading2"].clone("heading2_custom")
-    heading2_style.textColor = colors.HexColor(BLUE_MAIN)
-    heading3_style = styles["Heading3"].clone("heading3_custom")
-    heading3_style.textColor = colors.HexColor(BLUE_MAIN)
-    def ensure_page_break():
-        if not elements or not isinstance(elements[-1], PageBreak):
-            elements.append(PageBreak())
-
-    def _extract_panel_power(value):
-        try:
-            s = str(value)
-        except Exception:
-            return 0
-        m = re.search(r"(\d+(?:[.,]\d+)?)\s*[wW]", s)
-        if m:
-            try:
-                return int(float(m.group(1).replace(",", ".")))
-            except Exception:
-                return 0
-        try:
-            return int(float(re.sub(r"[^0-9.,]", "", s).replace(",", ".")))
-        except Exception:
-            return 0
-
-    def _panels_info(df_obj):
-        total_qty = 0
-        watt = 0
-        if isinstance(df_obj, pd.DataFrame):
-            try:
-                mask = df_obj["Désignation"] == "Panneaux"
-                if mask.any():
-                    panneaux_rows = df_obj[mask]
-                    total_qty = int(panneaux_rows["Quantité"].sum())
-                    first_row = panneaux_rows.iloc[0]
-                    power_candidate = first_row.get("Power", None)
-                    if power_candidate in (None, ""):
-                        power_candidate = first_row.get("Marque", "")
-                    watt = _extract_panel_power(power_candidate)
-            except Exception:
-                pass
-        elif isinstance(df_obj, list):
-            for row_data in df_obj:
-                if isinstance(row_data, dict) and row_data.get("Désignation") == "Panneaux":
-                    total_qty += int(row_data.get("Quantité", 0) or 0)
-                    if watt == 0:
-                        power_candidate = row_data.get("Power", row_data.get("Marque", ""))
-                        watt = _extract_panel_power(power_candidate)
-        return total_qty, watt
-
-    nombre_panneaux, puissance_panneau = _panels_info(df_sans)
-    if nombre_panneaux == 0 and isinstance(df_avec, (pd.DataFrame, list)):
-        nb_alt, power_alt = _panels_info(df_avec)
-        if nb_alt:
-            nombre_panneaux = nb_alt
-        if puissance_panneau == 0:
-            puissance_panneau = power_alt
-    puissance_totale_kwc = round(nombre_panneaux * puissance_panneau / 1000, 2) if puissance_panneau else 0.0
     
-    elements.append(Paragraph("RÉSUMÉ EXÉCUTIF", heading_style))
-    elements.append(Spacer(1, 12))
-    elements.append(
-        Paragraph(
-            "Ce devis présente une solution photovoltaïque sur mesure visant à réduire durablement votre facture d’électricité, améliorer votre autonomie énergétique et valoriser votre patrimoine. L’installation proposée repose sur des équipements premium (Canadian Solar, Huawei, Deye) et s’adapte à votre profil de consommation afin de maximiser votre taux d’autoconsommation et votre retour sur investissement.",
-            style_normal,
-        )
+    # Calculer le nombre de panneaux et la puissance totale
+    nb_panneaux = 0
+    puissance_panneau = 0
+    try:
+        for row_data in (df_sans if isinstance(df_sans, list) else []):
+            if isinstance(row_data, dict) and row_data.get("D├®signation") == "Panneaux":
+                nb_panneaux = int(row_data.get("Quantit├®", 0))
+                # Extraire la puissance du mod├¿le de panneau (ex: "Canadian Solar 710W")
+                marque = str(row_data.get("Marque", ""))
+                if "710" in marque:
+                    puissance_panneau = 710
+                elif "620" in marque:
+                    puissance_panneau = 620
+                elif "590" in marque:
+                    puissance_panneau = 590
+                break
+    except Exception:
+        pass
+    
+    puissance_totale = (nb_panneaux * puissance_panneau) / 1000 if puissance_panneau > 0 else 0
+    
+    # Extraire la capacit├® de batterie (en kWh) si pr├®sente
+    batterie_capacite_kwh = 0.0
+    try:
+        for row_data in (df_avec if isinstance(df_avec, list) else []):
+            if isinstance(row_data, dict) and row_data.get("D├®signation") == "Batterie":
+                marque_bat = str(row_data.get("Marque", ""))
+                qty_bat = int(row_data.get("Quantit├®", 0))
+                if "10" in marque_bat:
+                    batterie_capacite_kwh += qty_bat * 10.0
+                elif "5" in marque_bat:
+                    batterie_capacite_kwh += qty_bat * 5.0
+    except Exception:
+        pass
+    
+    # D├®terminer quels sc├®narios sont pr├®sents
+    scenario_text = ""
+    if scenario_choice == "Sans batterie uniquement":
+        scenario_text = "sc├®nario sans batterie"
+    elif scenario_choice == "Avec batterie uniquement":
+        scenario_text = "sc├®nario avec batterie"
+    elif scenario_choice == "Les deux (Sans + Avec)":
+        scenario_text = "deux sc├®narios : sans batterie et avec batterie"
+    
+    project_summary = (
+        f"<b>Installation photovolta├»que de {nb_panneaux} panneaux de {puissance_panneau}W "
+        f"(puissance totale : {puissance_totale:.2f} kWc)</b><br/>"
+        f"avec {scenario_text}."
     )
-    elements.append(Spacer(1, 8))
-    elements.append(Paragraph("L’étude ci-dessous inclut :", heading_style))
-    bullet_intro = [
-        f"• Une configuration de {nombre_panneaux} panneaux de {puissance_panneau} W (puissance totale {puissance_totale_kwc:.2f} kWc)",
-        "• Une analyse comparative entre une installation SANS batterie et une installation AVEC batterie",
-        "• Une estimation économique complète (production annuelle, économies, ROI)",
-        "• Les garanties et engagements TAQINOR",
-    ]
-    for txt in bullet_intro:
-        elements.append(Paragraph(txt, style_normal))
-        elements.append(Spacer(1, 4))
-    elements.append(Spacer(1, 6))
-    elements.append(Paragraph("OBJECTIFS DU CLIENT", heading_style))
+    elements.append(Paragraph("<b>R├®sum├® du projet :</b>", heading_style))
+    elements.append(Paragraph(project_summary, style_normal))
     elements.append(Spacer(1, 12))
-    client_objectifs = [
-        "• Réduire significativement la facture d’électricité mensuelle",
-        "• Gagner en confort et en sécurité énergétique en cas de coupure",
-        "• Préserver la possibilité d’une évolution future (batterie, puissance supplémentaire)",
-    ]
-    for txt in client_objectifs:
-        elements.append(Paragraph(txt, style_normal))
-        elements.append(Spacer(1, 4))
-    elements.append(Spacer(1, 6))
-    elements.append(Paragraph("CONFIGURATION RECOMMANDÉE", heading_style))
-    elements.append(Spacer(1, 12))
-    elements.append(
-        Paragraph(
-            f"TAQINOR propose deux configurations optimisées : une installation SANS batterie, privilégiant le meilleur retour sur investissement, et une installation AVEC batterie, offrant davantage de confort et d’autonomie lors des coupures réseau. Les deux scénarios reposent sur une puissance totale installée de {puissance_totale_kwc:.2f} kWc via {nombre_panneaux} modules de {puissance_panneau} W.",
-            style_normal,
-        )
+    
+    # Description des deux options
+    elements.append(Paragraph("<b>Description des options :</b>", heading_style))
+    options_desc = (
+        "<b>ÔÇó Option 1 - Installation SANS batterie :</b> Syst├¿me connect├® au r├®seau ├®lectrique national, "
+        "sans stockage d'├®nergie. L'├®lectricit├® produite est consomm├®e directement ou inject├®e dans le r├®seau.<br/>"
+        "<br/>"
     )
-    elements.append(Spacer(1, 6))
-    elements.append(Paragraph("PLAN D’IMPLANTATION SUR LE TOIT", heading2_style if 'heading2_style' in locals() else heading_style))
-    elements.append(Spacer(1, 8))
-
-    d_roof = Drawing(400, 180)
-    d_roof.add(Rect(10, 40, 380, 120, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#F5FAFD")))
-    d_roof.add(String(20, 145, "Orientation : Sud • Inclinaison : 10°", fontName="Helvetica", fontSize=9, fillColor=HexColor("#333333")))
-    panel_w = 70
-    panel_h = 25
-    x0 = 25
-    y1 = 105
-    y2 = 70
-    for i in range(4):
-        d_roof.add(Rect(x0 + i * (panel_w + 5), y1, panel_w, panel_h, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#E6F1F7")))
-        d_roof.add(Rect(x0 + i * (panel_w + 5), y2, panel_w, panel_h, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#E6F1F7")))
-    d_roof.add(String(20, 50, "*Schéma indicatif. Le positionnement exact sera ajusté lors de la visite technique.", fontName="Helvetica-Oblique", fontSize=8, fillColor=HexColor("#555555")))
-    elements.append(d_roof)
-    elements.append(Spacer(1, 18))
-
-    elements.append(Paragraph("SCHÉMA FONCTIONNEL DU SYSTÈME", heading2_style if 'heading2_style' in locals() else heading_style))
-    elements.append(Spacer(1, 8))
-
-    d_sys = Drawing(400, 160)
-    d_sys.add(Rect(20, 90, 100, 40, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#F5FAFD")))
-    d_sys.add(Rect(150, 90, 100, 40, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#F5FAFD")))
-    d_sys.add(Rect(280, 90, 100, 40, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#F5FAFD")))
-    d_sys.add(String(30, 105, "Panneaux PV", fontName="Helvetica", fontSize=9))
-    d_sys.add(String(160, 105, "Onduleur", fontName="Helvetica", fontSize=9))
-    d_sys.add(String(290, 105, "Tableau AC/DC", fontName="Helvetica", fontSize=9))
-    d_sys.add(Rect(150, 25, 100, 40, strokeColor=HexColor("#0A5275"), fillColor=HexColor("#F5FAFD")))
-    d_sys.add(String(160, 40, "Réseau maison", fontName="Helvetica", fontSize=9))
-    d_sys.add(Line(120, 110, 150, 110))
-    d_sys.add(Line(250, 110, 280, 110))
-    d_sys.add(Line(330, 90, 200, 65))
-    d_sys.add(Line(200, 65, 200, 65))
-    elements.append(d_sys)
-    elements.append(Spacer(1, 18))
-
-    elements.append(Paragraph("SCHÉMA UNIFILAIRE SIMPLIFIÉ (ONE-LINE)", heading2_style if 'heading2_style' in locals() else heading_style))
-    elements.append(Spacer(1, 8))
-
-    d_one = Drawing(400, 120)
-    d_one.add(Rect(20, 60, 80, 30, strokeColor=HexColor("#0A5275")))
-    d_one.add(Rect(130, 60, 80, 30, strokeColor=HexColor("#0A5275")))
-    d_one.add(Rect(240, 60, 80, 30, strokeColor=HexColor("#0A5275")))
-    d_one.add(Rect(350, 60, 80, 30, strokeColor=HexColor("#0A5275")))
-    d_one.add(String(25, 70, "Panneaux PV", fontSize=8))
-    d_one.add(String(140, 70, "Onduleur", fontSize=8))
-    d_one.add(String(245, 70, "Tableau AC/DC", fontSize=8))
-    d_one.add(String(355, 70, "Réseau maison", fontSize=8))
-    d_one.add(Line(100, 75, 130, 75))
-    d_one.add(Line(210, 75, 240, 75))
-    d_one.add(Line(320, 75, 350, 75))
-    d_one.add(Rect(240, 15, 80, 30, strokeColor=HexColor("#0A5275")))
-    d_one.add(String(250, 25, "Batterie", fontSize=8))
-    d_one.add(Line(280, 60, 280, 45))
-    elements.append(d_one)
-    elements.append(Spacer(1, 18))
+    if batterie_capacite_kwh > 0:
+        options_desc += (
+            f"<b>ÔÇó Option 2 - Installation AVEC batterie :</b> Syst├¿me hybride avec batterie de {batterie_capacite_kwh} kWh."
+        )
+    else:
+        options_desc += (
+            "<b>ÔÇó Option 2 - Installation AVEC batterie :</b> Syst├¿me hybride avec batterie de stockage. "
+            "Maximise l'autoconsommation et offre une autonomie ├®nerg├®tique."
+        )
+    elements.append(Paragraph(options_desc, style_normal))
+    elements.append(Spacer(1, 12))
+    
+    # Description des avantages
+    elements.append(Paragraph("<b>Avantages de cette installation :</b>", heading_style))
+    advantages = (
+        "ÔÇó R├®duction significative de vos factures d'├®lectricit├® d├¿s les premiers mois<br/>"
+        "ÔÇó Production d'une ├®nergie propre et renouvelable, adapt├®e au climat marocain<br/>"
+        "ÔÇó Am├®lioration de la valeur de votre bien immobilier<br/>"
+        "ÔÇó Technologie fiable, avec des garanties allant de 10 ├á 25 ans selon les ├®quipements<br/>"
+        "ÔÇó Accompagnement technique complet par TAQINOR, avant et apr├¿s l'installation"
+    )
+    elements.append(Paragraph(advantages, style_normal))
+    elements.append(Spacer(1, 16))
+    
+    # Ajouter un PageBreak apr├¿s la premi├¿re page
     elements.append(PageBreak())
     
     # ========== PAGE 2 : OPTION SANS BATTERIE ==========
     # SECTION SANS
-    options_heading_shown = False
     if scenario_choice in ("Sans batterie uniquement", "Les deux (Sans + Avec)"):
-        ensure_page_break()
-        if not options_heading_shown:
-            elements.append(Paragraph("PRÉSENTATION DES OPTIONS", heading1_style))
-            elements.append(Spacer(1, 12))
-            options_heading_shown = True
-        elements.append(Paragraph("Option 1 : Installation SANS batterie", heading3_style))
-        elements.append(Spacer(1, 6))
-        elements.append(
-            Paragraph(
-                "Cette configuration est idéale si votre objectif principal est de réduire votre facture au meilleur coût initial.<br/>"
-                "Elle offre le meilleur retour sur investissement car toute l’énergie produite est directement utilisée par votre foyer.",
-                style_normal,
-            )
+        heading_scenario = ParagraphStyle(
+            "heading_scenario",
+            parent=style_normal,
+            fontSize=14,
+            leading=16,
+            textColor=colors.HexColor(BLUE_MAIN),
+            spaceAfter=10,
         )
-        elements.append(Spacer(1, 10))
+        elements.append(Paragraph("Option 1 : Installation SANS batterie", heading_scenario))
+        elements.append(Spacer(1, 8))
         
         sec_sans, total_sans = build_devis_section_elements(
             df_sans, notes_sans, styles, "Devis SANS batterie"
@@ -1568,25 +1242,23 @@ def generate_double_devis_pdf(
         elements += sec_sans
         elements.append(Spacer(1, 12))
 
+    # PAGE BREAK entre les deux sc├®narios si on affiche les deux
+    if scenario_choice == "Les deux (Sans + Avec)":
+        elements.append(PageBreak())
+        
     # ========== PAGE 3 : OPTION AVEC BATTERIE ==========
     # SECTION AVEC
     if scenario_choice in ("Avec batterie uniquement", "Les deux (Sans + Avec)"):
-        ensure_page_break()
-        if not options_heading_shown:
-            elements.append(Paragraph("PRÉSENTATION DES OPTIONS", heading1_style))
-            elements.append(Spacer(1, 12))
-            options_heading_shown = True
-        elements.append(Spacer(1, 12))
-        elements.append(Paragraph("Option 2 : Installation AVEC batterie", heading3_style))
-        elements.append(Spacer(1, 6))
-        elements.append(
-            Paragraph(
-                "Cette option apporte un confort supérieur grâce au stockage d’énergie.<br/>"
-                "Elle assure une autonomie en cas de coupure, optimise la consommation nocturne et augmente votre taux d’autoconsommation globale.",
-                style_normal,
-            )
+        heading_scenario = ParagraphStyle(
+            "heading_scenario",
+            parent=style_normal,
+            fontSize=14,
+            leading=16,
+            textColor=colors.HexColor(BLUE_MAIN),
+            spaceAfter=10,
         )
-        elements.append(Spacer(1, 10))
+        elements.append(Paragraph("Option 2 : Installation AVEC batterie", heading_scenario))
+        elements.append(Spacer(1, 8))
         
         sec_avec, total_avec = build_devis_section_elements(
             df_avec, notes_avec, styles, "Devis AVEC batterie"
@@ -1594,113 +1266,113 @@ def generate_double_devis_pdf(
         elements += sec_avec
         elements.append(Spacer(1, 12))
 
-    # ========== PAGE 4 : ANALYSE ÉCONOMIQUE ET ROI ==========
+    # ========== PAGE 4 : ANALYSE ├ëCONOMIQUE ET ROI ==========
     # PAGE ROI GRAPHIQUE
     if roi_fig_all_buf is not None:
-        ensure_page_break()
-        economie_annuelle_sans = 10591
-        economie_annuelle_avec = 12562
-        monthly_sans = [economie_annuelle_sans / 12.0] * 12
-        monthly_avec = [economie_annuelle_avec / 12.0] * 12
-        mois_labels = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"]
-        buf_savings_chart = create_monthly_savings_chart(mois_labels, monthly_sans, monthly_avec)
-        img_savings_chart = Image(buf_savings_chart, width=400, height=200)
-        elements.append(Paragraph("GRAPHIQUE DE PRODUCTION & ROI", heading2_style if 'heading2_style' in locals() else heading_style))
-        elements.append(Spacer(1, 6))
-        elements.append(img_savings_chart)
-        elements.append(Spacer(1, 18))
-        elements.append(Paragraph("SYNTHÈSE FINANCIÈRE & ROI", heading1_style))
-        elements.append(Spacer(1, 12))
-        elements.append(Paragraph("Analyse détaillée du retour sur investissement", heading2_style))
-        elements.append(Spacer(1, 8))
-        elements.append(
-            Paragraph(
-                "Les estimations ci-dessous présentent la production annuelle attendue, les économies générées et le temps de retour sur investissement.<br/>"
-                "Ces valeurs permettent de comparer objectivement les deux scénarios et de choisir la solution la plus rentable selon votre consommation.",
-                style_normal,
-            )
+        elements.append(PageBreak())
+        
+        heading_roi = ParagraphStyle(
+            "heading_roi",
+            parent=style_normal,
+            fontSize=14,
+            leading=16,
+            textColor=colors.HexColor(BLUE_MAIN),
+            spaceAfter=10,
         )
+        elements.append(Paragraph("Analyse ├ëconomique et Retour sur Investissement", heading_roi))
         elements.append(Spacer(1, 12))
         
-        elements.append(Paragraph("<b>Estimation des économies mensuelles</b>", style_header_top))
+        elements.append(Paragraph("<b>Estimation des ├®conomies mensuelles</b>", style_header_top))
         elements.append(Spacer(1, 6))
         roi_fig_all_buf.seek(0)
         elements.append(Image(roi_fig_all_buf, width=420, height=260))
         elements.append(Spacer(1, 10))
 
         # Explication du graphique
-        elements.append(Paragraph("<b>Interprétation du graphique</b>", style_header_top))
+        elements.append(Paragraph("<b>Interpr├®tation du graphique</b>", style_header_top))
         elements.append(Spacer(1, 4))
         expl = (
-            "Le graphique ci-dessus présente l'estimation des économies mensuelles générées par l'installation photovoltaïque "
-            "sur 12 mois. Chaque série correspond à un scénario : économies sans batterie et économies avec batterie. "
-            "Ces valeurs servent à comparer l'impact financier mensuel entre les deux configurations et à alimenter le calcul de retour sur investissement."
+            "Le graphique ci-dessus pr├®sente l'estimation des ├®conomies mensuelles g├®n├®r├®es par l'installation photovolta├»que "
+            "sur 12 mois. Chaque s├®rie correspond ├á un sc├®nario : ├®conomies sans batterie et ├®conomies avec batterie. "
+            "Ces valeurs servent ├á comparer l'impact financier mensuel entre les deux configurations et ├á alimenter le calcul de retour sur investissement."
         )
         elements.append(Paragraph(expl, style_normal))
         elements.append(Spacer(1, 12))
 
-        # Résumés ROI pour les deux scénarios (rassemblés après le graphique)
+        # R├®sum├®s ROI pour les deux sc├®narios (rassembl├®s apr├¿s le graphique)
         if roi_summary_sans is not None:
-            elements.append(Paragraph("<b>Scénario SANS batterie</b>", style_header_top))
+            elements.append(Paragraph("<b>Sc├®nario SANS batterie</b>", style_header_top))
             elements.append(Spacer(1, 4))
-            production_annuelle_sans = roi_summary_sans.get("prod_annuelle", 0.0)
-            economie_annuelle_sans = roi_summary_sans.get("eco_annuelle", 0.0)
-            investissement_sans = roi_summary_sans.get("cout_systeme", 0.0)
-            roi_sans = roi_summary_sans.get("payback", None)
+            prod_ann = roi_summary_sans.get("prod_annuelle", 0.0)
+            eco_ann = roi_summary_sans.get("eco_annuelle", 0.0)
+            cout_sys = roi_summary_sans.get("cout_systeme", 0.0)
+            payback = roi_summary_sans.get("payback", None)
             txt = (
-                f"<b>Production photovoltaïque annuelle estimée :</b> {production_annuelle_sans:,.0f} kWh/an<br/>"
-                f"<b>Économie annuelle estimée :</b> {economie_annuelle_sans:,.0f} MAD/an<br/>"
-                f"<b>Coût d'investissement estimé :</b> {investissement_sans:,.0f} MAD<br/>"
+                f"<b>Production photovolta├»que annuelle estim├®e :</b> {prod_ann:,.0f} kWh/an<br/>"
+                f"<b>├ëconomie annuelle estim├®e :</b> {eco_ann:,.0f} MAD/an<br/>"
+                f"<b>Co├╗t d'investissement estim├® :</b> {cout_sys:,.0f} MAD<br/>"
             )
-            if roi_sans is not None:
-                txt += f"<b>Temps de retour sur investissement :</b> {roi_sans:.1f} années<br/>"
+            if payback is not None:
+                txt += f"<b>Temps de retour sur investissement :</b> {payback:.1f} ann├®es<br/>"
             else:
-                txt += "<b>Temps de retour sur investissement :</b> non calculable (économie annuelle nulle)<br/>"
+                txt += "<b>Temps de retour sur investissement :</b> non calculable (├®conomie annuelle nulle)<br/>"
             elements.append(Paragraph(txt, style_normal))
             elements.append(Spacer(1, 10))
 
         if roi_summary_avec is not None:
-            elements.append(Paragraph("<b>Scénario AVEC batterie</b>", style_header_top))
+            elements.append(Paragraph("<b>Sc├®nario AVEC batterie</b>", style_header_top))
             elements.append(Spacer(1, 4))
-            production_annuelle_avec = roi_summary_avec.get("prod_annuelle", 0.0)
-            economie_annuelle_avec = roi_summary_avec.get("eco_annuelle", 0.0)
-            investissement_avec = roi_summary_avec.get("cout_systeme", 0.0)
-            roi_avec = roi_summary_avec.get("payback", None)
+            prod_ann = roi_summary_avec.get("prod_annuelle", 0.0)
+            eco_ann = roi_summary_avec.get("eco_annuelle", 0.0)
+            cout_sys = roi_summary_avec.get("cout_systeme", 0.0)
+            payback = roi_summary_avec.get("payback", None)
             txt = (
-                f"<b>Production photovoltaïque annuelle estimée :</b> {production_annuelle_avec:,.0f} kWh/an<br/>"
-                f"<b>Économie annuelle estimée :</b> {economie_annuelle_avec:,.0f} MAD/an<br/>"
-                f"<b>Coût d'investissement estimé :</b> {investissement_avec:,.0f} MAD<br/>"
+                f"<b>Production photovolta├»que annuelle estim├®e :</b> {prod_ann:,.0f} kWh/an<br/>"
+                f"<b>├ëconomie annuelle estim├®e :</b> {eco_ann:,.0f} MAD/an<br/>"
+                f"<b>Co├╗t d'investissement estim├® :</b> {cout_sys:,.0f} MAD<br/>"
             )
-            if roi_avec is not None:
-                txt += f"<b>Temps de retour sur investissement :</b> {roi_avec:.1f} années<br/>"
+            if payback is not None:
+                txt += f"<b>Temps de retour sur investissement :</b> {payback:.1f} ann├®es<br/>"
             else:
-                txt += "<b>Temps de retour sur investissement :</b> non calculable (économie annuelle nulle)<br/>"
+                txt += "<b>Temps de retour sur investissement :</b> non calculable (├®conomie annuelle nulle)<br/>"
             elements.append(Paragraph(txt, style_normal))
             elements.append(Spacer(1, 10))
 
     # ========== PAGE 5 : GARANTIES ET POURQUOI TAQINOR ==========
-    ensure_page_break()
-    elements.append(Paragraph("GARANTIES & CONDITIONS GÉNÉRALES", heading1_style))
+    elements.append(PageBreak())
+
+    # ========== PAGE 5 : GARANTIES ET POURQUOI TAQINOR ==========
+    elements.append(PageBreak())
+    
+    heading_warranty = ParagraphStyle(
+        "heading_warranty",
+        parent=style_normal,
+        fontSize=14,
+        leading=16,
+        textColor=colors.HexColor(BLUE_MAIN),
+        spaceAfter=10,
+    )
+    elements.append(Paragraph("Garanties et Engagement Qualit├®", heading_warranty))
     elements.append(Spacer(1, 12))
     
     # Section Garanties
     elements.append(Paragraph("<b>Couverture de garantie</b>", style_header_top))
     elements.append(Spacer(1, 6))
-    elements.append(Paragraph("<b>Tous nos équipements sont garantis au minimum 10 ans.</b>", style_normal))
+    elements.append(Paragraph("<b>Tous nos ├®quipements sont garantis au minimum 10 ans.</b>", style_normal))
     elements.append(Spacer(1, 8))
     
     warranty_details = (
-        "<b>• Onduleurs Huawei et Deye :</b> 10 ans de garantie constructeur<br/>"
-        "<b>• Panneaux solaires Canadian Solar :</b> 12 ans de garantie<br/>"
+        "<b>ÔÇó Onduleurs Huawei et Deye :</b> 10 ans de garantie constructeur<br/>"
+        "<b>ÔÇó Panneaux solaires Canadian Solar :</b> 12 ans de garantie<br/>"
     )
     
-    # Détecter le type de structure utilisé dans les deux scénarios (préférence aluminium si présent)
+    # D├®tecter le type de structure utilis├® dans les deux sc├®narios (pr├®f├®rence aluminium si pr├®sent)
     struct_used = None
     for df_check in (df_sans, df_avec):
         try:
             for _, rr in pd.DataFrame(df_check).iterrows():
-                des = rr.get("Désignation", "")
-                qty = int(rr.get("Quantité", 0) or 0)
+                des = rr.get("D├®signation", "")
+                qty = int(rr.get("Quantit├®", 0) or 0)
                 custom = str(rr.get("CustomLabel", "")).lower().strip()
                 if qty > 0:
                     des_lower = str(des).lower() if des else ""
@@ -1719,89 +1391,86 @@ def generate_double_devis_pdf(
             break
     
     if struct_used == "aluminium":
-        warranty_details += "<b>• Structures en aluminium :</b> 25 ans de garantie<br/>"
+        warranty_details += "<b>ÔÇó Structures en aluminium :</b> 25 ans de garantie<br/>"
     elif struct_used == "acier":
-        warranty_details += "<b>• Structures en acier galvanisé :</b> 20 ans de garantie<br/>"
+        warranty_details += "<b>ÔÇó Structures en acier galvanis├® :</b> 20 ans de garantie<br/>"
     else:
-        warranty_details += "<b>• Structures :</b> garantie selon type utilisé (acier galvanisé 20 ans ou aluminium 25 ans)<br/>"
+        warranty_details += "<b>ÔÇó Structures :</b> garantie selon type utilis├® (acier galvanis├® 20 ans ou aluminium 25 ans)<br/>"
     
     elements.append(Paragraph(warranty_details, style_normal))
     elements.append(Spacer(1, 12))
     
-    # Section Conditions
-    elements.append(Paragraph("<b>Conditions générales</b>", style_header_top))
+    # Section Pourquoi TAQINOR
+    elements.append(Paragraph("<b>Pourquoi choisir TAQINOR ?</b>", style_header_top))
     elements.append(Spacer(1, 6))
-    elements.append(
-        Paragraph(
-            "Les conditions ci-dessous définissent le cadre contractuel de l’offre TAQINOR pour votre installation photovoltaïque.",
-            style_normal,
-        )
+    
+    why_taqinor = (
+        "<b>Ô£ô Expertise reconnue :</b> Sp├®cialiste en solutions photovolta├»ques et batteries depuis plus de 10 ans<br/>"
+        "<b>Ô£ô ├ëquipements de qualit├® :</b> Marques r├®put├®es (Huawei, Deye, Canadian Solar)<br/>"
+        "<b>Ô£ô Accompagnement complet :</b> ├ëtudes gratuites, devis pr├®cis, installation professionnelle<br/>"
+        "<b>Ô£ô Suivi technique :</b> Maintenance et support 24/7 apr├¿s installation<br/>"
+        "<b>Ô£ô Rentabilit├® garantie :</b> ├ëtude ROI personnalis├®e avec simulation de production<br/>"
+        "<b>Ô£ô Respect des normes :</b> Conformit├® aux standards marocains et internationaux"
     )
+    elements.append(Paragraph(why_taqinor, style_normal))
+    elements.append(Spacer(1, 12))
+    
+    # Section Conditions
+    elements.append(Paragraph("<b>Conditions g├®n├®rales</b>", style_header_top))
     elements.append(Spacer(1, 6))
     
     conditions = (
-        "• Ce devis est valable <b>30 jours</b> à compter de sa date d'émission<br/>"
-        "• Toute commande implique l'adhésion sans réserve à nos conditions générales de vente<br/>"
-        "• Les prix indiqués incluent la TVA 20%<br/>"
-        "• La réalisation de ces travaux ne peut débuter sans signature du devis"
+        "ÔÇó Ce devis est valable <b>30 jours</b> ├á compter de sa date d'├®mission<br/>"
+        "ÔÇó Toute commande implique l'adh├®sion sans r├®serve ├á nos conditions g├®n├®rales de vente<br/>"
+        "ÔÇó Les prix indiqu├®s incluent la TVA 20%<br/>"
+        "ÔÇó La r├®alisation de ces travaux ne peut d├®buter sans signature du devis"
     )
     elements.append(Paragraph(conditions, style_normal))
-    
-    # Page Pourquoi TAQINOR
-    ensure_page_break()
-    elements.append(Paragraph("POURQUOI CHOISIR TAQINOR ?", heading1_style))
-    elements.append(Spacer(1, 12))
-    pourquoi_lines = [
-        "• Installation réalisée par des ingénieurs spécialisés dans le solaire",
-        "• Matériel premium : Huawei, Deye, Canadian Solar",
-        "• Service après-vente disponible 7j/7 (WhatsApp & téléphone)",
-        "• Installation propre, sécurisée et conforme aux normes",
-        "• Optimisation anti-injection quand nécessaire",
-        "• Suivi de production en temps réel via application mobile",
-        "• Possibilité d’évolution future de l’installation",
+
+    # FOOTER
+    # Footer content to be drawn on the last page only (at fixed bottom position)
+    footer_lines = [
+        "Ce devis est valable 30 jours ├á compter de sa date dÔÇÖ├®mission.",
+        "Toute commande implique lÔÇÖadh├®sion sans r├®serve ├á nos conditions g├®n├®rales de vente.",
+        "TAQINOR Solutions SARLAU ÔÇö RC 691213 | ICE 003799642000067",
+        "Adresse : 5 Rue Annoussour, Casablanca 20250 | T├®l : 0661 85 04 10 | Email : contact@taqinor.com",
     ]
-    for line in pourquoi_lines:
-        elements.append(Paragraph(line, style_normal))
-        elements.append(Spacer(1, 4))
-    elements.append(Spacer(1, 10))
-    elements.append(
-        Paragraph(
-            "Notre équipe reste à votre disposition pour toute question complémentaire ou adaptation de cette proposition. La planification de l’installation sera effectuée dès validation du devis et organisation logistique avec le client.",
-            style_normal,
-        )
-    )
-    elements.append(Spacer(1, 6))
 
-    # Footer on every page
-    def draw_footer(canvas, doc):
-        canvas.saveState()
+    # Custom canvas that will draw the footer only on the last page
+    from reportlab.pdfgen import canvas as pdfcanvas
 
+    def _draw_footer(c: pdfcanvas.Canvas):
+        c.saveState()
         width, height = A4
+        c.setFont("Helvetica", 8)
+        c.setFillColor(colors.HexColor("#555555"))
+        # Start a little above the bottom margin
+        y = 28
+        x = 40
+        for i, line in enumerate(footer_lines):
+            c.drawString(x, y + i * 10, line)
+        c.restoreState()
 
-        # Ligne de séparation
-        canvas.setStrokeColor(colors.HexColor("#E5E5E5"))
-        canvas.setLineWidth(0.5)
-        canvas.line(20 * mm, 14 * mm, width - 20 * mm, 14 * mm)
+    class LastPageCanvas(pdfcanvas.Canvas):
+        def __init__(self, *args, **kwargs):
+            pdfcanvas.Canvas.__init__(self, *args, **kwargs)
+            self._saved_page_states = []
 
-        # Texte footer
-        footer_left = "TAQINOR Solutions SARLAU — RC 691213 | ICE 003799642000067"
-        footer_right = "contact@taqinor.com | +212 6 61 85 04 10"
-        page_text = f"Page {doc.page}"
+        def showPage(self):
+            self._saved_page_states.append(dict(self.__dict__))
+            self._startPage()
 
-        canvas.setFont("Helvetica", 7)
+        def save(self):
+            # add footer only on the last page
+            num_pages = len(self._saved_page_states)
+            for state in self._saved_page_states:
+                self.__dict__.update(state)
+                if self._pageNumber == num_pages:
+                    _draw_footer(self)
+                pdfcanvas.Canvas.showPage(self)
+            pdfcanvas.Canvas.save(self)
 
-        # Texte gauche
-        canvas.drawString(20 * mm, 8 * mm, footer_left)
-
-        # Texte droite
-        canvas.drawRightString(width - 20 * mm, 8 * mm, footer_right)
-
-        # Numéro de page centré
-        canvas.drawCentredString(width / 2.0, 5 * mm, page_text)
-
-        canvas.restoreState()
-
-    doc.build(elements, onFirstPage=draw_footer, onLaterPages=draw_footer)
+    doc.build(elements, canvasmaker=LastPageCanvas)
     return pdf_path
 
 # ---------- PDF FACTURE SIMPLE ----------
@@ -1811,7 +1480,7 @@ def generate_single_pdf(df_in, client_name, client_address, client_phone,
     file_name = f"{doc_type}_{safe_client}_{int(doc_number)}.pdf"
     pdf_path = FACTURES_DIR / file_name
 
-    # on réutilise le double devis mais avec un seul scénario sans ROI ni graph
+    # on r├®utilise le double devis mais avec un seul sc├®nario sans ROI ni graph
     df_dummy_avec = pd.DataFrame(columns=df_in.columns)
     roi_buf = None
     pdf_path_final = generate_double_devis_pdf(
@@ -1832,12 +1501,12 @@ def generate_single_pdf(df_in, client_name, client_address, client_phone,
     return pdf_path_final, file_name
 
 # ---------- STREAMLIT UI ----------
-st.title("📄 Générateur de Devis & ROI — TAQINOR")
+st.title("­ƒôä G├®n├®rateur de Devis & ROI ÔÇö TAQINOR")
 
-with st.sidebar.expander("📚 Mémoire des prix"):
+with st.sidebar.expander("­ƒôÜ M├®moire des prix"):
     st.json(load_catalog())
 
-mode = st.radio("Action :", ["Créer un Devis (1 ou 2 scénarios)", "Transformer un Devis en Facture"])
+mode = st.radio("Action :", ["Cr├®er un Devis (1 ou 2 sc├®narios)", "Transformer un Devis en Facture"])
 
 def line_editor(designation, label, default_qty, default_tva, catalog,
                 custom_label=None, default_photo_key=None,
@@ -1846,7 +1515,7 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
     st.markdown(f"##### {label}")
     
     # For onduleurs, use special 3-column layout (Marque / Puissance / Phase)
-    if designation in ("Onduleur réseau", "Onduleur hybride"):
+    if designation in ("Onduleur r├®seau", "Onduleur hybride"):
         cols_ondu = st.columns([1.2, 1.0, 1.0, 0.8, 1.0, 1.0, 0.8])
         base_key = _catalog_key_for_designation(designation)
 
@@ -1858,7 +1527,7 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
         widget_power_key = f"sel_power_{designation}_{label}"
         widget_phase_key = f"sel_phase_{designation}_{label}"
 
-        if designation == "Onduleur réseau":
+        if designation == "Onduleur r├®seau":
             pref_brand = st.session_state.get("ondu_res_brand")
 
 
@@ -1905,13 +1574,13 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
         # Allow adding a new brand/model directly from the onduleur editor.
         # Put these controls into a small expander so they don't clutter the UI.
         catalog_load = load_catalog()
-        with cols_ondu[0].expander("Ajouter une nouvelle marque / modèle au catalogue", expanded=False):
+        with cols_ondu[0].expander("Ajouter une nouvelle marque / mod├¿le au catalogue", expanded=False):
             new_brand_input = st.text_input("Nouvelle marque (laisser vide si non)", value="", key=f"new_brand_{designation}_{label}")
             new_power_input = st.number_input("Puissance (kW)", min_value=0.0, step=0.1, value=0.0, key=f"new_power_{designation}_{label}")
             new_phase_input = st.selectbox("Phase", ["Monophase", "Triphase", "Autre"], key=f"new_phase_choice_{designation}_{label}")
             new_phase_other = ""
             if new_phase_input == "Autre":
-                new_phase_other = st.text_input("Préciser la phase", key=f"new_phase_other_{designation}_{label}")
+                new_phase_other = st.text_input("Pr├®ciser la phase", key=f"new_phase_other_{designation}_{label}")
             new_sell = st.number_input("Prix Unit. TTC (nouveau)", min_value=0.0, step=1.0, value=0.0, key=f"new_sell_{designation}_{label}")
             new_buy = st.number_input("Prix Achat TTC (nouveau)", min_value=0.0, step=1.0, value=0.0, key=f"new_buy_{designation}_{label}")
             if st.button("Ajouter au catalogue", key=f"btn_add_{designation}_{label}"):
@@ -1921,7 +1590,7 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
                     # Persist the new model into the catalog
                     try:
                         set_prices(catalog_load, designation, new_brand_input.strip(), new_sell or None, new_buy or None, power_key=str(int(new_power_input) if float(new_power_input).is_integer() else str(new_power_input)), phase=phase_to_use or None)
-                        st.success(f"Modèle {new_brand_input} {new_power_input} kW ({phase_to_use}) ajouté au catalogue.")
+                        st.success(f"Mod├¿le {new_brand_input} {new_power_input} kW ({phase_to_use}) ajout├® au catalogue.")
                         # ensure next render shows the new selection
                         st.session_state[widget_brand_key] = new_brand_input.strip()
                         st.session_state[widget_power_key] = f"{float(new_power_input):g} kW"
@@ -2030,9 +1699,9 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
             phase_idx = phase_options.index(default_phase)
         phase_final = cols_ondu[2].selectbox("Phase", phase_options, index=phase_idx, key=f"sel_phase_{designation}_{label}")
         
-        # Col 3: Quantité
+        # Col 3: Quantit├®
         qty = cols_ondu[3].number_input(
-            "Quantité",
+            "Quantit├®",
             min_value=0,
             step=1,
             value=int(default_qty),
@@ -2099,9 +1768,9 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
         brand_display = f"{brand_final} {power_display}kW {phase_final}".strip()
         
         result = {
-            "Désignation": designation,
+            "D├®signation": designation,
             "Marque": brand_display,
-            "Quantité": qty,
+            "Quantit├®": qty,
             "Prix Achat TTC": buy_val,
             "Prix Unit. TTC": sell_val,
             "TVA (%)": tva,
@@ -2130,7 +1799,7 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
                 if new_brand_pan and new_power_pan > 0:
                     try:
                         set_prices(catalog_load, "Panneaux", new_brand_pan.strip(), new_sell_pan or None, new_buy_pan or None, power_key=str(int(new_power_pan) if float(new_power_pan).is_integer() else str(new_power_pan)), phase=None)
-                        st.success(f"Panneau {new_brand_pan} {new_power_pan}W ajouté au catalogue.")
+                        st.success(f"Panneau {new_brand_pan} {new_power_pan}W ajout├® au catalogue.")
                         # preselect newly added values
                         st.session_state[f"sel_brand_Panneaux_{label}"] = new_brand_pan.strip()
                         st.session_state[f"sel_power_Panneaux_{label}"] = str(int(new_power_pan) if float(new_power_pan).is_integer() else str(new_power_pan))
@@ -2168,12 +1837,12 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
         brand_final = f"{brand_final} {power_selected}W"
         
     elif designation == "Batterie":
-        # Batterie: Marque + Capacité
+        # Batterie: Marque + Capacit├®
         catalog_load = load_catalog()
         # Allow adding a new battery model from the editor
         with st.expander("Ajouter une nouvelle batterie au catalogue", expanded=False):
             new_brand_bat = st.text_input("Nouvelle marque (laisser vide si non)", value="", key=f"new_brand_Batterie_{label}")
-            new_capacity_bat = st.number_input("Capacité (kWh)", min_value=1.0, step=0.5, value=5.0, key=f"new_capacity_Batterie_{label}")
+            new_capacity_bat = st.number_input("Capacit├® (kWh)", min_value=1.0, step=0.5, value=5.0, key=f"new_capacity_Batterie_{label}")
             new_sell_bat = st.number_input("Prix Unit. TTC (nouveau)", min_value=0.0, step=1.0, value=0.0, key=f"new_sell_Batterie_{label}")
             new_buy_bat = st.number_input("Prix Achat TTC (nouveau)", min_value=0.0, step=1.0, value=0.0, key=f"new_buy_Batterie_{label}")
             if st.button("Ajouter batterie au catalogue", key=f"btn_add_Batterie_{label}"):
@@ -2181,13 +1850,13 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
                     try:
                         cap_key = str(int(new_capacity_bat) if float(new_capacity_bat).is_integer() else str(new_capacity_bat))
                         set_prices(catalog_load, "Batterie", new_brand_bat.strip(), new_sell_bat or None, new_buy_bat or None, power_key=cap_key, phase=None)
-                        st.success(f"Batterie {new_brand_bat} {cap_key}kWh ajoutée au catalogue.")
+                        st.success(f"Batterie {new_brand_bat} {cap_key}kWh ajout├®e au catalogue.")
                         st.session_state[f"sel_brand_Batterie_{label}"] = new_brand_bat.strip()
                         st.session_state[f"sel_capacity_Batterie_{label}"] = cap_key
                     except Exception as e:
                         st.error(f"Impossible d'ajouter la batterie: {e}")
                 else:
-                    st.warning("Veuillez renseigner une marque et une capacité > 0.")
+                    st.warning("Veuillez renseigner une marque et une capacit├® > 0.")
 
         available_brands = get_battery_brands(catalog_load)
         default_brand_idx = 0
@@ -2207,7 +1876,7 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
         elif available_capacities and "5" in available_capacities:
             capacity_idx = available_capacities.index("5")
         
-        capacity_selected = cols[1].selectbox("Capacité (kWh)", available_capacities if available_capacities else ["5"], index=capacity_idx, key=f"sel_capacity_{designation}_{label}")
+        capacity_selected = cols[1].selectbox("Capacit├® (kWh)", available_capacities if available_capacities else ["5"], index=capacity_idx, key=f"sel_capacity_{designation}_{label}")
         
         sell_price = 0.0
         buy_price = 0.0
@@ -2224,7 +1893,7 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
         brand_final = (new_brand.strip() or brand_sel)
 
     qty = cols[2].number_input(
-        "Quantité",
+        "Quantit├®",
         min_value=0,
         step=1,
         value=int(default_qty),
@@ -2281,9 +1950,9 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
     )
 
     result = {
-        "Désignation": designation,
+        "D├®signation": designation,
         "Marque": brand_final,
-        "Quantité": qty,
+        "Quantit├®": qty,
         "Prix Achat TTC": buy_val,
         "Prix Unit. TTC": sell_val,
         "TVA (%)": tva,
@@ -2296,24 +1965,24 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
     return result
 
 # ---------- MODE DEVIS ----------
-if mode == "Créer un Devis (1 ou 2 scénarios)":
+if mode == "Cr├®er un Devis (1 ou 2 sc├®narios)":
     doc_type = "Devis"
     default_num = config["devis_counter"]
-    doc_number = st.number_input(f"Numéro {doc_type}", value=int(default_num), step=1)
+    doc_number = st.number_input(f"Num├®ro {doc_type}", value=int(default_num), step=1)
 
     st.subheader("Infos Client")
     client_name = st.text_input("Nom du client")
     client_address = st.text_input("Adresse")
-    client_phone = st.text_input("Téléphone")
+    client_phone = st.text_input("T├®l├®phone")
 
     scenario_choice = st.selectbox(
-        "Scénarios à inclure dans le devis PDF :",
+        "Sc├®narios ├á inclure dans le devis PDF :",
         ["Sans batterie uniquement", "Avec batterie uniquement", "Les deux (Sans + Avec)"],
         index=2
     )
 
     # Puissance PV
-    st.subheader("⚡ Puissance PV pour le ROI et le devis")
+    st.subheader("ÔÜí Puissance PV pour le ROI et le devis")
     col_est1, col_est2 = st.columns(2)
     with col_est1:
         puissance_kwp = st.number_input(
@@ -2329,24 +1998,24 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         st.markdown("Puissance d'un panneau : **710 Wc (Jinko)**")
 
     # FACTURES ROI
-    st.subheader("💡 Factures d'électricité (pour le ROI)")
-    use_ws_roi = st.checkbox("Utiliser une estimation Hiver / Été (ROI)", key="roi_use_ws")
+    st.subheader("­ƒÆí Factures d'├®lectricit├® (pour le ROI)")
+    use_ws_roi = st.checkbox("Utiliser une estimation Hiver / ├ët├® (ROI)", key="roi_use_ws")
     if use_ws_roi:
         col_h, col_e = st.columns(2)
         with col_h:
             f_hiver = st.number_input("Facture typique en hiver (MAD)", 0.0, 1_000_000.0, 500.0, key="roi_f_hiver")
         with col_e:
-            f_ete = st.number_input("Facture typique en été (MAD)", 0.0, 1_000_000.0, 1000.0, key="roi_f_ete")
-        if st.button("🧮 Estimer les 12 mois (factures ROI)"):
+            f_ete = st.number_input("Facture typique en ├®t├® (MAD)", 0.0, 1_000_000.0, 1000.0, key="roi_f_ete")
+        if st.button("­ƒº« Estimer les 12 mois (factures ROI)"):
             estimees = interpoler_factures(f_hiver, f_ete)
 
             for i, m in enumerate(MOIS):
                 valeur = round(estimees[i], 2)
 
-                # 1) Met à jour la structure interne qu'on utilise comme "référence"
+                # 1) Met ├á jour la structure interne qu'on utilise comme "r├®f├®rence"
                 st.session_state.roi_fact_init[m] = valeur
 
-                # 2) Surtout : met à jour les widgets eux-mêmes
+                # 2) Surtout : met ├á jour les widgets eux-m├¬mes
                 key_widget = f"roi_fact_{m}"
                 st.session_state[key_widget] = valeur
 
@@ -2370,7 +2039,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     st.write(f"**Consommation annuelle (ROI) :** {roi_total_kwh:,.0f} kWh")
 
     roi_part_couvrable = st.slider(
-        "Part de la facture couverte par le solaire en scénario SANS batterie (%)",
+        "Part de la facture couverte par le solaire en sc├®nario SANS batterie (%)",
         min_value=0,
         max_value=100,
         value=50,
@@ -2383,45 +2052,45 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     st.subheader("Produits / Services (base)")
 
     catalog_now = load_catalog()
-    # Choix du type de structures (par défaut automatique selon la puissance)
+    # Choix du type de structures (par d├®faut automatique selon la puissance)
     try:
         default_struct = "Structures acier" if puissance_kwp < 30 else "Structures aluminium"
     except Exception:
         default_struct = "Structures acier"
     struct_idx = 0 if default_struct == "Structures acier" else 1
     structure_choice = st.radio(
-        "Type de structures à utiliser :",
+        "Type de structures ├á utiliser :",
         ("Structures acier", "Structures aluminium"),
         index=struct_idx,
         key="structure_type_choice",
     )
     custom_templates = load_custom_templates()
 
-    # Bouton pour remplir automatiquement — construit un gabarit minimal puis appelle auto_fill
-    if st.button("⚙️ Remplir automatiquement les lignes (panneaux, onduleurs, structures, smart meter, wifi)"):
+    # Bouton pour remplir automatiquement ÔÇö construit un gabarit minimal puis appelle auto_fill
+    if st.button("ÔÜÖ´©Å Remplir automatiquement les lignes (panneaux, onduleurs, structures, smart meter, wifi)"):
         # Signal to line_editor that this run is an explicit autofill and
         # widget values should be overwritten with autofill results.
         st.session_state["force_autofill_update"] = True
-        # gabarit minimal reprenant les désignations standard et valeurs par défaut
+        # gabarit minimal reprenant les d├®signations standard et valeurs par d├®faut
         template_rows = [
-            {"Désignation": "Onduleur réseau", "Marque": "", "Quantité": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
-            {"Désignation": "Onduleur hybride", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
-            {"Désignation": "Smart Meter", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
-            {"Désignation": "Wifi Dongle", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
-            {"Désignation": "Panneaux", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 10},
-            {"Désignation": "Batterie", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
-            {"Désignation": "Structures acier", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
-            {"Désignation": "Structures aluminium", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
-            {"Désignation": "Socles", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
-            {"Désignation": "Accessoires", "Marque": "", "Quantité": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
-            {"Désignation": "Tableau De Protection AC/DC", "Marque": "", "Quantité": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
-            {"Désignation": "Instalation", "Marque": "", "Quantité": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
-            {"Désignation": "Transport", "Marque": "", "Quantité": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
-            {"Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"D├®signation": "Onduleur r├®seau", "Marque": "", "Quantit├®": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"D├®signation": "Onduleur hybride", "Marque": "", "Quantit├®": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"D├®signation": "Smart Meter", "Marque": "", "Quantit├®": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"D├®signation": "Wifi Dongle", "Marque": "", "Quantit├®": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"D├®signation": "Panneaux", "Marque": "", "Quantit├®": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 10},
+            {"D├®signation": "Batterie", "Marque": "", "Quantit├®": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"D├®signation": "Structures acier", "Marque": "", "Quantit├®": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"D├®signation": "Structures aluminium", "Marque": "", "Quantit├®": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"D├®signation": "Socles", "Marque": "", "Quantit├®": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"D├®signation": "Accessoires", "Marque": "", "Quantit├®": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"D├®signation": "Tableau De Protection AC/DC", "Marque": "", "Quantit├®": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"D├®signation": "Instalation", "Marque": "", "Quantit├®": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"D├®signation": "Transport", "Marque": "", "Quantit├®": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"D├®signation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans", "Marque": "", "Quantit├®": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
         ]
         df_template = pd.DataFrame(template_rows)
         df_auto = auto_fill_from_power(df_template, catalog_now, puissance_kwp, puissance_panneau_w)
-        # Respecter le choix manuel de l'utilisateur pour le type de structure (si présent)
+        # Respecter le choix manuel de l'utilisateur pour le type de structure (si pr├®sent)
         try:
             import math
             nb_panneaux = math.ceil(puissance_kwp * 1000.0 / puissance_panneau_w) if puissance_kwp > 0 else 0
@@ -2430,43 +2099,43 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         struct_choice = st.session_state.get("structure_type_choice", None)
         if struct_choice in ("Structures acier", "Structures aluminium") and nb_panneaux > 0:
             if struct_choice == "Structures acier":
-                mask_a = df_auto["Désignation"] == "Structures acier"
-                mask_b = df_auto["Désignation"] == "Structures aluminium"
+                mask_a = df_auto["D├®signation"] == "Structures acier"
+                mask_b = df_auto["D├®signation"] == "Structures aluminium"
                 if mask_a.any():
                     idx = mask_a.idxmax()
-                    df_auto.at[idx, "Quantité"] = nb_panneaux
-                    df_auto.at[idx, "CustomLabel"] = "Structures en acier galvanisé"
+                    df_auto.at[idx, "Quantit├®"] = nb_panneaux
+                    df_auto.at[idx, "CustomLabel"] = "Structures en acier galvanis├®"
                 if mask_b.any():
                     idx2 = mask_b.idxmax()
-                    df_auto.at[idx2, "Quantité"] = 0
+                    df_auto.at[idx2, "Quantit├®"] = 0
             else:
-                mask_a = df_auto["Désignation"] == "Structures acier"
-                mask_b = df_auto["Désignation"] == "Structures aluminium"
+                mask_a = df_auto["D├®signation"] == "Structures acier"
+                mask_b = df_auto["D├®signation"] == "Structures aluminium"
                 if mask_b.any():
                     idx = mask_b.idxmax()
-                    df_auto.at[idx, "Quantité"] = nb_panneaux
+                    df_auto.at[idx, "Quantit├®"] = nb_panneaux
                     df_auto.at[idx, "CustomLabel"] = "Structures en aluminium"
                 if mask_a.any():
                     idx2 = mask_a.idxmax()
-                    df_auto.at[idx2, "Quantité"] = 0
+                    df_auto.at[idx2, "Quantit├®"] = 0
 
         st.session_state.df_common_overrides = df_auto
         # Mark that autofill ran and that onduleur widgets should be updated
         # We set a small counter equal to the number of onduleur editors
-        # (réseau + hybride) so each will consume one update.
+        # (r├®seau + hybride) so each will consume one update.
         st.session_state["force_autofill_update_count"] = 2
-        # Remplir aussi les clés de session pour que les widgets éditables soient préremplis
+        # Remplir aussi les cl├®s de session pour que les widgets ├®ditables soient pr├®remplis
         label_map = {
-            "Onduleur réseau": "Onduleur réseau (scénario SANS batterie)",
-            "Onduleur hybride": "Onduleur hybride (scénario AVEC batterie)",
+            "Onduleur r├®seau": "Onduleur r├®seau (sc├®nario SANS batterie)",
+            "Onduleur hybride": "Onduleur hybride (sc├®nario AVEC batterie)",
             "Smart Meter": "Smart Meter",
             "Wifi Dongle": "Wifi Dongle",
             "Panneaux": "Panneaux solaires (Jinko 710)",
-            "Batterie": "Batterie de stockage (scénario AVEC batterie)",
+            "Batterie": "Batterie de stockage (sc├®nario AVEC batterie)",
             "Structures acier": "Structures acier",
             "Structures aluminium": "Structures aluminium",
-            "Socles": "Socles béton",
-            "Accessoires": "Accessoires & câblage",
+            "Socles": "Socles b├®ton",
+            "Accessoires": "Accessoires & c├óblage",
             "Tableau De Protection AC/DC": "Tableau de protection AC/DC",
             "Instalation": "Installation",
             "Transport": "Transport",
@@ -2475,12 +2144,12 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
 
         try:
             for _, r in pd.DataFrame(df_auto).iterrows():
-                des = r.get("Désignation")
+                des = r.get("D├®signation")
                 if not isinstance(des, str):
                     continue
                 label = label_map.get(des, des)
                 brand = (r.get("Marque") or "").strip()
-                qty = int(r.get("Quantité") or 0)
+                qty = int(r.get("Quantit├®") or 0)
                 tva = int(r.get("TVA (%)") or 0)
                 sell = float(r.get("Prix Unit. TTC") or 0.0)
                 buy = float(r.get("Prix Achat TTC") or 0.0)
@@ -2501,7 +2170,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                     except Exception:
                         return str(p)
 
-                if des == "Onduleur réseau":
+                if des == "Onduleur r├®seau":
                     ondu_power = st.session_state.get("ondu_res_power")
                     ondu_phase = st.session_state.get("ondu_res_phase")
                     lookup_key = _format_power_key(ondu_power)
@@ -2539,18 +2208,18 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
 
         st.success("Lignes remplies automatiquement : Jinko 710, Huawei (sans batt), Deye (avec batt), structures, smart meter et wifi.")
 
-    # Lignes standard communes — utiliser overrides si l'auto-fill a été exécuté
+    # Lignes standard communes ÔÇö utiliser overrides si l'auto-fill a ├®t├® ex├®cut├®
     overrides = {}
     if st.session_state.get("df_common_overrides") is not None:
         try:
             tmp = sanitize_df(pd.DataFrame(st.session_state.df_common_overrides).copy())
             for _, r in tmp.iterrows():
-                des = r.get("Désignation")
+                des = r.get("D├®signation")
                 if not isinstance(des, str):
                     continue
                 overrides[des] = {
                     "Marque": r.get("Marque", ""),
-                    "Quantité": int(r.get("Quantité") or 0),
+                    "Quantit├®": int(r.get("Quantit├®") or 0),
                     "Prix Unit. TTC": float(r.get("Prix Unit. TTC") or 0.0),
                     "Prix Achat TTC": float(r.get("Prix Achat TTC") or 0.0),
                     "TVA (%)": int(r.get("TVA (%)") or 0),
@@ -2559,58 +2228,58 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                 }
         except Exception:
             overrides = {}
-    # Si un onduleur réseau est présent (quantité > 0), on ajoute par défaut Smart Meter et Wifi Dongle
-    # (avec quantité 1) afin que les widgets correspondants soient préremplis et éditables.
+    # Si un onduleur r├®seau est pr├®sent (quantit├® > 0), on ajoute par d├®faut Smart Meter et Wifi Dongle
+    # (avec quantit├® 1) afin que les widgets correspondants soient pr├®remplis et ├®ditables.
     try:
-        ond_res_qty = overrides.get("Onduleur réseau", {}).get("Quantité", 0)
+        ond_res_qty = overrides.get("Onduleur r├®seau", {}).get("Quantit├®", 0)
         if ond_res_qty > 0:
             # Smart Meter
             if "Smart Meter" not in overrides:
                 sell_sm, buy_sm = get_prices(load_catalog(), "Smart Meter", "")
                 overrides["Smart Meter"] = {
                     "Marque": "",
-                    "Quantité": 1,
+                    "Quantit├®": 1,
                     "Prix Unit. TTC": float(sell_sm or 0.0),
                     "Prix Achat TTC": float(buy_sm or 0.0),
                     "TVA (%)": 20,
                 }
             else:
-                if overrides["Smart Meter"].get("Quantité", 0) == 0:
-                    overrides["Smart Meter"]["Quantité"] = 1
+                if overrides["Smart Meter"].get("Quantit├®", 0) == 0:
+                    overrides["Smart Meter"]["Quantit├®"] = 1
             # Wifi Dongle
             if "Wifi Dongle" not in overrides:
                 sell_wd, buy_wd = get_prices(load_catalog(), "Wifi Dongle", "")
                 overrides["Wifi Dongle"] = {
                     "Marque": "",
-                    "Quantité": 1,
+                    "Quantit├®": 1,
                     "Prix Unit. TTC": float(sell_wd or 0.0),
                     "Prix Achat TTC": float(buy_wd or 0.0),
                     "TVA (%)": 20,
                 }
             else:
-                if overrides["Wifi Dongle"].get("Quantité", 0) == 0:
-                    overrides["Wifi Dongle"]["Quantité"] = 1
+                if overrides["Wifi Dongle"].get("Quantit├®", 0) == 0:
+                    overrides["Wifi Dongle"]["Quantit├®"] = 1
     except Exception:
         pass
 
     rows_common = [
         line_editor(
-            "Onduleur réseau",
-            "Onduleur réseau (scénario SANS batterie)",
-            overrides.get("Onduleur réseau", {}).get("Quantité", 1),
-            overrides.get("Onduleur réseau", {}).get("TVA (%)", 20),
+            "Onduleur r├®seau",
+            "Onduleur r├®seau (sc├®nario SANS batterie)",
+            overrides.get("Onduleur r├®seau", {}).get("Quantit├®", 1),
+            overrides.get("Onduleur r├®seau", {}).get("TVA (%)", 20),
             catalog_now,
-            default_brand=overrides.get("Onduleur réseau", {}).get("Marque", ""),
-            default_sell=overrides.get("Onduleur réseau", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Onduleur réseau", {}).get("Prix Achat TTC", None),
+            default_brand=overrides.get("Onduleur r├®seau", {}).get("Marque", ""),
+            default_sell=overrides.get("Onduleur r├®seau", {}).get("Prix Unit. TTC", None),
+            default_buy=overrides.get("Onduleur r├®seau", {}).get("Prix Achat TTC", None),
             brand_only=True,
             default_power=st.session_state.get("ondu_res_power"),
             default_phase=st.session_state.get("ondu_res_phase"),
         ),
         line_editor(
             "Onduleur hybride",
-            "Onduleur hybride (scénario AVEC batterie)",
-            overrides.get("Onduleur hybride", {}).get("Quantité", 0),
+            "Onduleur hybride (sc├®nario AVEC batterie)",
+            overrides.get("Onduleur hybride", {}).get("Quantit├®", 0),
             overrides.get("Onduleur hybride", {}).get("TVA (%)", 20),
             catalog_now,
             default_brand=overrides.get("Onduleur hybride", {}).get("Marque", ""),
@@ -2623,7 +2292,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         line_editor(
             "Smart Meter",
             "Smart Meter",
-            overrides.get("Smart Meter", {}).get("Quantité", 0),
+            overrides.get("Smart Meter", {}).get("Quantit├®", 0),
             overrides.get("Smart Meter", {}).get("TVA (%)", 20),
             catalog_now,
             default_sell=overrides.get("Smart Meter", {}).get("Prix Unit. TTC", None),
@@ -2632,7 +2301,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         line_editor(
             "Wifi Dongle",
             "Wifi Dongle",
-            overrides.get("Wifi Dongle", {}).get("Quantité", 0),
+            overrides.get("Wifi Dongle", {}).get("Quantit├®", 0),
             overrides.get("Wifi Dongle", {}).get("TVA (%)", 20),
             catalog_now,
             default_sell=overrides.get("Wifi Dongle", {}).get("Prix Unit. TTC", None),
@@ -2641,7 +2310,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         line_editor(
             "Panneaux",
             "Panneaux solaires (Jinko 710)",
-            overrides.get("Panneaux", {}).get("Quantité", 0),
+            overrides.get("Panneaux", {}).get("Quantit├®", 0),
             overrides.get("Panneaux", {}).get("TVA (%)", 10),
             catalog_now,
             default_brand=overrides.get("Panneaux", {}).get("Marque", ""),
@@ -2650,8 +2319,8 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         ),
         line_editor(
             "Batterie",
-            "Batterie de stockage (scénario AVEC batterie)",
-            overrides.get("Batterie", {}).get("Quantité", 0),
+            "Batterie de stockage (sc├®nario AVEC batterie)",
+            overrides.get("Batterie", {}).get("Quantit├®", 0),
             overrides.get("Batterie", {}).get("TVA (%)", 20),
             catalog_now,
             default_brand=overrides.get("Batterie", {}).get("Marque", ""),
@@ -2661,7 +2330,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         line_editor(
             "Structures acier",
             "Structures acier",
-            overrides.get("Structures acier", {}).get("Quantité", 0),
+            overrides.get("Structures acier", {}).get("Quantit├®", 0),
             overrides.get("Structures acier", {}).get("TVA (%)", 20),
             catalog_now,
             default_sell=overrides.get("Structures acier", {}).get("Prix Unit. TTC", None),
@@ -2670,7 +2339,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         line_editor(
             "Structures aluminium",
             "Structures aluminium",
-            overrides.get("Structures aluminium", {}).get("Quantité", 0),
+            overrides.get("Structures aluminium", {}).get("Quantit├®", 0),
             overrides.get("Structures aluminium", {}).get("TVA (%)", 20),
             catalog_now,
             default_sell=overrides.get("Structures aluminium", {}).get("Prix Unit. TTC", None),
@@ -2678,8 +2347,8 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         ),
         line_editor(
             "Socles",
-            "Socles béton",
-            overrides.get("Socles", {}).get("Quantité", 0),
+            "Socles b├®ton",
+            overrides.get("Socles", {}).get("Quantit├®", 0),
             overrides.get("Socles", {}).get("TVA (%)", 20),
             catalog_now,
             default_sell=overrides.get("Socles", {}).get("Prix Unit. TTC", None),
@@ -2687,8 +2356,8 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         ),
         line_editor(
             "Accessoires",
-            "Accessoires & câblage",
-            overrides.get("Accessoires", {}).get("Quantité", 1),
+            "Accessoires & c├óblage",
+            overrides.get("Accessoires", {}).get("Quantit├®", 1),
             overrides.get("Accessoires", {}).get("TVA (%)", 20),
             catalog_now,
             default_sell=overrides.get("Accessoires", {}).get("Prix Unit. TTC", None),
@@ -2697,7 +2366,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         line_editor(
             "Tableau De Protection AC/DC",
             "Tableau de protection AC/DC",
-            overrides.get("Tableau De Protection AC/DC", {}).get("Quantité", 1),
+            overrides.get("Tableau De Protection AC/DC", {}).get("Quantit├®", 1),
             overrides.get("Tableau De Protection AC/DC", {}).get("TVA (%)", 20),
             catalog_now,
             default_sell=overrides.get("Tableau De Protection AC/DC", {}).get("Prix Unit. TTC", None),
@@ -2706,7 +2375,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         line_editor(
             "Instalation",
             "Installation",
-            overrides.get("Instalation", {}).get("Quantité", 1),
+            overrides.get("Instalation", {}).get("Quantit├®", 1),
             overrides.get("Instalation", {}).get("TVA (%)", 20),
             catalog_now,
             default_sell=overrides.get("Instalation", {}).get("Prix Unit. TTC", None),
@@ -2715,7 +2384,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         line_editor(
             "Transport",
             "Transport",
-            overrides.get("Transport", {}).get("Quantité", 1),
+            overrides.get("Transport", {}).get("Quantit├®", 1),
             overrides.get("Transport", {}).get("TVA (%)", 20),
             catalog_now,
 
@@ -2725,15 +2394,15 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         line_editor(
             "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
             "Suivi journalier & maintenance (2 ans)",
-            overrides.get("Suivi journalier, maintenance chaque 12 mois pendent 2 ans", {}).get("Quantité", 1),
+            overrides.get("Suivi journalier, maintenance chaque 12 mois pendent 2 ans", {}).get("Quantit├®", 1),
             overrides.get("Suivi journalier, maintenance chaque 12 mois pendent 2 ans", {}).get("TVA (%)", 20),
             catalog_now,
         ),
     ]
 
-    # Lignes perso mémorisées comme templates
+    # Lignes perso m├®moris├®es comme templates
     for tpl in custom_templates:
-        label = tpl.get("label", "Ligne personnalisée")
+        label = tpl.get("label", "Ligne personnalis├®e")
         default_tva = tpl.get("default_tva", 20)
         default_photo = tpl.get("default_photo", "")
         rows_common.append(
@@ -2760,29 +2429,29 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     else:
         df_auto = df_common.copy()
 
-    st.markdown("Aperçu des lignes utilisées pour le calcul (après auto-fill éventuel) :")
+    st.markdown("Aper├ºu des lignes utilis├®es pour le calcul (apr├¿s auto-fill ├®ventuel) :")
     st.dataframe(df_auto, use_container_width=True)
 
     # Lignes perso SANS
-    st.subheader("Lignes personnalisées — scénario SANS batterie")
-    if st.button("➕ Ajouter une ligne personnalisée (SANS batterie)"):
+    st.subheader("Lignes personnalis├®es ÔÇö sc├®nario SANS batterie")
+    if st.button("Ô×ò Ajouter une ligne personnalis├®e (SANS batterie)"):
         st.session_state.custom_lines_sans.append(
             {"desc": "", "photo": "", "qty": 0, "sell": 0.0, "buy": 0.0, "tva": 20}
         )
 
     new_custom_sans = []
     for i, line in enumerate(st.session_state.custom_lines_sans):
-        st.markdown(f"**Ligne perso SANS n°{i+1}**")
+        st.markdown(f"**Ligne perso SANS n┬░{i+1}**")
         c1, c2, c3, c4, c5, c6, c7 = st.columns([3, 1, 1, 1, 1, 1, 0.8])
         with c1:
             desc = st.text_input(
-                "Nom / Désignation",
+                "Nom / D├®signation",
                 value=line.get("desc", ""),
                 key=f"sans_desc_{i}",
             )
         with c2:
             qty = st.number_input(
-                "Quantité",
+                "Quantit├®",
                 min_value=0,
                 step=1,
                 value=int(line.get("qty", 0)),
@@ -2819,7 +2488,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                 key=f"sans_photo_{i}",
             )
         with c7:
-            remove = st.checkbox("❌", key=f"sans_rem_{i}")
+            remove = st.checkbox("ÔØî", key=f"sans_rem_{i}")
 
         if not remove:
             new_custom_sans.append(
@@ -2831,9 +2500,9 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         df_custom_sans = pd.DataFrame(
             [
                 {
-                    "Désignation": l["desc"] or "Ligne personnalisée",
+                    "D├®signation": l["desc"] or "Ligne personnalis├®e",
                     "Marque": "",
-                    "Quantité": l["qty"],
+                    "Quantit├®": l["qty"],
                     "Prix Achat TTC": l["buy"],
                     "Prix Unit. TTC": l["sell"],
                     "TVA (%)": l["tva"],
@@ -2844,28 +2513,28 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
             ]
         )
     else:
-        df_custom_sans = pd.DataFrame(columns=["Désignation","Marque","Quantité","Prix Achat TTC","Prix Unit. TTC","TVA (%)","CustomLabel","PhotoKey"])
+        df_custom_sans = pd.DataFrame(columns=["D├®signation","Marque","Quantit├®","Prix Achat TTC","Prix Unit. TTC","TVA (%)","CustomLabel","PhotoKey"])
 
     # Lignes perso AVEC
-    st.subheader("Lignes personnalisées — scénario AVEC batterie")
-    if st.button("➕ Ajouter une ligne personnalisée (AVEC batterie)"):
+    st.subheader("Lignes personnalis├®es ÔÇö sc├®nario AVEC batterie")
+    if st.button("Ô×ò Ajouter une ligne personnalis├®e (AVEC batterie)"):
         st.session_state.custom_lines_avec.append(
             {"desc": "", "photo": "", "qty": 0, "sell": 0.0, "buy": 0.0, "tva": 20}
         )
 
     new_custom_avec = []
     for i, line in enumerate(st.session_state.custom_lines_avec):
-        st.markdown(f"**Ligne perso AVEC n°{i+1}**")
+        st.markdown(f"**Ligne perso AVEC n┬░{i+1}**")
         c1, c2, c3, c4, c5, c6, c7 = st.columns([3, 1, 1, 1, 1, 1, 0.8])
         with c1:
             desc = st.text_input(
-                "Nom / Désignation",
+                "Nom / D├®signation",
                 value=line.get("desc", ""),
                 key=f"avec_desc_{i}",
             )
         with c2:
             qty = st.number_input(
-                "Quantité",
+                "Quantit├®",
                 min_value=0,
                 step=1,
                 value=int(line.get("qty", 0)),
@@ -2902,7 +2571,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                 key=f"avec_photo_{i}",
             )
         with c7:
-            remove = st.checkbox("❌", key=f"avec_rem_{i}")
+            remove = st.checkbox("ÔØî", key=f"avec_rem_{i}")
 
         if not remove:
             new_custom_avec.append(
@@ -2914,9 +2583,9 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         df_custom_avec = pd.DataFrame(
             [
                 {
-                    "Désignation": l["desc"] or "Ligne personnalisée",
+                    "D├®signation": l["desc"] or "Ligne personnalis├®e",
                     "Marque": "",
-                    "Quantité": l["qty"],
+                    "Quantit├®": l["qty"],
                     "Prix Achat TTC": l["buy"],
                     "Prix Unit. TTC": l["sell"],
                     "TVA (%)": l["tva"],
@@ -2927,11 +2596,11 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
             ]
         )
     else:
-        df_custom_avec = pd.DataFrame(columns=["Désignation","Marque","Quantité","Prix Achat TTC","Prix Unit. TTC","TVA (%)","CustomLabel","PhotoKey"])
+        df_custom_avec = pd.DataFrame(columns=["D├®signation","Marque","Quantit├®","Prix Achat TTC","Prix Unit. TTC","TVA (%)","CustomLabel","PhotoKey"])
 
-    # NOTES séparées
+    # NOTES s├®par├®es
     st.subheader("Notes pour le devis SANS batterie")
-    if st.button("➕ Ajouter une note (SANS)"):
+    if st.button("Ô×ò Ajouter une note (SANS)"):
         st.session_state.notes_sans.append("")
     notes_sans_new = []
     for i, note in enumerate(st.session_state.notes_sans):
@@ -2944,13 +2613,13 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                 height=60,
             )
         with col_del:
-            delete = st.checkbox("❌", key=f"note_sans_del_{i}")
+            delete = st.checkbox("ÔØî", key=f"note_sans_del_{i}")
         if not delete:
             notes_sans_new.append(text)
     st.session_state.notes_sans = notes_sans_new
 
     st.subheader("Notes pour le devis AVEC batterie")
-    if st.button("➕ Ajouter une note (AVEC)"):
+    if st.button("Ô×ò Ajouter une note (AVEC)"):
         st.session_state.notes_avec.append("")
     notes_avec_new = []
     for i, note in enumerate(st.session_state.notes_avec):
@@ -2963,12 +2632,12 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                 height=60,
             )
         with col_del:
-            delete = st.checkbox("❌", key=f"note_avec_del_{i}")
+            delete = st.checkbox("ÔØî", key=f"note_avec_del_{i}")
         if not delete:
             notes_avec_new.append(text)
     st.session_state.notes_avec = notes_avec_new
 
-    # Construction DF scénarios
+    # Construction DF sc├®narios
     # IMPORTANT: use the values returned by the editable widgets (`df_common`) as source of truth.
     # `df_auto` is only a helper/preview of what auto-fill suggested; the user can edit the widgets
     # and those edited values must be used for the PDF and cost calculations.
@@ -2981,38 +2650,38 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     df_avec_all = sanitize_df(df_avec_all)
 
     df_sans_final = df_sans_all[
-        ~df_sans_all["Désignation"].isin(["Batterie", "Onduleur hybride"])
+        ~df_sans_all["D├®signation"].isin(["Batterie", "Onduleur hybride"])
     ].copy()
     df_avec_final = df_avec_all[
-        ~df_avec_all["Désignation"].isin(["Onduleur réseau"])
+        ~df_avec_all["D├®signation"].isin(["Onduleur r├®seau"])
     ].copy()
 
-    # --- Si le scénario AVEC contient une batterie ou un onduleur Deye,
-    #     on retire systématiquement Smart Meter et Wifi Dongle du devis AVEC
+    # --- Si le sc├®nario AVEC contient une batterie ou un onduleur Deye,
+    #     on retire syst├®matiquement Smart Meter et Wifi Dongle du devis AVEC
     try:
-        has_battery = (df_avec_final["Désignation"] == "Batterie").any()
+        has_battery = (df_avec_final["D├®signation"] == "Batterie").any()
         has_deye = False
-        if (df_avec_final["Désignation"] == "Onduleur hybride").any():
+        if (df_avec_final["D├®signation"] == "Onduleur hybride").any():
             # regarde si la marque contient 'deye'
-            mask = (df_avec_final["Désignation"] == "Onduleur hybride") & df_avec_final["Marque"].astype(str).str.lower().str.contains("deye", na=False)
+            mask = (df_avec_final["D├®signation"] == "Onduleur hybride") & df_avec_final["Marque"].astype(str).str.lower().str.contains("deye", na=False)
             has_deye = mask.any()
 
         if has_battery or has_deye:
-            df_avec_final = df_avec_final[~df_avec_final["Désignation"].isin(["Smart Meter", "Wifi Dongle"])].copy()
+            df_avec_final = df_avec_final[~df_avec_final["D├®signation"].isin(["Smart Meter", "Wifi Dongle"])].copy()
     except Exception:
-        # ne pas faire échouer l'application si quelque chose d'inattendu survient
+        # ne pas faire ├®chouer l'application si quelque chose d'inattendu survient
         pass
 
     for df_tmp in (df_sans_final, df_avec_final):
-        df_tmp["Total TTC"] = df_tmp["Prix Unit. TTC"] * df_tmp["Quantité"]
+        df_tmp["Total TTC"] = df_tmp["Prix Unit. TTC"] * df_tmp["Quantit├®"]
 
     total_ttc_sans = float(df_sans_final["Total TTC"].sum())
     total_ttc_avec = float(df_avec_final["Total TTC"].sum())
 
-    st.markdown("### Récapitulatif devis")
+    st.markdown("### R├®capitulatif devis")
     c1, c2 = st.columns(2)
-    c1.metric("Total TTC scénario SANS batterie", f"{total_ttc_sans:,.2f} DH")
-    c2.metric("Total TTC scénario AVEC batterie", f"{total_ttc_avec:,.2f} DH")
+    c1.metric("Total TTC sc├®nario SANS batterie", f"{total_ttc_sans:,.2f} DH")
+    c2.metric("Total TTC sc├®nario AVEC batterie", f"{total_ttc_avec:,.2f} DH")
 
     # ROI
     kwh_mensuels = [f / KWH_PRICE if KWH_PRICE > 0 else 0 for f in factures_roi]
@@ -3031,46 +2700,46 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     payback_sans = total_ttc_sans / eco_ann_sans if eco_ann_sans > 0 and total_ttc_sans > 0 else None
     payback_avec = total_ttc_avec / eco_ann_avec if eco_ann_avec > 0 and total_ttc_avec > 0 else None
 
-    st.subheader("📈 ROI (Retour sur investissement)")
+    st.subheader("­ƒôê ROI (Retour sur investissement)")
 
-    st.write(f"**Production PV annuelle estimée :** {sum(prod_pv):,.0f} kWh/an")
+    st.write(f"**Production PV annuelle estim├®e :** {sum(prod_pv):,.0f} kWh/an")
 
     col_roi1, col_roi2 = st.columns(2)
     with col_roi1:
-        st.markdown("### 🔋 Scénario SANS batterie")
-        st.write(f"**Coût système SANS batterie :** {total_ttc_sans:,.0f} MAD")
-        st.write(f"**Économie annuelle estimée :** {eco_ann_sans:,.0f} MAD/an")
+        st.markdown("### ­ƒöï Sc├®nario SANS batterie")
+        st.write(f"**Co├╗t syst├¿me SANS batterie :** {total_ttc_sans:,.0f} MAD")
+        st.write(f"**├ëconomie annuelle estim├®e :** {eco_ann_sans:,.0f} MAD/an")
         if payback_sans:
-            st.write(f"**Temps de retour estimé :** {payback_sans:.1f} ans")
+            st.write(f"**Temps de retour estim├® :** {payback_sans:.1f} ans")
         else:
-            st.write("Temps de retour non calculable (économie annuelle nulle).")
+            st.write("Temps de retour non calculable (├®conomie annuelle nulle).")
 
     with col_roi2:
-        st.markdown("### 🔋 Scénario AVEC batterie")
-        st.write(f"**Coût système AVEC batterie :** {total_ttc_avec:,.0f} MAD")
-        st.write(f"**Économie annuelle estimée :** {eco_ann_avec:,.0f} MAD/an")
+        st.markdown("### ­ƒöï Sc├®nario AVEC batterie")
+        st.write(f"**Co├╗t syst├¿me AVEC batterie :** {total_ttc_avec:,.0f} MAD")
+        st.write(f"**├ëconomie annuelle estim├®e :** {eco_ann_avec:,.0f} MAD/an")
         if payback_avec:
-            st.write(f"**Temps de retour estimé :** {payback_avec:.1f} ans")
+            st.write(f"**Temps de retour estim├® :** {payback_avec:.1f} ans")
         else:
-            st.write("Temps de retour non calculable (économie annuelle nulle).")
+            st.write("Temps de retour non calculable (├®conomie annuelle nulle).")
 
     df_roi = pd.DataFrame({
         "Mois": MOIS,
         "Facture (MAD)": factures_roi,
         "Production PV (kWh)": prod_pv,
-        "PV utilisée SANS batt (kWh)": pv_used_sans,
-        "PV utilisée AVEC batt (kWh)": pv_used_avec,
-        "Économie SANS batt (MAD)": eco_mens_sans,
-        "Économie AVEC batt (MAD)": eco_mens_avec,
+        "PV utilis├®e SANS batt (kWh)": pv_used_sans,
+        "PV utilis├®e AVEC batt (kWh)": pv_used_avec,
+        "├ëconomie SANS batt (MAD)": eco_mens_sans,
+        "├ëconomie AVEC batt (MAD)": eco_mens_avec,
     })
-    st.markdown("#### Détail mensuel ROI")
+    st.markdown("#### D├®tail mensuel ROI")
     st.dataframe(df_roi, use_container_width=True)
 
     fig_roi = build_roi_figure(MOIS, factures_roi, eco_mens_sans, eco_mens_avec)
     st.pyplot(fig_roi)
     roi_fig_all_buf = roi_figure_buffer(MOIS, factures_roi, eco_mens_sans, eco_mens_avec)
 
-    # ROIs résumé pour PDF
+    # ROIs r├®sum├® pour PDF
     roi_summary_sans = {
         "prod_annuelle": sum(prod_pv),
         "eco_annuelle": eco_ann_sans,
@@ -3084,7 +2753,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         "payback": payback_avec,
     }
 
-    if st.button("Générer le devis complet en PDF"):
+    if st.button("G├®n├®rer le devis complet en PDF"):
         cat_now = load_catalog()
         learn_from_df(pd.concat([df_sans_final, df_avec_final], ignore_index=True), cat_now)
 
@@ -3105,7 +2774,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                 existing_labels.add(label)
         save_custom_templates(templates)
 
-        # Selon le choix de scénarios
+        # Selon le choix de sc├®narios
         df_sans_used = df_sans_final if scenario_choice in ("Sans batterie uniquement", "Les deux (Sans + Avec)") else df_sans_final.iloc[0:0]
         df_avec_used = df_avec_final if scenario_choice in ("Avec batterie uniquement", "Les deux (Sans + Avec)") else df_avec_final.iloc[0:0]
 
@@ -3125,16 +2794,16 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
             scenario_choice=scenario_choice,
         )
 
-        st.success(f"Devis généré ✅ → {pdf_path}")
+        st.success(f"Devis g├®n├®r├® Ô£à ÔåÆ {pdf_path}")
         with open(pdf_path, "rb") as f:
             st.download_button(
-                "⬇️ Télécharger le PDF du devis",
+                "Ô¼ç´©Å T├®l├®charger le PDF du devis",
                 f,
                 file_name=pdf_path.name,
                 mime="application/pdf",
             )
 
-        # On stocke comme référence la version AVEC (ou SANS, peu importe, il en faut une pour la facture)
+        # On stocke comme r├®f├®rence la version AVEC (ou SANS, peu importe, il en faut une pour la facture)
         config["devis_counter"] = int(doc_number) + 1
         devis_history[str(int(doc_number))] = {
             "client_name": client_name,
@@ -3152,21 +2821,21 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
 # ---------- MODE FACTURE ----------
 else:
     if not devis_history:
-        st.warning("Aucun devis trouvé.")
+        st.warning("Aucun devis trouv├®.")
     else:
         st.subheader("Transformer un Devis en Facture")
 
         devis_nums = sorted(devis_history.keys(), key=lambda x: int(x))
         selected_devis = st.selectbox(
-            "Choisir le devis à facturer :",
+            "Choisir le devis ├á facturer :",
             devis_nums,
-            format_func=lambda x: f"Devis {x} — {devis_history[x].get('client_name','')}",
+            format_func=lambda x: f"Devis {x} ÔÇö {devis_history[x].get('client_name','')}",
         )
 
         default_fact_num = config["facture_counter"]
-        fact_number = st.number_input("Numéro Facture", value=int(default_fact_num), step=1)
+        fact_number = st.number_input("Num├®ro Facture", value=int(default_fact_num), step=1)
 
-        if st.button("Générer la Facture en PDF"):
+        if st.button("G├®n├®rer la Facture en PDF"):
             data = devis_history[selected_devis]
             client_name = data.get("client_name", "")
             client_address = data.get("client_address", "")
@@ -3185,10 +2854,10 @@ else:
                 notes_saved,
             )
 
-            st.success(f"{doc_type} {int(fact_number)} générée ✅ → {pdf_path}")
+            st.success(f"{doc_type} {int(fact_number)} g├®n├®r├®e Ô£à ÔåÆ {pdf_path}")
             with open(pdf_path, "rb") as f:
                 st.download_button(
-                    "⬇️ Télécharger la Facture PDF",
+                    "Ô¼ç´©Å T├®l├®charger la Facture PDF",
                     f,
                     file_name=file_name,
                     mime="application/pdf",
@@ -3197,4 +2866,3 @@ else:
             config["facture_counter"] = int(fact_number) + 1
             with open(CONFIG_FILE, "w", encoding="utf-8") as f:
                 json.dump(config, f, ensure_ascii=False, indent=2)
-

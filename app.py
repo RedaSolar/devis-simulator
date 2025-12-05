@@ -17,6 +17,8 @@ from reportlab.platypus import (
     PageBreak,
     Preformatted,
     HRFlowable,
+    ListFlowable,
+    ListItem,
 )
 from reportlab.graphics.shapes import Drawing, Line, Rect, String
 from reportlab.lib.colors import HexColor
@@ -1150,10 +1152,10 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
                 ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
                 ("FONTSIZE", (0, 1), (-1, -1), 7),
                 ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#CCCCCC")),
-                ("LEFTPADDING", (0, 0), (-1, -1), 3),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 3),
-                ("TOPPADDING", (0, 0), (-1, -1), 2),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                ("LEFTPADDING", (0, 0), (-1, -1), 2),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+                ("TOPPADDING", (0, 0), (-1, -1), 1.5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("ALIGN", (4, 1), (-1, -1), "RIGHT"),
                 ("ALIGN", (4, 0), (-1, 0), "CENTER"),
@@ -1177,12 +1179,12 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
         table.setStyle(style)
         table._argW = [
             60,   # Photo
-            130,  # Désignation
+            145,  # Désignation
             160,  # Spécifications techniques
-            80,   # Garantie
-            40,   # Quantité
-            80,   # Prix Unit
-            80,   # Total TTC
+            75,   # Garantie
+            35,   # Quantité
+            48,   # Prix Unit
+            48,   # Total TTC
         ]
         return table
 
@@ -1225,8 +1227,8 @@ def generate_double_devis_pdf(
     doc = SimpleDocTemplate(
         str(pdf_path),
         pagesize=A4,
-        rightMargin=40,
-        leftMargin=40,
+        rightMargin=12,  # ~4 mm
+        leftMargin=12,   # ~4 mm
         topMargin=35,
         bottomMargin=40,
     )
@@ -1253,146 +1255,7 @@ def generate_double_devis_pdf(
     )
 
     today = datetime.now().strftime("%d/%m/%Y")
-    
-    # ========== PAGE 1 : PRÉSENTATION DU PROJET ==========
-    # HEADER GLOBAL (logo left, company small text top-right)
-    if LOGO_PATH.exists():
-        left = [Image(str(LOGO_PATH), width=200, height=200)]
-    else:
-        left = [Paragraph("<b>TAQINOR</b>", styles["Title"])]
-
-    right = [Spacer(1, 1)]
-    header = Table([[left, right]], colWidths=[240, 240])
-    header.setStyle(
-        TableStyle(
-            [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("ALIGN", (1, 0), (1, 0), "RIGHT"),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ]
-        )
-    )
-    elements += [header, Spacer(1, 4)]
-
-    separator = Drawing(450, 1)
-    separator.add(Line(0, 0, 450, 0))
-    elements.append(separator)
-    elements.append(Spacer(1, 12))
-
-    line_tbl = Table([[""]], colWidths=[480])
-    line_tbl.setStyle(
-        TableStyle(
-            [
-                ("LINEBELOW", (0, 0), (-1, -1), 1.0, colors.HexColor(BLUE_MAIN)),
-            ]
-        )
-    )
-    elements += [line_tbl, Spacer(1, 6)]
-
-    # TITRE PAGE 1
-    style_title = ParagraphStyle(
-        "Title",
-        parent=styles["Heading1"],
-        alignment=1,
-        fontSize=20,
-        leading=24,
-        spaceAfter=6,
-        textColor=colors.HexColor("#0A5275"),
-    )
-    style_subtitle = ParagraphStyle(
-        "Subtitle",
-        parent=styles["Normal"],
-        alignment=1,
-        fontSize=11,
-        leading=14,
-        textColor=colors.HexColor("#555555"),
-    )
-    heading_style = ParagraphStyle(
-        "heading",
-        parent=style_normal,
-        fontSize=12,
-        leading=14,
-        textColor=colors.HexColor(BLUE_MAIN),
-        spaceAfter=8,
-    )
-    heading2_for_intro = heading2_style if "heading2_style" in locals() else heading_style
-
-    elements.append(Spacer(1, 10))
-    elements.append(Paragraph("Devis Installation Photovoltaïque", style_title))
-    elements.append(Paragraph("Projet : Installation photovoltaïque résidentielle – Casablanca", style_subtitle))
-    elements.append(Spacer(1, 16))
-
-    client_data = [
-        ["Client"],
-        [f"Nom : {client_name or '-'}"],
-        [f"Adresse : {client_address or '-'}"],
-        [f"Téléphone : {client_phone or '-'}"],
-    ]
-    client_table = Table(client_data, colWidths=[260])
-    client_table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#E6F1F7")),
-                ("TEXTCOLOR", (0, 0), (0, 0), colors.HexColor("#0A5275")),
-                ("FONTNAME", (0, 0), (0, 0), "Helvetica-Bold"),
-                ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#CCCCCC")),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
-                ("LEFTPADDING", (0, 0), (-1, -1), 5),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-                ("TOPPADDING", (0, 0), (-1, -1), 3),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-            ]
-        )
-    )
-
-    details_data = [
-        ["Détails du devis"],
-        [f"Numéro du devis : {int(doc_number)}"],
-        [f"Date d'émission : {today}"],
-    ]
-    details_table = Table(details_data, colWidths=[220])
-    details_table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#E6F1F7")),
-                ("TEXTCOLOR", (0, 0), (0, 0), colors.HexColor("#0A5275")),
-                ("FONTNAME", (0, 0), (0, 0), "Helvetica-Bold"),
-                ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#CCCCCC")),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
-                ("LEFTPADDING", (0, 0), (-1, -1), 5),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-                ("TOPPADDING", (0, 0), (-1, -1), 3),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-            ]
-        )
-    )
-
-    top_tables = Table([[client_table, details_table]], colWidths=[260, 220])
-    top_tables.setStyle(
-        TableStyle(
-            [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-            ]
-        )
-    )
-    elements.append(top_tables)
-    elements.append(Spacer(1, 20))
-
-    # RÉSUMÉ DU PROJET
-    heading1_style = styles["Heading1"].clone("heading1_custom")
-    heading1_style.textColor = colors.HexColor(BLUE_MAIN)
-    heading2_style = styles["Heading2"].clone("heading2_custom")
-    heading2_style.textColor = colors.HexColor(BLUE_MAIN)
-    heading3_style = styles["Heading3"].clone("heading3_custom")
-    heading3_style.textColor = colors.HexColor(BLUE_MAIN)
-    def ensure_page_break():
-        if not elements or not isinstance(elements[-1], PageBreak):
-            elements.append(PageBreak())
-
+    # Panel metrics for hero chips and summaries
     def _extract_panel_power(value):
         try:
             s = str(value)
@@ -1442,6 +1305,219 @@ def generate_double_devis_pdf(
         if puissance_panneau == 0:
             puissance_panneau = power_alt
     puissance_totale_kwc = round(nombre_panneaux * puissance_panneau / 1000, 2) if puissance_panneau else 0.0
+    
+    # ========== PAGE 1 : PRÉSENTATION DU PROJET ==========
+    # HEADER GLOBAL (logo left, company small text top-right)
+    if LOGO_PATH.exists():
+        left = [Image(str(LOGO_PATH), width=200, height=200)]
+    else:
+        left = [Paragraph("<b>TAQINOR</b>", styles["Title"])]
+
+    right = [Spacer(1, 1)]
+    header = Table([[left, right]], colWidths=[240, 240])
+    header.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("ALIGN", (1, 0), (1, 0), "RIGHT"),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    elements += [header, Spacer(1, 4)]
+
+    separator = Drawing(450, 1)
+    separator.add(Line(0, 0, 450, 0))
+    elements.append(separator)
+    elements.append(Spacer(1, 12))
+
+    line_tbl = Table([[""]], colWidths=[480])
+    line_tbl.setStyle(
+        TableStyle(
+            [
+                ("LINEBELOW", (0, 0), (-1, -1), 1.0, colors.HexColor(BLUE_MAIN)),
+            ]
+        )
+    )
+    elements += [line_tbl, Spacer(1, 6)]
+
+    # TITRE PAGE 1 — bandeau premium
+    hero_title_style = ParagraphStyle(
+        "HeroTitle",
+        parent=styles["Heading1"],
+        alignment=1,
+        fontSize=22,
+        leading=26,
+        spaceAfter=4,
+        textColor=colors.HexColor(BLUE_MAIN),
+    )
+    hero_subtitle_style = ParagraphStyle(
+        "HeroSubtitle",
+        parent=styles["Normal"],
+        alignment=1,
+        fontSize=12,
+        leading=15,
+        spaceAfter=6,
+        textColor=colors.HexColor("#4A4A4A"),
+    )
+    hero_tagline_style = ParagraphStyle(
+        "HeroTagline",
+        parent=styles["Normal"],
+        alignment=1,
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor("#1F2A44"),
+    )
+    heading_style = ParagraphStyle(
+        "heading",
+        parent=style_normal,
+        fontSize=12,
+        leading=14,
+        textColor=colors.HexColor(BLUE_MAIN),
+        spaceAfter=8,
+    )
+    heading2_for_intro = heading2_style if "heading2_style" in locals() else heading_style
+
+    hero_data = [
+        [Paragraph("Devis Installation Photovoltaïque", hero_title_style)],
+        [Paragraph("Projet : Installation photovoltaïque résidentielle – Casablanca", hero_subtitle_style)],
+        [Paragraph("Solution premium et sur-mesure pour votre autonomie énergétique", hero_tagline_style)],
+    ]
+    hero_table = Table(hero_data, colWidths=[480], hAlign="CENTER")
+    hero_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#EAF3FA")),
+                ("BOX", (0, 0), (-1, -1), 1.2, colors.HexColor(BLUE_MAIN)),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 12),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+                ("TOPPADDING", (0, 0), (-1, -1), 12),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+            ]
+        )
+    )
+    elements.append(Spacer(1, 10))
+    elements.append(hero_table)
+    elements.append(Spacer(1, 16))
+
+    # Cartes premium Client / Détails du devis
+    card_title_style = ParagraphStyle(
+        "card_title",
+        parent=style_normal,
+        fontSize=11,
+        leading=13,
+        textColor=colors.white,
+    )
+    card_body_style = ParagraphStyle(
+        "card_body",
+        parent=style_normal,
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor("#1E2A38"),
+    )
+
+    client_data = [
+        [Paragraph("Client", card_title_style)],
+        [Paragraph(f"Nom : {client_name or '-'}", card_body_style)],
+        [Paragraph(f"Adresse : {client_address or '-'}", card_body_style)],
+        [Paragraph(f"Téléphone : {client_phone or '-'}", card_body_style)],
+    ]
+    client_table = Table(client_data, colWidths=[260])
+    client_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BLUE_MAIN)),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#F7FAFD")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#C7D8E8")),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
+    )
+
+    details_data = [
+        [Paragraph("Détails du devis", card_title_style)],
+        [Paragraph(f"Numéro du devis : {int(doc_number)}", card_body_style)],
+        [Paragraph(f"Date d'émission : {today}", card_body_style)],
+    ]
+    details_table = Table(details_data, colWidths=[220])
+    details_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BLUE_MAIN)),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#F7FAFD")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#C7D8E8")),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
+    )
+
+    top_tables = Table([[client_table, details_table]], colWidths=[260, 220])
+    top_tables.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
+    )
+    elements.append(top_tables)
+    elements.append(Spacer(1, 14))
+
+    # Mini-résumé visuel (puissance / modules / référence)
+    chip_style = ParagraphStyle(
+        "chip",
+        parent=style_normal,
+        alignment=1,
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor("#0A1F33"),
+    )
+    chips_row = [
+        Paragraph(f"<b>{puissance_totale_kwc:.2f} kWc</b><br/><font size=8>Puissance totale installée</font>", chip_style),
+        Paragraph(f"<b>{nombre_panneaux} modules</b><br/><font size=8>{puissance_panneau} W par panneau</font>", chip_style),
+        Paragraph(f"<b>{doc_type} n°{int(doc_number)}</b><br/><font size=8>Émis le {today}</font>", chip_style),
+    ]
+    chips_table = Table([chips_row], colWidths=[160, 160, 160], hAlign="CENTER")
+    chips_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#EFF5FB")),
+                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#C7D8E8")),
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                ("TOPPADDING", (0, 0), (-1, -1), 10),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ]
+        )
+    )
+    elements.append(chips_table)
+    elements.append(Spacer(1, 18))
+
+    # RÉSUMÉ DU PROJET
+    heading1_style = styles["Heading1"].clone("heading1_custom")
+    heading1_style.textColor = colors.HexColor(BLUE_MAIN)
+    heading2_style = styles["Heading2"].clone("heading2_custom")
+    heading2_style.textColor = colors.HexColor(BLUE_MAIN)
+    heading3_style = styles["Heading3"].clone("heading3_custom")
+    heading3_style.textColor = colors.HexColor(BLUE_MAIN)
+    def ensure_page_break():
+        if not elements or not isinstance(elements[-1], PageBreak):
+            elements.append(PageBreak())
     
     elements.append(Paragraph("RÉSUMÉ EXÉCUTIF", heading_style))
     elements.append(Spacer(1, 12))
@@ -1678,6 +1754,33 @@ def generate_double_devis_pdf(
             elements.append(Paragraph(txt, style_normal))
             elements.append(Spacer(1, 10))
 
+        # Hypothèses de calcul & profil de consommation
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph("Hypothèses de calcul & profil de consommation", heading2_style if "heading2_style" in locals() else heading_style))
+        elements.append(Spacer(1, 6))
+        hypotheses_text = (
+            "Les estimations de production, d’économies et de temps de retour sur investissement sont basées sur les "
+            "hypothèses suivantes :"
+        )
+        elements.append(Paragraph(hypotheses_text, style_normal))
+        elements.append(Spacer(1, 4))
+        hypotheses_items = [
+            "Facture d’électricité moyenne prise en compte : valeur estimée à partir de vos dernières factures (ajustable après communication des données réelles).",
+            "Tarif unitaire moyen de l’électricité : basé sur le barème SRM/LYDEC/ONEE en vigueur au moment de l’étude (hors évolutions futures éventuelles).",
+            "Production annuelle photovoltaïque estimée : déterminée à partir de l’irradiation locale, de l’orientation et de l’inclinaison des panneaux, et d’un rendement système réaliste.",
+            "Taux d’autoconsommation estimé : part de la production consommée directement sur site, en fonction de votre profil horaire de consommation.",
+            "Durée de vie de l’installation considérée : 20 à 25 ans, avec éventuel remplacement de certains composants (onduleurs) en cours de vie.",
+            "Les calculs n’intègrent pas les éventuelles hausses futures du prix de l’électricité, qui peuvent encore améliorer la rentabilité réelle."
+        ]
+        hypotheses_list = ListFlowable(
+            [ListItem(Paragraph(item, style_normal)) for item in hypotheses_items],
+            bulletType="bullet",
+            start="•",
+            leftIndent=18,
+        )
+        elements.append(hypotheses_list)
+        elements.append(Spacer(1, 16))
+
     # ========== PAGE 5 : GARANTIES ET POURQUOI TAQINOR ==========
     ensure_page_break()
     elements.append(Paragraph("GARANTIES & CONDITIONS GÉNÉRALES", heading1_style))
@@ -1746,6 +1849,48 @@ def generate_double_devis_pdf(
         "• La réalisation de ces travaux ne peut débuter sans signature du devis"
     )
     elements.append(Paragraph(conditions, style_normal))
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph("Conditions financières & modalités de paiement", heading3_style if "heading3_style" in locals() else heading_style))
+    elements.append(Spacer(1, 4))
+    conditions_financieres_items = [
+        "Un acompte de 50% du montant TTC est demandé à la commande pour lancer l’approvisionnement du matériel.",
+        "Le solde est à régler à hauteur de 40% à la fin de la pose et des tests fonctionnels, et 10% à la réception définitive de l’installation.",
+        "Toute modification significative du projet (changement de matériel, modification de surface disponible, contraintes techniques particulières) pourra entraîner une révision du devis.",
+        "Les paiements peuvent être effectués par virement bancaire ou par tout autre moyen accepté par TAQINOR et précisé sur la facture."
+    ]
+    conditions_financieres_list = ListFlowable(
+        [ListItem(Paragraph(item, style_normal)) for item in conditions_financieres_items],
+        bulletType="bullet",
+        start="•",
+        leftIndent=18,
+    )
+    elements.append(conditions_financieres_list)
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph("Délai indicatif de réalisation", heading3_style if "heading3_style" in locals() else heading_style))
+    elements.append(Spacer(1, 4))
+    delai_text = (
+        "Sous réserve de disponibilité du matériel et de conditions météorologiques favorables, le délai indicatif de "
+        "réalisation de l’installation est de 7 à 14 jours ouvrés à compter de la réception de l’acompte et de la "
+        "validation définitive du projet. Ce délai pourra être affiné lors de la planification et confirmé par écrit."
+    )
+    elements.append(Paragraph(delai_text, style_normal))
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph("Périmètre de la prestation, exclusions & prérequis", heading3_style if "heading3_style" in locals() else heading_style))
+    elements.append(Spacer(1, 4))
+    perimetre_items = [
+        "Le présent devis inclut : la fourniture du matériel décrit, la pose des panneaux et des structures, le câblage AC/DC courant, le raccordement jusqu’au tableau électrique existant, la mise en service et la configuration de la supervision.",
+        "Sont exclus sauf mention expresse : les travaux de maçonnerie, de renforcement de charpente ou de toiture, la mise aux normes complète de l’installation électrique existante, la création de longues tranchées ou gaines au-delà d’un linéaire standard, ainsi que toute autorisation administrative ou copropriété non spécifiée.",
+        "Le client s’engage à garantir l’accès sécurisé au site (toiture, local technique, tableau électrique) pendant toute la durée du chantier.",
+        "Toute contrainte découverte lors de la visite technique (toiture fragile, accès compliqué, non-conformité électrique majeure, etc.) pourra faire l’objet d’un avenant de devis avant démarrage des travaux."
+    ]
+    perimetre_list = ListFlowable(
+        [ListItem(Paragraph(item, style_normal)) for item in perimetre_items],
+        bulletType="bullet",
+        start="•",
+        leftIndent=18,
+    )
+    elements.append(perimetre_list)
+    elements.append(Spacer(1, 12))
     
     # Page Pourquoi TAQINOR
     ensure_page_break()

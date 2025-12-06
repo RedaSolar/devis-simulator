@@ -122,59 +122,73 @@ def interpoler_factures(hiver, ete):
 
 def build_roi_figure(mois, factures, eco_sans, eco_avec):
     taqinor_graph_style()
-    fig, ax = plt.subplots(figsize=(7.0, 3.4))
+    fig, ax = plt.subplots(figsize=(6.5, 3.2))
     x = np.arange(len(mois))
-    width = 0.38
+
+    color_sans = BLUE_MAIN
+    color_avec = "#1E9E43"
 
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
 
-    bars_sans = ax.bar(
-        x - width / 2,
+    ax.plot(
+        x,
         eco_sans,
-        width,
+        linewidth=2.2,
+        marker="o",
+        markersize=4,
+        color=color_sans,
         label="Sans batterie",
-        color=BLUE_MAIN,
-        edgecolor=BLUE_MAIN,
-        linewidth=0.6,
-        alpha=0.9,
     )
-    bars_avec = ax.bar(
-        x + width / 2,
+    ax.fill_between(
+        x,
+        eco_sans,
+        [0] * len(eco_sans),
+        color=color_sans,
+        alpha=0.10,
+    )
+
+    ax.plot(
+        x,
         eco_avec,
-        width,
+        linewidth=1.8,
+        linestyle="--",
+        marker="o",
+        markersize=4,
+        color=color_avec,
         label="Avec batterie",
-        color=TEXT_DARK,
-        edgecolor=TEXT_DARK,
-        linewidth=0.6,
-        alpha=0.85,
+    )
+    ax.fill_between(
+        x,
+        eco_avec,
+        [0] * len(eco_avec),
+        color=color_avec,
+        alpha=0.05,
     )
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.yaxis.grid(True, linestyle="--", alpha=0.35, linewidth=0.6)
+    ax.yaxis.grid(True, linestyle="--", alpha=0.25)
     ax.xaxis.grid(False)
 
     ax.set_xticks(x)
     ax.set_xticklabels(mois, rotation=0)
     ax.set_xlabel("Mois")
     ax.set_ylabel("Économies mensuelles (MAD)")
-    ax.set_title("Estimation des économies mensuelles", fontsize=11, pad=6)
+    ax.set_title("Estimation des économies mensuelles", fontsize=11)
     ax.legend(fontsize=8, loc="upper left", frameon=False)
 
-    for bars in (bars_sans, bars_avec):
-        for bar in bars:
-            height = bar.get_height()
-            ax.annotate(
-                f"{int(round(height, 0)):,}".replace(",", " "),
-                xy=(bar.get_x() + bar.get_width() / 2, height),
-                xytext=(0, 3),
-                textcoords="offset points",
-                ha="center",
-                va="bottom",
-                fontsize=7,
-                color=TEXT_DARK,
-            )
+    for xi, val in zip(x, eco_sans):
+        ax.annotate(
+            f"{int(round(val, 0))}",
+            xy=(xi, val),
+            xytext=(0, 4),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=7,
+            color=color_sans,
+        )
 
     ax.margins(y=0.1)
     plt.tight_layout()
@@ -1069,7 +1083,6 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
         )
     )
     elements.append(title_tbl)
-    elements.append(Spacer(1, 6))
 
     header_row = [
         Paragraph("<b>Photo</b>", style_header_white),
@@ -1895,7 +1908,7 @@ def generate_double_devis_pdf(
 
     elements.append(Paragraph("<b>Estimation des économies mensuelles</b>", style_header_top))
     roi_fig_all_buf.seek(0)
-    elements.append(Image(roi_fig_all_buf, width=420, height=160))
+    elements.append(Image(roi_fig_all_buf, width=420, height=150))
     elements.append(Spacer(1, 6))
     elements.append(Paragraph("Comparaison des économies mensuelles avec et sans batterie.", style_normal))
     elements.append(Spacer(1, 8))
@@ -2243,51 +2256,24 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
         except Exception:
             pass
 
-        # Allow adding a new brand/model directly from the onduleur editor.
-        # Put these controls into a small expander so they don't clutter the UI.
-        catalog_load = load_catalog()
-        with cols_ondu[0].expander("Ajouter une nouvelle marque / modèle au catalogue", expanded=False):
-            new_brand_input = st.text_input("Nouvelle marque (laisser vide si non)", value="", key=f"new_brand_{designation}_{label}")
-            new_power_input = st.number_input("Puissance (kW)", min_value=0.0, step=0.1, value=0.0, key=f"new_power_{designation}_{label}")
-            new_phase_input = st.selectbox("Phase", ["Monophase", "Triphase", "Autre"], key=f"new_phase_choice_{designation}_{label}")
-            new_phase_other = ""
-            if new_phase_input == "Autre":
-                new_phase_other = st.text_input("Préciser la phase", key=f"new_phase_other_{designation}_{label}")
-            new_sell = st.number_input("Prix Unit. TTC (nouveau)", min_value=0.0, step=1.0, value=0.0, key=f"new_sell_{designation}_{label}")
-            new_buy = st.number_input("Prix Achat TTC (nouveau)", min_value=0.0, step=1.0, value=0.0, key=f"new_buy_{designation}_{label}")
-            if st.button("Ajouter au catalogue", key=f"btn_add_{designation}_{label}"):
-                nb_added = 0
-                if new_brand_input and new_power_input > 0:
-                    phase_to_use = new_phase_other.strip() if new_phase_input == "Autre" and new_phase_other else new_phase_input
-                    # Persist the new model into the catalog
-                    try:
-                        set_prices(catalog_load, designation, new_brand_input.strip(), new_sell or None, new_buy or None, power_key=str(int(new_power_input) if float(new_power_input).is_integer() else str(new_power_input)), phase=phase_to_use or None)
-                        st.success(f"Modèle {new_brand_input} {new_power_input} kW ({phase_to_use}) ajouté au catalogue.")
-                        # ensure next render shows the new selection
-                        st.session_state[widget_brand_key] = new_brand_input.strip()
-                        st.session_state[widget_power_key] = f"{float(new_power_input):g} kW"
-                        if phase_to_use:
-                            st.session_state[widget_phase_key] = phase_to_use
-                        nb_added = 1
-                    except Exception as e:
-                        st.error(f"Impossible d'ajouter au catalogue: {e}")
-                else:
-                    st.warning("Veuillez renseigner une nouvelle marque et une puissance > 0.")
-                if nb_added:
-                    # reload catalog variable for immediate use below
-                    catalog_load = load_catalog()
-        
         # Col 0: Marque (dropdown from catalog)
         available_brands = get_onduleur_brands(load_catalog(), base_key)
         default_brand_idx = 0
         if default_brand and default_brand in available_brands:
             default_brand_idx = available_brands.index(default_brand)
-        brand_final = cols_ondu[0].selectbox(
+        brand_col, new_brand_col = cols_ondu[0].columns([2, 1])
+        brand_sel = brand_col.selectbox(
             "Marque",
             available_brands,
             index=default_brand_idx,
-            key=f"sel_brand_{designation}_{label}"
+            key=f"sel_brand_{designation}_{label}",
         )
+        new_brand_input = new_brand_col.text_input(
+            "Nouvelle marque",
+            value=(default_brand or ""),
+            key=f"new_brand_{designation}_{label}",
+        )
+        brand_final = (new_brand_input.strip() or brand_sel)
         
         # Get available powers for this brand (keys may include phase suffixes like '10_Monophase')
         catalog_load = load_catalog()
@@ -2372,12 +2358,14 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
         phase_final = cols_ondu[2].selectbox("Phase", phase_options, index=phase_idx, key=f"sel_phase_{designation}_{label}")
         
         # Col 3: Quantité
+        qty_key = f"qty_{designation}_{label}"
+        qty_default = st.session_state.get(qty_key, int(default_qty))
         qty = cols_ondu[3].number_input(
             "Quantité",
             min_value=0,
             step=1,
-            value=int(default_qty),
-            key=f"qty_{designation}_{label}",
+            value=int(qty_default),
+            key=qty_key,
         )
         # Determine lookup_key in catalog for selected numeric power + phase
         lookup_key = ""
@@ -2744,6 +2732,14 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         step=5,
         key="roi_part_couvrable",
     ) / 100.0
+    roi_part_couvrable_avec = st.slider(
+        "Part de la facture couverte par le solaire en scénario AVEC batterie (%)",
+        min_value=0,
+        max_value=100,
+        value=80,
+        step=5,
+        key="roi_part_couvrable_avec",
+    ) / 100.0
 
     st.markdown("---")
 
@@ -2852,10 +2848,20 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                 sell = float(r.get("Prix Unit. TTC") or 0.0)
                 buy = float(r.get("Prix Achat TTC") or 0.0)
 
-                # new_ input will be used preferentially by line_editor to set the marque
-                st.session_state[f"new_{des}_{label}"] = brand
-                st.session_state[f"qty_{des}_{label}"] = qty
-                st.session_state[f"tva_{des}_{label}"] = tva
+                # ensure widgets pick up autofill qty/TVA when not yet set
+                try:
+                    st.session_state.setdefault(f"qty_{des}_{label}", qty)
+                    st.session_state.setdefault(f"tva_{des}_{label}", tva)
+                except Exception:
+                    pass
+
+                # push qty / TVA so widgets pick them up on next render
+                try:
+                    st.session_state[f"qty_{des}_{label}"] = qty
+                    st.session_state[f"tva_{des}_{label}"] = tva
+                except Exception:
+                    pass
+
                 # For onduleurs, use the brand + power lookup key used by line_editor
                 def _format_power_key(p):
                     try:
@@ -2872,8 +2878,6 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                     ondu_power = st.session_state.get("ondu_res_power")
                     ondu_phase = st.session_state.get("ondu_res_phase")
                     lookup_key = _format_power_key(ondu_power)
-                    st.session_state[f"sell_{des}_{label}_{brand}_{lookup_key}"] = sell
-                    st.session_state[f"buy_{des}_{label}_{brand}_{lookup_key}"] = buy
                     # also keep short named keys for components that expect them
                     st.session_state["ondu_res_brand"] = brand
                     st.session_state["ondu_res_power"] = ondu_power
@@ -2882,25 +2886,17 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                     ondu_power = st.session_state.get("ondu_hyb_power")
                     ondu_phase = st.session_state.get("ondu_hyb_phase")
                     lookup_key = _format_power_key(ondu_power)
-                    st.session_state[f"sell_{des}_{label}_{brand}_{lookup_key}"] = sell
-                    st.session_state[f"buy_{des}_{label}_{brand}_{lookup_key}"] = buy
                     st.session_state["ondu_hyb_brand"] = brand
                     st.session_state["ondu_hyb_power"] = ondu_power
                     st.session_state["ondu_hyb_phase"] = ondu_phase
                 elif des in ("Panneaux", "Batterie"):
                     # non-onduleur items use stable sell/buy keys in line_editor
-                    stable_price_key_sell = f"sell_{des}_{label}"
-                    stable_price_key_buy = f"buy_{des}_{label}"
-                    st.session_state[stable_price_key_sell] = sell
-                    st.session_state[stable_price_key_buy] = buy
                     # store brand tracking too
                     st.session_state[f"brand_tracked_{des}_{label}"] = brand
                 else:
                     # fallback: store under stable keys per-designation
-                    stable_price_key_sell = f"sell_{des}_{label}"
-                    stable_price_key_buy = f"buy_{des}_{label}"
-                    st.session_state[stable_price_key_sell] = sell
-                    st.session_state[stable_price_key_buy] = buy
+                    # fallback: nothing to push into widget state to avoid conflicts
+                    pass
         except Exception:
             pass
 
@@ -3384,13 +3380,27 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     # ROI
     kwh_mensuels = [f / KWH_PRICE if KWH_PRICE > 0 else 0 for f in factures_roi]
     prod_pv = [GHI[i] * puissance_kwp * EFFICIENCY for i in range(12)]
-    conso_couvrable = [k * roi_part_couvrable for k in kwh_mensuels]
 
-    pv_used_sans = [min(prod_pv[i], conso_couvrable[i]) for i in range(12)]
-    pv_used_avec = [min(prod_pv[i], kwh_mensuels[i]) for i in range(12)]
+    winter_month_indices = {11, 0, 1, 2}
+    self_consumed_sans = []
+    self_consumed_avec = []
 
-    eco_mens_sans = [x * KWH_PRICE for x in pv_used_sans]
-    eco_mens_avec = [x * KWH_PRICE for x in pv_used_avec]
+    for i, pv_kwh in enumerate(prod_pv):
+        base = roi_part_couvrable
+        ratio_sans = base - 0.10 if i in winter_month_indices else base + 0.10
+        ratio_sans = max(0.0, min(1.0, ratio_sans))
+        sc_sans = pv_kwh * ratio_sans
+        ratio_avec = max(0.0, min(1.0, roi_part_couvrable_avec))
+        sc_avec = pv_kwh * ratio_avec
+        # Cap by available consumption if known
+        conso_month = kwh_mensuels[i] if i < len(kwh_mensuels) else sc_sans + sc_avec
+        sc_sans = min(sc_sans, conso_month)
+        sc_avec = min(sc_avec, conso_month)
+        self_consumed_sans.append(sc_sans)
+        self_consumed_avec.append(sc_avec)
+
+    eco_mens_sans = [x * KWH_PRICE for x in self_consumed_sans]
+    eco_mens_avec = [x * KWH_PRICE for x in self_consumed_avec]
 
     eco_ann_sans = sum(eco_mens_sans)
     eco_ann_avec = sum(eco_mens_avec)
@@ -3425,8 +3435,8 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         "Mois": MOIS,
         "Facture (MAD)": factures_roi,
         "Production PV (kWh)": prod_pv,
-        "PV utilisée SANS batt (kWh)": pv_used_sans,
-        "PV utilisée AVEC batt (kWh)": pv_used_avec,
+        "PV utilisée SANS batt (kWh)": self_consumed_sans,
+        "PV utilisée AVEC batt (kWh)": self_consumed_avec,
         "Économie SANS batt (MAD)": eco_mens_sans,
         "Économie AVEC batt (MAD)": eco_mens_avec,
     })

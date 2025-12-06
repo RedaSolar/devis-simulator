@@ -1065,25 +1065,6 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
             return str(val)
         return f"{v:,.2f}".replace(",", " ") + "\u00a0MAD"
 
-    # Titre scénario (grand, encadré et coloré)
-    title_style = ParagraphStyle("scenario_title", parent=style_normal, fontSize=14, leading=16, alignment=1)
-    title_para = Paragraph(f"<b>{scenario_title}</b>", title_style)
-    title_tbl = Table([[title_para]], colWidths=[480])
-    title_tbl.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(BLUE_MAIN)),
-                ("TEXTCOLOR", (0, 0), (-1, -1), colors.white),
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("BOX", (0, 0), (-1, -1), 1, colors.HexColor(BLUE_MAIN)),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-            ]
-        )
-    )
-    elements.append(title_tbl)
-
     header_row = [
         Paragraph("<b>Photo</b>", style_header_white),
         Paragraph("<b>Désignation</b>", style_header_white),
@@ -1732,7 +1713,10 @@ def generate_double_devis_pdf(
     elements.append(Spacer(1, 8))
     elements.append(
         Paragraph(
-            f"TAQINOR propose deux configurations optimisées : une installation SANS batterie, privilégiant le meilleur retour sur investissement, et une installation AVEC batterie, offrant davantage de confort et d’autonomie lors des coupures réseau. Les deux scénarios reposent sur une puissance totale installée de {puissance_totale_kwc:.2f} kWc via {nombre_panneaux} modules de {puissance_panneau} W.",
+            f"TAQINOR propose deux configurations adaptées au profil de consommation du client :<br/>"
+            f"• Une installation SANS batterie, idéale lorsque la majorité de la consommation a lieu en journée.<br/>"
+            f"• Une installation AVEC batterie, permettant d’augmenter significativement le taux d’autoconsommation, particulièrement lorsque les usages nocturnes sont importants ou en cas de coupures réseau.<br/>"
+            f"Les deux scénarios reposent sur une puissance totale installée de {puissance_totale_kwc:.2f} kWc via {nombre_panneaux} modules de {puissance_panneau} W.",
             style_normal,
         )
     )
@@ -1753,14 +1737,20 @@ def generate_double_devis_pdf(
             elements.append(Paragraph("PRÉSENTATION DES OPTIONS", heading1_style))
             elements.append(Spacer(1, 8))
             options_heading_shown = True
+        context_term_map = {
+            "Résidentielle": "foyer",
+            "Commerciale": "activité",
+            "Industrielle": "site",
+            "Agricole": "exploitation",
+        }
+        context_term = context_term_map.get(installation_type, "site")
         elements.append(Paragraph("Option 1 : Installation SANS batterie", heading3_style))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph("Solution optimisée pour le meilleur retour sur investissement.", style_normal))
         elements.append(Spacer(1, 6))
         elements.append(
             Paragraph(
-                "Cette configuration est idéale si votre objectif principal est de réduire votre facture au meilleur coût initial.<br/>"
-                "Elle offre le meilleur retour sur investissement car toute l’énergie produite est directement utilisée par votre foyer.",
+                f"Cette configuration SANS batterie est adaptée lorsque la consommation du {context_term} est majoritairement diurne. "
+                "Elle maximise directement l’autoconsommation sans nécessiter de stockage et constitue une solution simple, fiable "
+                "et économiquement optimisée lorsque les usages nocturnes sont faibles à modérés.",
                 style_normal,
             )
         )
@@ -1787,12 +1777,10 @@ def generate_double_devis_pdf(
             options_heading_shown = True
         elements.append(Paragraph("Option 2 : Installation AVEC batterie", heading3_style))
         elements.append(Spacer(1, 6))
-        elements.append(Paragraph("Solution orientée confort et autonomie grâce à la batterie.", style_normal))
-        elements.append(Spacer(1, 6))
         elements.append(
             Paragraph(
-                "Cette option apporte un confort supérieur grâce au stockage d’énergie.<br/>"
-                "Elle assure une autonomie en cas de coupure, optimise la consommation nocturne et augmente votre taux d’autoconsommation globale.",
+                f"Cette configuration AVEC batterie est recommandée lorsque la consommation nocturne du {context_term} est importante ou lorsque la continuité d’alimentation constitue un enjeu. "
+                "Grâce au stockage, cette solution augmente fortement le taux d’autoconsommation, améliore le confort énergétique et réduit la dépendance au réseau lors des coupures.",
                 style_normal,
             )
         )
@@ -2261,19 +2249,14 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
         default_brand_idx = 0
         if default_brand and default_brand in available_brands:
             default_brand_idx = available_brands.index(default_brand)
-        brand_col, new_brand_col = cols_ondu[0].columns([2, 1])
+        brand_col = cols_ondu[0]
         brand_sel = brand_col.selectbox(
             "Marque",
             available_brands,
             index=default_brand_idx,
             key=f"sel_brand_{designation}_{label}",
         )
-        new_brand_input = new_brand_col.text_input(
-            "Nouvelle marque",
-            value=(default_brand or ""),
-            key=f"new_brand_{designation}_{label}",
-        )
-        brand_final = (new_brand_input.strip() or brand_sel)
+        brand_final = brand_sel
         
         # Get available powers for this brand (keys may include phase suffixes like '10_Monophase')
         catalog_load = load_catalog()
@@ -2357,6 +2340,35 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
             phase_idx = phase_options.index(default_phase)
         phase_final = cols_ondu[2].selectbox("Phase", phase_options, index=phase_idx, key=f"sel_phase_{designation}_{label}")
         
+        # Bloc d'ajout rapide d'une nouvelle marque/modèle d'onduleur (horizontal)
+        add_cols = st.columns([2.5, 1.2, 1.2, 1.2, 1.2])
+        new_brand_prefix = f"add_ondu_{designation}_{label}"
+        with add_cols[0]:
+            new_brand_name = st.text_input("Nouvelle marque", value="", key=f"{new_brand_prefix}_brand")
+        with add_cols[1]:
+            new_power_kw = st.number_input("Puissance (kW)", min_value=0.0, step=0.1, value=0.0, key=f"{new_brand_prefix}_power")
+        with add_cols[2]:
+            new_phase_val = st.selectbox("Phase", ["Monophase", "Triphase", "Autre"], key=f"{new_brand_prefix}_phase")
+        with add_cols[3]:
+            new_sell_val = st.number_input("Prix Unit. TTC", min_value=0.0, step=10.0, value=0.0, key=f"{new_brand_prefix}_sell")
+        with add_cols[4]:
+            new_buy_val = st.number_input("Prix Achat TTC", min_value=0.0, step=10.0, value=0.0, key=f"{new_brand_prefix}_buy")
+
+        if st.button("Ajouter la marque", key=f"{new_brand_prefix}_btn"):
+            if new_brand_name and new_power_kw > 0:
+                phase_to_use = new_phase_val if new_phase_val != "Autre" else "Autre"
+                try:
+                    power_key = str(int(new_power_kw) if float(new_power_kw).is_integer() else new_power_kw)
+                    set_prices(load_catalog(), designation, new_brand_name.strip(), sell_ttc=new_sell_val or None, buy_ttc=new_buy_val or None, power_key=power_key, phase=phase_to_use)
+                    st.success(f"Marque {new_brand_name} {power_key} kW ({phase_to_use}) ajoutée.")
+                    st.session_state[widget_brand_key] = new_brand_name.strip()
+                    st.session_state[widget_power_key] = f"{float(new_power_kw):g} kW"
+                    st.session_state[widget_phase_key] = phase_to_use
+                except Exception as e:
+                    st.error(f"Impossible d'ajouter la marque : {e}")
+            else:
+                st.warning("Renseignez au minimum une marque et une puissance > 0.")
+
         # Col 3: Quantité
         qty_key = f"qty_{designation}_{label}"
         qty_default = st.session_state.get(qty_key, int(default_qty))
@@ -2540,17 +2552,22 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
         
         sell_price = 0.0
         buy_price = 0.0
-        if brand_final and capacity_selected in capacities_dict:
+        brand_base = brand_final
+        if brand_base and capacity_selected in capacities_dict:
             sell_price = float(capacities_dict[capacity_selected].get("sell_ttc", 0.0))
             buy_price = float(capacities_dict[capacity_selected].get("buy_ttc", 0.0))
         
-        brand_final = f"{brand_final} {capacity_selected}kWh"
+        brand_final = f"{brand_base} {capacity_selected}kWh"
     
     else:
         brand_sel_list = known_brands(catalog, designation)
         brand_sel = cols[0].selectbox("Marque", brand_sel_list, key=f"sel_{designation}_{label}")
         new_brand = cols[1].text_input("Nouvelle marque", value=(default_brand or ""), key=f"new_{designation}_{label}")
         brand_final = (new_brand.strip() or brand_sel)
+        brand_base = brand_final
+
+    # Determine brand to use for price lookup (use base brand for batteries)
+    lookup_brand_for_price = brand_base if designation == "Batterie" else brand_final
 
     qty = cols[2].number_input(
         "Quantité",
@@ -2567,20 +2584,20 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
     
     if brand_tracking_key not in st.session_state:
         st.session_state[brand_tracking_key] = brand_final
-    
-    # If brand changed, refresh prices from catalog
+
+    # If brand changed, refresh prices from catalog (use base brand for batteries)
     if st.session_state[brand_tracking_key] != brand_final:
         st.session_state[brand_tracking_key] = brand_final
-        if brand_final:
-            catalog_sell, catalog_buy = get_prices(load_catalog(), designation, brand_final)
+        if lookup_brand_for_price:
+            catalog_sell, catalog_buy = get_prices(load_catalog(), designation, lookup_brand_for_price)
             if catalog_sell is not None:
                 st.session_state[stable_price_key_sell] = float(catalog_sell)
             if catalog_buy is not None:
                 st.session_state[stable_price_key_buy] = float(catalog_buy)
 
-    auto_sell, auto_buy = get_prices(load_catalog(), designation, brand_final)
-    initial_sell = float(default_sell) if default_sell is not None else float(auto_sell or 0.0)
-    initial_buy = float(default_buy) if default_buy is not None else float(auto_buy or 0.0)
+    auto_sell, auto_buy = get_prices(load_catalog(), designation, lookup_brand_for_price)
+    initial_sell = float(default_sell) if default_sell is not None else float(auto_sell or sell_price or 0.0)
+    initial_buy = float(default_buy) if default_buy is not None else float(auto_buy or buy_price or 0.0)
     
     if stable_price_key_sell in st.session_state:
         initial_sell = st.session_state[stable_price_key_sell]

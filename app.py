@@ -122,11 +122,11 @@ def interpoler_factures(hiver, ete):
 
 def build_roi_figure(mois, factures, eco_sans, eco_avec):
     taqinor_graph_style()
-    fig, ax = plt.subplots(figsize=(6.5, 3.2))
+    fig, ax = plt.subplots(figsize=(5.5, 2.6), dpi=120)
     x = np.arange(len(mois))
 
     color_sans = BLUE_MAIN
-    color_avec = "#1E9E43"
+    color_avec = "#F4A300"
 
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
@@ -140,30 +140,16 @@ def build_roi_figure(mois, factures, eco_sans, eco_avec):
         color=color_sans,
         label="Sans batterie",
     )
-    ax.fill_between(
-        x,
-        eco_sans,
-        [0] * len(eco_sans),
-        color=color_sans,
-        alpha=0.10,
-    )
 
     ax.plot(
         x,
         eco_avec,
-        linewidth=1.8,
+        linewidth=1.6,
         linestyle="--",
         marker="o",
-        markersize=4,
+        markersize=3,
         color=color_avec,
         label="Avec batterie",
-    )
-    ax.fill_between(
-        x,
-        eco_avec,
-        [0] * len(eco_avec),
-        color=color_avec,
-        alpha=0.05,
     )
 
     ax.spines["top"].set_visible(False)
@@ -176,7 +162,13 @@ def build_roi_figure(mois, factures, eco_sans, eco_avec):
     ax.set_xlabel("Mois")
     ax.set_ylabel("Économies mensuelles (MAD)")
     ax.set_title("Estimation des économies mensuelles", fontsize=11)
-    ax.legend(fontsize=8, loc="upper left", frameon=False)
+    ax.legend(
+        fontsize=8,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.10),
+        ncol=2,
+        frameon=False,
+    )
 
     for xi, val in zip(x, eco_sans):
         ax.annotate(
@@ -196,6 +188,115 @@ def build_roi_figure(mois, factures, eco_sans, eco_avec):
 
 def roi_figure_buffer(mois, factures, eco_sans, eco_avec):
     fig = build_roi_figure(mois, factures, eco_sans, eco_avec)
+    buf = BytesIO()
+    fig.savefig(buf, format="png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    buf.seek(0)
+    return buf
+
+
+def find_break_even_year(cumulative_values, years):
+    for year, value in zip(years, cumulative_values):
+        if value >= 0:
+            return year, value
+    return None, None
+
+
+def build_roi_cumulative_figure(years, cumulative_sans, cumulative_avec=None):
+    taqinor_graph_style()
+    fig, ax = plt.subplots(figsize=(6.5, 3.2), dpi=120)
+    x = np.array(years)
+
+    color_sans = BLUE_MAIN
+    color_avec = "#F4A300"
+
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
+
+    ax.plot(
+        x,
+        cumulative_sans,
+        linewidth=2.4,
+        marker="o",
+        markersize=4,
+        color=color_sans,
+        label="Sans batterie",
+    )
+    ax.fill_between(
+        x,
+        cumulative_sans,
+        [0] * len(cumulative_sans),
+        color=color_sans,
+        alpha=0.06,
+    )
+
+    if cumulative_avec is not None:
+        ax.plot(
+            x,
+            cumulative_avec,
+            linewidth=2.0,
+            linestyle="--",
+            marker="o",
+            markersize=3,
+            color=color_avec,
+            label="Avec batterie",
+        )
+        ax.fill_between(
+            x,
+            cumulative_avec,
+            [0] * len(cumulative_avec),
+            color=color_avec,
+            alpha=0.04,
+        )
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.yaxis.grid(True, linestyle="--", alpha=0.3)
+    ax.xaxis.grid(False)
+
+    ax.set_xticks([0, 5, 10, 15, 20, 25])
+    ax.set_xlabel("Années")
+    ax.set_ylabel("Gain cumulé (MAD)")
+    ax.set_title("Projection des gains cumulés sur 25 ans", fontsize=11)
+    ax.legend(fontsize=8, loc="upper left", frameon=False)
+
+    be_year_sans, be_val_sans = find_break_even_year(cumulative_sans, years)
+    if be_year_sans is not None:
+        ax.scatter(be_year_sans, be_val_sans, color=color_sans, s=30, zorder=3)
+        ax.annotate(
+            f"ROI ~ {be_year_sans} ans",
+            xy=(be_year_sans, be_val_sans),
+            xytext=(be_year_sans + 0.5, be_val_sans * 1.05 if be_val_sans != 0 else 0),
+            textcoords="data",
+            fontsize=7,
+            color=color_sans,
+            arrowprops=dict(arrowstyle="->", linewidth=0.8, color=color_sans),
+            ha="left",
+            va="bottom",
+        )
+
+    if cumulative_avec is not None:
+        be_year_avec, be_val_avec = find_break_even_year(cumulative_avec, years)
+        if be_year_avec is not None:
+            ax.scatter(be_year_avec, be_val_avec, color=color_avec, s=30, zorder=3)
+            ax.annotate(
+                f"ROI ~ {be_year_avec} ans",
+                xy=(be_year_avec, be_val_avec),
+                xytext=(be_year_avec + 0.5, be_val_avec * 1.05 if be_val_avec != 0 else 0),
+                textcoords="data",
+                fontsize=7,
+                color=color_avec,
+                arrowprops=dict(arrowstyle="->", linewidth=0.8, color=color_avec),
+                ha="left",
+                va="bottom",
+            )
+
+    plt.tight_layout()
+    return fig
+
+
+def roi_cumulative_buffer(years, cumulative_sans, cumulative_avec=None):
+    fig = build_roi_cumulative_figure(years, cumulative_sans, cumulative_avec)
     buf = BytesIO()
     fig.savefig(buf, format="png", dpi=300, bbox_inches="tight")
     plt.close(fig)
@@ -1349,6 +1450,7 @@ def generate_double_devis_pdf(
     roi_summary_sans,
     roi_summary_avec,
     roi_fig_all_buf,
+    roi_fig_cumul_buf,
     scenario_choice,
     recommended_option=None,
     installation_type="Résidentielle",
@@ -1896,10 +1998,27 @@ def generate_double_devis_pdf(
 
     elements.append(Paragraph("<b>Estimation des économies mensuelles</b>", style_header_top))
     roi_fig_all_buf.seek(0)
-    elements.append(Image(roi_fig_all_buf, width=420, height=150))
+    img_roi = Image(roi_fig_all_buf)
+    graph_max_width = doc.width
+    graph_max_height = doc.width * 0.45
+    img_roi._restrictSize(graph_max_width, graph_max_height)
+    elements.append(img_roi)
     elements.append(Spacer(1, 6))
     elements.append(Paragraph("Comparaison des économies mensuelles avec et sans batterie.", style_normal))
     elements.append(Spacer(1, 8))
+
+    # Graphique cumulatif 25 ans
+    if roi_fig_cumul_buf is not None:
+        elements.append(Paragraph("Projection des gains cumulés sur 25 ans", heading2_style if "heading2_style" in locals() else heading_style))
+        roi_fig_cumul_buf.seek(0)
+        img_cumul = Image(roi_fig_cumul_buf)
+        cum_max_w = doc.width
+        cum_max_h = doc.width * 0.5
+        img_cumul._restrictSize(cum_max_w, cum_max_h)
+        elements.append(img_cumul)
+        elements.append(Spacer(1, 6))
+        elements.append(Paragraph("Ce graphique illustre le gain cumulé sur 25 ans et le point d’équilibre (ROI) pour chaque configuration.", style_normal))
+        elements.append(Spacer(1, 8))
 
     # Hypothèses de calcul & profil de consommation
     elements.append(Paragraph("Hypothèses de calcul & profil de consommation", heading2_style if "heading2_style" in locals() else heading_style))
@@ -2165,6 +2284,7 @@ def generate_single_pdf(df_in, client_name, client_address, client_phone,
         roi_summary_sans=None,
         roi_summary_avec=None,
         roi_fig_all_buf=roi_buf,
+        roi_fig_cumul_buf=None,
         scenario_choice="Sans batterie uniquement",
         recommended_option=None,
         installation_type="Résidentielle",
@@ -3464,6 +3584,15 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     st.pyplot(fig_roi)
     roi_fig_all_buf = roi_figure_buffer(MOIS, factures_roi, eco_mens_sans, eco_mens_avec)
 
+    # Graphique cumulatif 25 ans
+    years_25 = list(range(0, 26))
+    cumulative_sans_25 = [-total_ttc_sans + eco_ann_sans * n for n in years_25] if eco_ann_sans is not None else []
+    has_battery_option = eco_ann_avec is not None and eco_ann_avec > 0 and total_ttc_avec is not None and total_ttc_avec > 0
+    cumulative_avec_25 = [-total_ttc_avec + eco_ann_avec * n for n in years_25] if has_battery_option else None
+    roi_fig_cumul_buf = None
+    if cumulative_sans_25:
+        roi_fig_cumul_buf = roi_cumulative_buffer(years_25, cumulative_sans_25, cumulative_avec_25 if has_battery_option else None)
+
     # ROIs résumé pour PDF
     roi_summary_sans = {
         "prod_annuelle": sum(prod_pv),
@@ -3516,6 +3645,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
             roi_summary_sans=roi_summary_sans if scenario_choice != "Avec batterie uniquement" else None,
             roi_summary_avec=roi_summary_avec if scenario_choice != "Sans batterie uniquement" else None,
             roi_fig_all_buf=roi_fig_all_buf,
+            roi_fig_cumul_buf=roi_fig_cumul_buf,
             scenario_choice=scenario_choice,
             recommended_option=recommended_option,
             installation_type=installation_type,
@@ -3595,4 +3725,3 @@ else:
             config["facture_counter"] = int(fact_number) + 1
             with open(CONFIG_FILE, "w", encoding="utf-8") as f:
                 json.dump(config, f, ensure_ascii=False, indent=2)
-

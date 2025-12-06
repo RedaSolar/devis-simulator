@@ -1475,8 +1475,8 @@ def generate_double_devis_pdf(
         pagesize=A4,
         rightMargin=56,  # ~2 cm
         leftMargin=56,   # ~2 cm
-        topMargin=50,
-        bottomMargin=45,
+        topMargin=1.6 * cm,
+        bottomMargin=1.6 * cm,
     )
     elements = []
     styles = getSampleStyleSheet()
@@ -1780,19 +1780,18 @@ def generate_double_devis_pdf(
     
     # heading style already adds top spacing
     elements.append(Paragraph("RÉSUMÉ EXÉCUTIF", heading1_style))
-    elements.append(Spacer(1, 8))
+    elements.append(Spacer(1, 6))
     elements.append(
         Paragraph(
-            f"Ce devis présente une solution photovoltaïque {type_label} sur mesure visant à réduire durablement votre facture d’électricité, améliorer votre autonomie énergétique et valoriser votre patrimoine. L’installation proposée repose sur des équipements premium (Canadian Solar, Huawei, Deye) et s’adapte à votre profil de consommation afin de maximiser votre taux d’autoconsommation et votre retour sur investissement.",
+            "Ce devis présente une solution photovoltaïque sur mesure pour réduire durablement votre facture d’électricité, améliorer votre autonomie énergétique et valoriser votre patrimoine. L’installation proposée s’appuie sur des équipements premium (Canadian Solar, Huawei, Deye) dimensionnés selon votre profil de consommation pour maximiser l’autoconsommation et le retour sur investissement.",
             style_normal,
         )
     )
     elements.append(Spacer(1, 6))
-    elements.append(Paragraph("L’étude ci-dessous inclut :", heading1_style))
     bullet_intro = [
-        f"Une configuration de {nombre_panneaux} panneaux de {puissance_panneau} W (puissance totale {puissance_totale_kwc:.2f} kWc)",
-        "Une analyse comparative entre une installation SANS batterie et une installation AVEC batterie",
-        "Une estimation économique complète (production annuelle, économies, ROI)",
+        "Une installation de 5,68 kWc composée de 8 panneaux de 710 W",
+        "Une comparaison entre une configuration SANS batterie et une configuration AVEC batterie",
+        "Une estimation économique complète (production annuelle, économies, temps de retour sur investissement)",
         "Les garanties et engagements TAQINOR",
     ]
     elements.append(
@@ -1803,13 +1802,12 @@ def generate_double_devis_pdf(
             leftIndent=14,
         )
     )
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 10))
     elements.append(Paragraph("OBJECTIFS DU CLIENT", heading1_style))
-    elements.append(Spacer(1, 8))
+    elements.append(Spacer(1, 6))
     client_objectifs = [
         "Réduire significativement la facture d’électricité mensuelle",
-        "Gagner en confort et en sécurité énergétique en cas de coupure",
-        "Préserver la possibilité d’une évolution future (batterie, puissance supplémentaire)",
+        "Gagner en confort et en sécurité énergétique grâce à une installation évolutive (batterie ou puissance supplémentaire ultérieure)",
     ]
     elements.append(
         ListFlowable(
@@ -1819,9 +1817,9 @@ def generate_double_devis_pdf(
             leftIndent=14,
         )
     )
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 10))
     elements.append(Paragraph("CONFIGURATION RECOMMANDÉE", heading1_style))
-    elements.append(Spacer(1, 8))
+    elements.append(Spacer(1, 6))
     elements.append(
         Paragraph(
             f"TAQINOR propose deux configurations adaptées au profil de consommation du client :<br/>"
@@ -1831,7 +1829,7 @@ def generate_double_devis_pdf(
             style_normal,
         )
     )
-    elements.append(Spacer(1, 6))
+    elements.append(Spacer(1, 4))
 
     # ========== PAGE 2 : OPTION SANS BATTERIE ==========
     # SECTION SANS
@@ -1859,19 +1857,18 @@ def generate_double_devis_pdf(
         elements.append(Spacer(1, 6))
         elements.append(
             Paragraph(
-                f"Cette configuration SANS batterie est adaptée lorsque la consommation du {context_term} est majoritairement diurne. "
-                "Elle maximise directement l’autoconsommation sans nécessiter de stockage et constitue une solution simple, fiable "
-                "et économiquement optimisée lorsque les usages nocturnes sont faibles à modérés.",
+                "Cette configuration SANS batterie convient lorsque la consommation est majoritairement diurne. "
+                "Elle maximise directement l’autoconsommation sans stockage et constitue une solution simple, fiable et économiquement optimisée lorsque les usages nocturnes restent limités.",
                 style_normal,
             )
         )
-        elements.append(Spacer(1, 8))
+        elements.append(Spacer(1, 6))
         
         sec_sans, total_sans = build_devis_section_elements(
             df_sans, notes_sans, styles, "Devis SANS batterie"
         )
         elements += sec_sans
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 10))
 
     # ========== PAGE 3 : OPTION AVEC BATTERIE ==========
     # SECTION AVEC
@@ -1890,23 +1887,23 @@ def generate_double_devis_pdf(
         elements.append(Spacer(1, 6))
         elements.append(
             Paragraph(
-                f"Cette configuration AVEC batterie est recommandée lorsque la consommation nocturne du {context_term} est importante ou lorsque la continuité d’alimentation constitue un enjeu. "
-                "Grâce au stockage, cette solution augmente fortement le taux d’autoconsommation, améliore le confort énergétique et réduit la dépendance au réseau lors des coupures.",
+                "Cette configuration AVEC batterie est adaptée lorsque la consommation nocturne est importante ou lorsque la continuité d’alimentation est un enjeu. "
+                "Le stockage augmente fortement le taux d’autoconsommation, améliore le confort énergétique et réduit la dépendance au réseau en cas de coupure.",
                 style_normal,
             )
         )
-        elements.append(Spacer(1, 8))
+        elements.append(Spacer(1, 6))
         
         sec_avec, total_avec = build_devis_section_elements(
             df_avec, notes_avec, styles, "Devis AVEC batterie"
         )
         elements += sec_avec
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 10))
 
     # ========== PAGE 4 : ANALYSE ÉCONOMIQUE ET ROI ==========
     # PAGE ROI GRAPHIQUE
     if roi_fig_all_buf is not None:
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 10))
         add_divider()
         elements.append(Spacer(1, 6))
         elements.append(Paragraph("SYNTHÈSE FINANCIÈRE & ROI", heading1_style))
@@ -2033,13 +2030,10 @@ def generate_double_devis_pdf(
     elements.append(Paragraph("Hypothèses de calcul & profil de consommation", heading2_style if "heading2_style" in locals() else heading_style))
     elements.append(Spacer(1, 6))
     hypotheses_items = [
-        "Tarif SRM/LYDEC/ONEE en vigueur au moment de l’étude.",
-        "Profil de consommation basé sur vos dernières factures (ajustable).",
-        "Production estimée selon irradiation locale, orientation et inclinaison.",
-        "Rendement système réaliste avec pertes usuelles.",
-        "Taux d’autoconsommation estimé selon votre profil horaire.",
-        "Durée de vie considérée 20–25 ans (remplacement onduleur éventuel).",
-        "Évolutions tarifaires futures non intégrées (pourraient améliorer le ROI).",
+        "Tarifs SRM/LYDEC/ONEE en vigueur au moment de l’étude.",
+        "Profil de consommation basé sur vos dernières factures, ajusté si nécessaire.",
+        "Production estimée selon l’irradiation locale, l’orientation, l’inclinaison et un rendement système réaliste.",
+        "Taux d’autoconsommation estimé à partir de votre profil horaire, sur une durée de vie de 20 à 25 ans.",
     ]
     elements.append(
         ListFlowable(
@@ -2049,11 +2043,9 @@ def generate_double_devis_pdf(
             leftIndent=14,
         )
     )
-    elements.append(Spacer(1, 16))
+    elements.append(Spacer(1, 10))
 
     # ========== PAGE 5 : GARANTIES ET POURQUOI TAQINOR ==========
-    ensure_page_break()
-    elements.append(Spacer(1, 12))
     add_divider()
     elements.append(Spacer(1, 6))
     elements.append(Paragraph("GARANTIES & CONDITIONS GÉNÉRALES", heading1_style))
@@ -2196,13 +2188,11 @@ def generate_double_devis_pdf(
     elements.append(Paragraph("POURQUOI CHOISIR TAQINOR ?", heading1_style))
     elements.append(Spacer(1, 8))
     pourquoi_lines = [
-        "Installation réalisée par des ingénieurs spécialisés dans le solaire",
+        "Installation conçue et suivie par des ingénieurs spécialisés dans le solaire",
         "Matériel premium : Huawei, Deye, Canadian Solar",
         "Service après-vente disponible 7j/7 (WhatsApp & téléphone)",
-        "Installation propre, sécurisée et conforme aux normes",
-        "Optimisation anti-injection quand nécessaire",
-        "Suivi de production en temps réel via application mobile",
-        "Possibilité d’évolution future de l’installation",
+        "Installation propre, sécurisée et conforme aux normes en vigueur",
+        "Suivi de production en temps réel via application mobile et possibilité d’évolution future",
     ]
     elements.append(
         ListFlowable(

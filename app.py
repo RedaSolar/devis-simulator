@@ -121,66 +121,75 @@ def interpoler_factures(hiver, ete):
     return [*premiere, *seconde]
 
 def build_roi_figure(mois, factures, eco_sans, eco_avec):
+    """
+    Chart: background bars = facture sans PV, dashed lines with markers for économies SANS/AVEC.
+    """
     taqinor_graph_style()
-    fig, ax = plt.subplots(figsize=(5.5, 2.6), dpi=120)
+    fig, ax = plt.subplots(figsize=(6.0, 3.0), dpi=120)
     x = np.arange(len(mois))
 
-    color_sans = BLUE_MAIN
+    # Colors
+    import matplotlib.colors as mcolors
+
+    def _to_hex(c):
+        try:
+            return mcolors.to_hex(c)
+        except Exception:
+            return str(c)
+
+    bar_color = "#A6C8E5"
+    color_sans = _to_hex(BLUE_MAIN)
     color_avec = "#F4A300"
 
-    fig.patch.set_facecolor("white")
-    ax.set_facecolor("white")
+    monthly_bill_no_pv = factures if isinstance(factures, (list, tuple)) else list(factures)
 
+    # Background bars for facture sans PV
+    ax.bar(
+        x,
+        monthly_bill_no_pv,
+        width=0.9,
+        color=bar_color,
+        alpha=0.7,
+        label="Facture sans PV",
+        zorder=1,
+    )
+
+    # Savings curves
     ax.plot(
         x,
         eco_sans,
-        linewidth=2.2,
+        linestyle="--",
+        linewidth=2.0,
         marker="o",
         markersize=4,
         color=color_sans,
-        label="Sans batterie",
+        label="Économie mensuelle – SANS batterie",
+        zorder=2,
     )
 
     ax.plot(
         x,
         eco_avec,
-        linewidth=1.6,
         linestyle="--",
-        marker="o",
-        markersize=3,
+        linewidth=2.0,
+        marker="s",
+        markersize=4,
         color=color_avec,
-        label="Avec batterie",
+        label="Économie mensuelle – AVEC batterie",
+        zorder=3,
     )
 
+    ax.set_xticks(x)
+    ax.set_xticklabels(mois)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.yaxis.grid(True, linestyle="--", alpha=0.25)
     ax.xaxis.grid(False)
-
-    ax.set_xticks(x)
-    ax.set_xticklabels(mois, rotation=0)
-    ax.set_xlabel("Mois")
-    ax.set_ylabel("Économies mensuelles (MAD)")
+    ax.set_ylabel("Montant (MAD)")
     ax.set_title("Estimation des économies mensuelles", fontsize=11)
-    ax.legend(
-        fontsize=8,
-        loc="upper center",
-        bbox_to_anchor=(0.5, 1.10),
-        ncol=2,
-        frameon=False,
-    )
 
-    for xi, val in zip(x, eco_sans):
-        ax.annotate(
-            f"{int(round(val, 0))}",
-            xy=(xi, val),
-            xytext=(0, 4),
-            textcoords="offset points",
-            ha="center",
-            va="bottom",
-            fontsize=7,
-            color=color_sans,
-        )
+    legend = ax.legend(fontsize=8, loc="upper right", frameon=True)
+    legend.get_frame().set_alpha(0.9)
 
     ax.margins(y=0.1)
     plt.tight_layout()

@@ -122,30 +122,51 @@ def interpoler_factures(hiver, ete):
 
 def build_roi_figure(mois, factures, eco_sans, eco_avec):
     taqinor_graph_style()
-    fig, ax = plt.subplots(figsize=(6, 3))
+    fig, ax = plt.subplots(figsize=(7.0, 3.4))
     x = np.arange(len(mois))
-    width = 0.35
+    width = 0.38
 
-    bars_sans = ax.bar(x - width / 2, eco_sans, width, label="Sans batterie", color=BLUE_MAIN)
-    bars_avec = ax.bar(x + width / 2, eco_avec, width, label="Avec batterie", color=TEXT_DARK)
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
+
+    bars_sans = ax.bar(
+        x - width / 2,
+        eco_sans,
+        width,
+        label="Sans batterie",
+        color=BLUE_MAIN,
+        edgecolor=BLUE_MAIN,
+        linewidth=0.6,
+        alpha=0.9,
+    )
+    bars_avec = ax.bar(
+        x + width / 2,
+        eco_avec,
+        width,
+        label="Avec batterie",
+        color=TEXT_DARK,
+        edgecolor=TEXT_DARK,
+        linewidth=0.6,
+        alpha=0.85,
+    )
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.yaxis.grid(True, linestyle="--", alpha=0.3)
+    ax.yaxis.grid(True, linestyle="--", alpha=0.35, linewidth=0.6)
     ax.xaxis.grid(False)
 
     ax.set_xticks(x)
-    ax.set_xticklabels(mois)
+    ax.set_xticklabels(mois, rotation=0)
     ax.set_xlabel("Mois")
     ax.set_ylabel("Économies mensuelles (MAD)")
-    ax.set_title("Estimation des économies mensuelles", fontsize=11)
+    ax.set_title("Estimation des économies mensuelles", fontsize=11, pad=6)
     ax.legend(fontsize=8, loc="upper left", frameon=False)
 
     for bars in (bars_sans, bars_avec):
         for bar in bars:
             height = bar.get_height()
             ax.annotate(
-                f"{int(round(height, 0))}",
+                f"{int(round(height, 0)):,}".replace(",", " "),
                 xy=(bar.get_x() + bar.get_width() / 2, height),
                 xytext=(0, 3),
                 textcoords="offset points",
@@ -155,7 +176,7 @@ def build_roi_figure(mois, factures, eco_sans, eco_avec):
                 color=TEXT_DARK,
             )
 
-    ax.margins(y=0.08)
+    ax.margins(y=0.1)
     plt.tight_layout()
     return fig
 
@@ -1221,8 +1242,10 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
 
     total_ht_lbl = Paragraph("<b>TOTAL HT</b>", style_normal)
     total_ttc_lbl = Paragraph("<b>TOTAL TTC</b>", style_normal)
-    data.append(["", "", "", "", "", total_ht_lbl, fmt_money(total_ht)])
-    data.append(["", "", "", "", "", total_ttc_lbl, fmt_money(total_ttc)])
+    total_ht_fmt = f"{total_ht:,.2f} MAD".replace(",", " ")
+    total_ttc_fmt = f"{total_ttc:,.2f} MAD".replace(",", " ")
+    data.append([total_ht_lbl, "", "", "", "", "", total_ht_fmt])
+    data.append([total_ttc_lbl, "", "", "", "", "", total_ttc_fmt])
 
     elements.append(Spacer(1, 12))
 
@@ -1250,7 +1273,7 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
                 ("LINEBELOW", (0, 0), (-1, 0), 1.0, colors.white),
                 # Body styling
                 ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 1), (-1, -1), 8),
+                ("FONTSIZE", (0, 1), (-1, -3), 8),
                 ("TEXTCOLOR", (0, 1), (-1, -1), colors.HexColor("#222222")),
                 ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#CCCCCC")),
                 ("INNERGRID", (0, 1), (-1, -3), 0.3, colors.HexColor("#DDDDDD")),
@@ -1269,6 +1292,10 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
                 ("WORDWRAP", (1, 1), (2, -1), None),
             ]
         )
+
+        # Highlight numeric columns with slightly larger font
+        style.add("FONTSIZE", (4, 1), (6, -3), 9.5)
+        style.add("FONTSIZE", (4, before_last_row), (-1, -1), 10)
 
         if body_end >= 1:
             style.add(
@@ -1330,6 +1357,9 @@ def generate_double_devis_pdf(
     roi_fig_all_buf,
     scenario_choice,
     recommended_option=None,
+    installation_type="Résidentielle",
+    type_label="résidentielle",
+    type_phrase="Installation photovoltaïque résidentielle",
 ):
     safe_client = re.sub(r"[^A-Za-z0-9]", "_", client_name or "Client")
     file_name = f"{doc_type}_{safe_client}_{int(doc_number)}.pdf"
@@ -1513,14 +1543,14 @@ def generate_double_devis_pdf(
         pass
 
     # Determine project text (city if possible)
-    project_text = "Installation photovoltaïque résidentielle"
+    project_text = type_phrase
     if client_address:
         parts = [p.strip() for p in str(client_address).split(",") if p.strip()]
         if parts:
             project_text = f"{parts[0]} – Maroc"
 
     project_summary_html = (
-        "<b>Proposition commerciale – Installation photovoltaïque résidentielle</b><br/>"
+        f"<b>Proposition commerciale – {type_phrase}</b><br/>"
         f"Projet : {project_text}<br/>"
         f"Réf. : {int(doc_number)} – {today}"
     )
@@ -1648,7 +1678,7 @@ def generate_double_devis_pdf(
     elements.append(Spacer(1, 8))
     elements.append(
         Paragraph(
-            "Ce devis présente une solution photovoltaïque sur mesure visant à réduire durablement votre facture d’électricité, améliorer votre autonomie énergétique et valoriser votre patrimoine. L’installation proposée repose sur des équipements premium (Canadian Solar, Huawei, Deye) et s’adapte à votre profil de consommation afin de maximiser votre taux d’autoconsommation et votre retour sur investissement.",
+            f"Ce devis présente une solution photovoltaïque {type_label} sur mesure visant à réduire durablement votre facture d’électricité, améliorer votre autonomie énergétique et valoriser votre patrimoine. L’installation proposée repose sur des équipements premium (Canadian Solar, Huawei, Deye) et s’adapte à votre profil de consommation afin de maximiser votre taux d’autoconsommation et votre retour sur investissement.",
             style_normal,
         )
     )
@@ -1863,35 +1893,34 @@ def generate_double_devis_pdf(
             elements.append(reco_tbl)
             elements.append(Spacer(1, 10))
 
-        elements.append(Paragraph("<b>Estimation des économies mensuelles</b>", style_header_top))
-        elements.append(Spacer(1, 6))
-        roi_fig_all_buf.seek(0)
-        elements.append(Image(roi_fig_all_buf, width=420, height=170))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph("Comparaison des économies mensuelles avec et sans batterie.", style_normal))
-        elements.append(Spacer(1, 10))
+    elements.append(Paragraph("<b>Estimation des économies mensuelles</b>", style_header_top))
+    roi_fig_all_buf.seek(0)
+    elements.append(Image(roi_fig_all_buf, width=420, height=160))
+    elements.append(Spacer(1, 6))
+    elements.append(Paragraph("Comparaison des économies mensuelles avec et sans batterie.", style_normal))
+    elements.append(Spacer(1, 8))
 
-        # Hypothèses de calcul & profil de consommation
-        elements.append(Paragraph("Hypothèses de calcul & profil de consommation", heading2_style if "heading2_style" in locals() else heading_style))
-        elements.append(Spacer(1, 6))
-        hypotheses_items = [
-            "Tarif SRM/LYDEC/ONEE en vigueur au moment de l’étude.",
-            "Profil de consommation basé sur vos dernières factures (ajustable).",
-            "Production estimée selon irradiation locale, orientation et inclinaison.",
-            "Rendement système réaliste avec pertes usuelles.",
-            "Taux d’autoconsommation estimé selon votre profil horaire.",
-            "Durée de vie considérée 20–25 ans (remplacement onduleur éventuel).",
-            "Évolutions tarifaires futures non intégrées (pourraient améliorer le ROI).",
-        ]
-        elements.append(
-            ListFlowable(
-                [ListItem(Paragraph(item, style_bullet)) for item in hypotheses_items],
-                bulletType="bullet",
-                bulletText="•",
-                leftIndent=14,
-            )
+    # Hypothèses de calcul & profil de consommation
+    elements.append(Paragraph("Hypothèses de calcul & profil de consommation", heading2_style if "heading2_style" in locals() else heading_style))
+    elements.append(Spacer(1, 6))
+    hypotheses_items = [
+        "Tarif SRM/LYDEC/ONEE en vigueur au moment de l’étude.",
+        "Profil de consommation basé sur vos dernières factures (ajustable).",
+        "Production estimée selon irradiation locale, orientation et inclinaison.",
+        "Rendement système réaliste avec pertes usuelles.",
+        "Taux d’autoconsommation estimé selon votre profil horaire.",
+        "Durée de vie considérée 20–25 ans (remplacement onduleur éventuel).",
+        "Évolutions tarifaires futures non intégrées (pourraient améliorer le ROI).",
+    ]
+    elements.append(
+        ListFlowable(
+            [ListItem(Paragraph(item, style_bullet)) for item in hypotheses_items],
+            bulletType="bullet",
+            bulletText="•",
+            leftIndent=14,
         )
-        elements.append(Spacer(1, 16))
+    )
+    elements.append(Spacer(1, 16))
 
     # ========== PAGE 5 : GARANTIES ET POURQUOI TAQINOR ==========
     ensure_page_break()
@@ -1981,12 +2010,21 @@ def generate_double_devis_pdf(
     elements.append(Spacer(1, 10))
     elements.append(Paragraph("Conditions financières & modalités de paiement", heading3_style if "heading3_style" in locals() else heading_style))
     elements.append(Spacer(1, 4))
-    conditions_financieres_items = [
-        "Un acompte de 30% du montant TTC est demandé à la commande pour lancer l’approvisionnement du matériel.",
-        "Le solde de 70% est à régler à la fin de la pose, des tests fonctionnels et de la mise en service.",
-        "Toute modification significative du projet (changement de matériel, modification de surface disponible, contraintes techniques particulières) pourra entraîner une révision du devis.",
-        "Les paiements peuvent être effectués par virement bancaire ou par tout autre moyen accepté par TAQINOR et précisé sur la facture."
-    ]
+    if installation_type == "Résidentielle":
+        conditions_financieres_items = [
+            "Un acompte de 30% du montant TTC est demandé à la commande pour lancer l’approvisionnement du matériel.",
+            "Le solde de 70% est à régler à la fin de la pose, des tests fonctionnels et de la mise en service.",
+            "Toute modification significative du projet (changement de matériel, modification de surface disponible, contraintes techniques particulières) pourra entraîner une révision du devis.",
+            "Les paiements peuvent être effectués par virement bancaire ou par tout autre moyen accepté par TAQINOR et précisé sur la facture.",
+        ]
+    else:
+        conditions_financieres_items = [
+            "Un acompte de 30% du montant TTC est demandé à la commande pour lancer l’approvisionnement du matériel.",
+            "50% du montant TTC sont à régler après la livraison complète du matériel sur site.",
+            "Les 20% restants sont à régler après la fin de la pose, des tests fonctionnels et de la mise en service.",
+            "Toute modification significative du projet (changement de matériel, modification de surface disponible, contraintes techniques particulières) pourra entraîner une révision du devis.",
+            "Les paiements peuvent être effectués par virement bancaire ou par tout autre moyen accepté par TAQINOR et précisé sur la facture.",
+        ]
     conditions_financieres_list = ListFlowable(
         [ListItem(Paragraph(item, style_bullet)) for item in conditions_financieres_items],
         bulletType="bullet",
@@ -2128,6 +2166,9 @@ def generate_single_pdf(df_in, client_name, client_address, client_phone,
         roi_fig_all_buf=roi_buf,
         scenario_choice="Sans batterie uniquement",
         recommended_option=None,
+        installation_type="Résidentielle",
+        type_label="résidentielle",
+        type_phrase="Installation photovoltaïque résidentielle",
     )
     return pdf_path_final, file_name
 
@@ -2600,6 +2641,26 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     doc_type = "Devis"
     default_num = config["devis_counter"]
     doc_number = st.number_input(f"Numéro {doc_type}", value=int(default_num), step=1)
+
+    installation_type = st.selectbox(
+        "Type d'installation",
+        ["Résidentielle", "Commerciale", "Industrielle", "Agricole"],
+        index=0,
+    )
+    type_label_map = {
+        "Résidentielle": "résidentielle",
+        "Commerciale": "commerciale",
+        "Industrielle": "industrielle",
+        "Agricole": "agricole",
+    }
+    type_phrase_map = {
+        "Résidentielle": "Installation photovoltaïque résidentielle",
+        "Commerciale": "Installation photovoltaïque commerciale",
+        "Industrielle": "Installation photovoltaïque industrielle",
+        "Agricole": "Installation photovoltaïque agricole",
+    }
+    type_label = type_label_map.get(installation_type, "résidentielle")
+    type_phrase = type_phrase_map.get(installation_type, "Installation photovoltaïque résidentielle")
 
     st.subheader("Infos Client")
     client_name = st.text_input("Nom du client")
@@ -3430,6 +3491,9 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
             roi_fig_all_buf=roi_fig_all_buf,
             scenario_choice=scenario_choice,
             recommended_option=recommended_option,
+            installation_type=installation_type,
+            type_label=type_label,
+            type_phrase=type_phrase,
         )
 
         st.success(f"Devis généré ✅ → {pdf_path}")

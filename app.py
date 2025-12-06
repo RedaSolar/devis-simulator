@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm, cm
+import numpy as np
 from reportlab.platypus import (
     SimpleDocTemplate,
     Table,
@@ -121,64 +122,40 @@ def interpoler_factures(hiver, ete):
 
 def build_roi_figure(mois, factures, eco_sans, eco_avec):
     taqinor_graph_style()
-    fig, ax = plt.subplots(figsize=(6.2, 3.2))
-    x = list(range(len(mois)))
-    bar_width = 0.35
+    fig, ax = plt.subplots(figsize=(6, 3))
+    x = np.arange(len(mois))
+    width = 0.35
 
-    bars_sans = ax.bar(
-        [i - bar_width / 2 for i in x],
-        eco_sans,
-        width=bar_width,
-        color=BLUE_MAIN,
-        label="Économie SANS batterie",
-        alpha=0.9,
-    )
-    bars_avec = ax.bar(
-        [i + bar_width / 2 for i in x],
-        eco_avec,
-        width=bar_width,
-        color=ORANGE_ACCENT,
-        label="Économie AVEC batterie",
-        alpha=0.9,
-    )
+    bars_sans = ax.bar(x - width / 2, eco_sans, width, label="Sans batterie", color=BLUE_MAIN)
+    bars_avec = ax.bar(x + width / 2, eco_avec, width, label="Avec batterie", color=TEXT_DARK)
 
-    ax.plot(
-        x,
-        factures,
-        marker="o",
-        linestyle="-",
-        linewidth=1.0,
-        color=GREY_NEUTRAL,
-        label="Facture sans PV",
-    )
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.yaxis.grid(True, linestyle="--", alpha=0.3)
+    ax.xaxis.grid(False)
 
-    ax.set_title("Estimation des économies mensuelles", pad=8, fontsize=11)
-    ax.set_xlabel("Mois")
-    ax.set_ylabel("Montant (MAD)")
     ax.set_xticks(x)
     ax.set_xticklabels(mois)
-    ax.set_axisbelow(True)
-    ax.set_ylim(bottom=0)
-    ax.margins(y=0.08)
-    for spine in ["top", "right"]:
-        ax.spines[spine].set_visible(False)
-    ax.grid(axis="y", alpha=0.2, linestyle="--", linewidth=0.8)
-    ax.legend(loc="upper left", frameon=False)
+    ax.set_xlabel("Mois")
+    ax.set_ylabel("Économies mensuelles (MAD)")
+    ax.set_title("Estimation des économies mensuelles", fontsize=11)
+    ax.legend(fontsize=8, loc="upper left", frameon=False)
 
-    # Optionally add value labels on bars for a premium touch (small and subtle)
     for bars in (bars_sans, bars_avec):
         for bar in bars:
             height = bar.get_height()
-            ax.text(
-                bar.get_x() + bar.get_width() / 2,
-                height + (max(factures) * 0.01),
-                f"{height:,.0f}".replace(",", " "),
+            ax.annotate(
+                f"{int(round(height, 0))}",
+                xy=(bar.get_x() + bar.get_width() / 2, height),
+                xytext=(0, 3),
+                textcoords="offset points",
                 ha="center",
                 va="bottom",
                 fontsize=7,
                 color=TEXT_DARK,
             )
 
+    ax.margins(y=0.08)
     plt.tight_layout()
     return fig
 
@@ -1398,7 +1375,7 @@ def generate_double_devis_pdf(
         fontSize=17,
         leading=21,
         textColor=colors.HexColor(BLUE_MAIN),
-        spaceBefore=18,
+        spaceBefore=14,
         spaceAfter=8,
         alignment=0,
     )
@@ -1409,7 +1386,7 @@ def generate_double_devis_pdf(
         fontSize=13.5,
         leading=17,
         textColor=colors.HexColor(TEXT_DARK),
-        spaceBefore=12,
+        spaceBefore=10,
         spaceAfter=6,
         alignment=0,
     )
@@ -1459,6 +1436,14 @@ def generate_double_devis_pdf(
         leading=13,
         textColor=colors.HexColor("#222222"),
         spaceAfter=2,
+    )
+    style_project_header = ParagraphStyle(
+        "style_project_header",
+        parent=styles["Normal"],
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor(TEXT_DARK),
+        alignment=2,  # right
     )
 
     today = datetime.now().strftime("%d/%m/%Y")
@@ -1522,38 +1507,41 @@ def generate_double_devis_pdf(
         logo = Image(str(LOGO_PATH), width=120)
     else:
         logo = Image("taqinor_logo.png", width=120)
-    # Preserve aspect ratio
     try:
         logo.drawHeight = logo.drawWidth * logo.imageHeight / logo.imageWidth
     except Exception:
         pass
 
-    contact_para = Paragraph(
-        "TAQINOR Solutions — contact@taqinor.com — +212 6 61 85 04 10",
-        ParagraphStyle(
-            "contact_line",
-            parent=style_small,
-            fontSize=8,
-            leading=10,
-            textColor=colors.HexColor(TEXT_DARK),
-        ),
+    # Determine project text (city if possible)
+    project_text = "Installation photovoltaïque résidentielle"
+    if client_address:
+        parts = [p.strip() for p in str(client_address).split(",") if p.strip()]
+        if parts:
+            project_text = f"{parts[0]} – Maroc"
+
+    project_summary_html = (
+        "<b>Proposition commerciale – Installation photovoltaïque résidentielle</b><br/>"
+        f"Projet : {project_text}<br/>"
+        f"Réf. : {int(doc_number)} – {today}"
     )
-    logo_row = Table([[logo, contact_para]], colWidths=[140, 340])
-    logo_row.setStyle(
+    header_para = Paragraph(project_summary_html, style_project_header)
+
+    header_table = Table([[logo, header_para]], colWidths=[140, 340])
+    header_table.setStyle(
         TableStyle(
             [
                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BLUE_LIGHT)),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("VALIGN", (0, 0), (-1, 0), "MIDDLE"),
                 ("ALIGN", (0, 0), (0, 0), "LEFT"),
                 ("ALIGN", (1, 0), (1, 0), "RIGHT"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 8),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ("LEFTPADDING", (0, 0), (-1, 0), 10),
+                ("RIGHTPADDING", (0, 0), (-1, 0), 10),
+                ("TOPPADDING", (0, 0), (-1, 0), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
             ]
         )
     )
-    elements.append(logo_row)
+    elements.append(header_table)
     elements.append(Spacer(1, 12))
 
     title_para = Paragraph("Devis Installation Photovoltaïque", cover_title_style)
@@ -1710,8 +1698,11 @@ def generate_double_devis_pdf(
     # ========== PAGE 2 : OPTION SANS BATTERIE ==========
     # SECTION SANS
     options_heading_shown = False
+    options_pagebreak_done = False
     if scenario_choice in ("Sans batterie uniquement", "Les deux (Sans + Avec)"):
-        elements.append(PageBreak())
+        if not options_pagebreak_done:
+            elements.append(PageBreak())
+            options_pagebreak_done = True
         if not options_heading_shown:
             elements.append(Spacer(1, 12))
             add_divider()
@@ -1741,7 +1732,9 @@ def generate_double_devis_pdf(
     # ========== PAGE 3 : OPTION AVEC BATTERIE ==========
     # SECTION AVEC
     if scenario_choice in ("Avec batterie uniquement", "Les deux (Sans + Avec)"):
-        elements.append(PageBreak())
+        if not options_pagebreak_done:
+            elements.append(PageBreak())
+            options_pagebreak_done = True
         if not options_heading_shown:
             elements.append(Spacer(1, 12))
             add_divider()
@@ -1873,7 +1866,7 @@ def generate_double_devis_pdf(
         elements.append(Paragraph("<b>Estimation des économies mensuelles</b>", style_header_top))
         elements.append(Spacer(1, 6))
         roi_fig_all_buf.seek(0)
-        elements.append(Image(roi_fig_all_buf, width=360, height=200))
+        elements.append(Image(roi_fig_all_buf, width=420, height=170))
         elements.append(Spacer(1, 6))
         elements.append(Paragraph("Comparaison des économies mensuelles avec et sans batterie.", style_normal))
         elements.append(Spacer(1, 10))

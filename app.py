@@ -784,6 +784,15 @@ def select_inverter_for_power(catalog, onduleur_type: str, puissance_kwp: float)
                 phase = power_info.get("phase", "Monophase")
                 sell = power_info.get("sell_ttc")
                 buy = power_info.get("buy_ttc")
+                # fallback: si aucune info dans la clé, regarder un champ power/power_kw dans les données
+                if power_kw is None:
+                    try:
+                        power_kw = float(power_info.get("power_kw"))
+                    except Exception:
+                        try:
+                            power_kw = float(power_info.get("power"))
+                        except Exception:
+                            power_kw = None
                 if power_kw is None:
                     # try to fallback to numeric conversion of keys directly
                     m = re.search(r"(\d+(?:[.,]\d+)?)", str(power_str))
@@ -796,27 +805,29 @@ def select_inverter_for_power(catalog, onduleur_type: str, puissance_kwp: float)
                 # If this power key contains multiple variants, iterate them
                 if isinstance(power_info, dict) and "variants" in power_info and isinstance(power_info["variants"], dict):
                     for vphase, vinfo in power_info["variants"].items():
-                        vsell = vinfo.get("sell_ttc")
-                        vbuy = vinfo.get("buy_ttc")
-                        if power_kw is None:
-                            # try to extract numeric from power_str
+                        # always re-evaluate power_kw for safety inside variants
+                        pkw_var = power_kw
+                        if pkw_var is None:
                             m = re.search(r"(\d+(?:[.,]\d+)?)", str(power_str))
                             if m:
                                 try:
-                                    power_kw = float(m.group(1).replace(",", "."))
+                                    pkw_var = float(m.group(1).replace(",", "."))
                                 except Exception:
-                                    power_kw = None
-                        if power_kw is not None and vsell is not None:
-                            candidates.append((power_kw, marque, power_str, vphase, vsell, vbuy))
+                                    pkw_var = None
+                        vsell = vinfo.get("sell_ttc")
+                        vbuy = vinfo.get("buy_ttc")
+                        if pkw_var is not None:
+                            candidates.append((pkw_var, marque, power_str, vphase, vsell, vbuy))
                 else:
-                    if power_kw is not None and sell is not None:
+                    if power_kw is not None:
                         candidates.append((power_kw, marque, power_str, phase, sell, buy))
     
     if not candidates:
         return None
     
-    # Chercher le plus petit onduleur avec kw >= puissance_kwp
-    above = [c for c in candidates if c[0] >= puissance_kwp]
+    # Chercher le plus petit onduleur avec kw >= 80% de la puissance ciblée
+    seuil_min = puissance_kwp * 0.8
+    above = [c for c in candidates if c[0] >= seuil_min]
     if above:
         best = min(above, key=lambda x: x[0])
     else:
@@ -994,6 +1005,8 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
             st.session_state["ondu_res_phase"] = info_hw["phase"]
 
             df.at[idx, "Marque"] = info_hw["marque"]
+            df.at[idx, "Power"] = info_hw.get("power")
+            df.at[idx, "Phase"] = info_hw.get("phase")
             # Compute number of inverters needed
             import math as _math
             if info_hw.get("power") and info_hw["power"] > 0:
@@ -1018,6 +1031,8 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
             st.session_state["ondu_hyb_phase"] = info_deye["phase"]
 
             df.at[idx, "Marque"] = info_deye["marque"]
+            df.at[idx, "Power"] = info_deye.get("power")
+            df.at[idx, "Phase"] = info_deye.get("phase")
             # Compute number of hybrid inverters needed
             import math as _math
             if info_deye.get("power") and info_deye["power"] > 0:
@@ -1067,6 +1082,14 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
         bat_indices = df[mask_bat].index.tolist()
         idx_bat_primary = bat_indices[0] if bat_indices else None
         idx_bat_secondary = bat_indices[1] if len(bat_indices) > 1 else None
+
+        # Reset any existing quantities/power before recomputing batteries
+        if idx_bat_primary is not None:
+            df.at[idx_bat_primary, "QuantitÇ¸"] = 0
+            df.at[idx_bat_primary, "Power"] = None
+        if idx_bat_secondary is not None:
+            df.at[idx_bat_secondary, "QuantitÇ¸"] = 0
+            df.at[idx_bat_secondary, "Power"] = None
         
         # Calculer le nombre de batteries 5kWh nécessaires
         nb_bat_5kwh = math.ceil(puissance_kwp / 5.0)
@@ -1091,7 +1114,9 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
         # Fill primary battery row (10kWh)
         if idx_bat_primary is not None:
             if nb_bat_10kwh > 0 and dey_10_info:
-                df.at[idx_bat_primary, "Marque"] = dey_10_info[0]
+                brand_clean = dey_10_info[0].split()[0]
+                df.at[idx_bat_primary, "Marque"] = brand_clean
+                df.at[idx_bat_primary, "Power"] = 10
                 df.at[idx_bat_primary, "Quantité"] = nb_bat_10kwh
                 if df.at[idx_bat_primary, "Prix Unit. TTC"] == 0 and dey_10_info[1] is not None:
                     df.at[idx_bat_primary, "Prix Unit. TTC"] = dey_10_info[1]
@@ -1099,7 +1124,9 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
                     df.at[idx_bat_primary, "Prix Achat TTC"] = dey_10_info[2]
             elif dey_5_info:
                 # Fallback: use 5kWh if 10kWh not available
-                df.at[idx_bat_primary, "Marque"] = dey_5_info[0]
+                brand_clean = dey_5_info[0].split()[0]
+                df.at[idx_bat_primary, "Marque"] = brand_clean
+                df.at[idx_bat_primary, "Power"] = 5
                 df.at[idx_bat_primary, "Quantité"] = nb_bat_5kwh
                 if df.at[idx_bat_primary, "Prix Unit. TTC"] == 0 and dey_5_info[1] is not None:
                     df.at[idx_bat_primary, "Prix Unit. TTC"] = dey_5_info[1]
@@ -1108,15 +1135,18 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
             else:
                 # Last resort: fill with catalog default
                 df.at[idx_bat_primary, "Quantité"] = max(1, nb_bat_10kwh or nb_bat_5kwh)
+                df.at[idx_bat_primary, "Power"] = 10
                 sell, buy = get_prices(catalog, "Batterie", "")
                 if df.at[idx_bat_primary, "Prix Unit. TTC"] == 0 and sell is not None:
                     df.at[idx_bat_primary, "Prix Unit. TTC"] = sell
                 if df.at[idx_bat_primary, "Prix Achat TTC"] == 0 and buy is not None:
                     df.at[idx_bat_primary, "Prix Achat TTC"] = buy
-        
+
         # Fill secondary battery row with remaining 5kWh (if exists and needed)
         if idx_bat_secondary is not None and remaining_5kwh > 0 and dey_5_info:
-            df.at[idx_bat_secondary, "Marque"] = dey_5_info[0]
+            brand_clean = dey_5_info[0].split()[0]
+            df.at[idx_bat_secondary, "Marque"] = brand_clean
+            df.at[idx_bat_secondary, "Power"] = 5
             df.at[idx_bat_secondary, "Quantité"] = remaining_5kwh
             if df.at[idx_bat_secondary, "Prix Unit. TTC"] == 0 and dey_5_info[1] is not None:
                 df.at[idx_bat_secondary, "Prix Unit. TTC"] = dey_5_info[1]
@@ -2807,17 +2837,51 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     st.subheader("⚡ Puissance PV pour le ROI et le devis")
     col_est1, col_est2 = st.columns(2)
     with col_est1:
+        puissance_panneau_w = st.number_input(
+            "Puissance d'un panneau (Wc)",
+            min_value=300,
+            max_value=800,
+            value=int(st.session_state.get("puissance_panneau_w", 710)),
+            step=10,
+            key="puissance_panneau_w",
+        )
+        # valeur par défaut : override s'il existe, sinon 8 panneaux du calibre sélectionné
+        pas_kwp_main = max(0.1, puissance_panneau_w / 1000.0)  # pas = taille panneau
+        def _suggest_kwp_from_initial_bills():
+            try:
+                fact_init = st.session_state.roi_fact_init if hasattr(st.session_state, "roi_fact_init") else {}
+                factures = []
+                for m in MOIS:
+                    factures.append(float(fact_init.get(m, 2000.0) or 0.0))
+                kwh_price_used = KWH_PRICE if "KWH_PRICE" in globals() and KWH_PRICE > 0 else 2.0
+                load_kwh = sum(factures) / kwh_price_used if kwh_price_used > 0 else 0
+                pv_per_kwp = sum(GHI) * EFFICIENCY if GHI and EFFICIENCY else 0
+                if load_kwh > 0 and pv_per_kwp > 0 and puissance_panneau_w > 0:
+                    import math as _m
+                    kwp_raw = load_kwh / pv_per_kwp
+                    nb_pan = max(1, _m.ceil(kwp_raw * 1000.0 / puissance_panneau_w))
+                    return nb_pan * puissance_panneau_w / 1000.0
+            except Exception:
+                pass
+            return 8 * puissance_panneau_w / 1000.0
+
+        puissance_kwp_default = st.session_state.get("puissance_kwp_override", _suggest_kwp_from_initial_bills())
+        # si une override existe, pousser dans le widget avant création
+        try:
+            if "puissance_kwp_override" in st.session_state:
+                st.session_state["puissance_kwp"] = float(puissance_kwp_default)
+        except Exception:
+            pass
         puissance_kwp = st.number_input(
             "Puissance PV (kWc)",
-            min_value=1.0,
+            min_value=pas_kwp_main,
             max_value=200.0,
-            value=5.0,
-            step=0.5,
+            value=float(puissance_kwp_default),
+            step=pas_kwp_main,
             key="puissance_kwp",
         )
     with col_est2:
-        puissance_panneau_w = 710  # toujours Jinko 710
-        st.markdown("Puissance d'un panneau : **710 Wc (Jinko)**")
+        st.markdown(f"Puissance d'un panneau sélectionnée : **{puissance_panneau_w} Wc**")
 
     # FACTURES ROI
     st.subheader("💡 Factures d'électricité (pour le ROI)")
@@ -2896,19 +2960,17 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     )
     custom_templates = load_custom_templates()
 
-    # Bouton pour remplir automatiquement — construit un gabarit minimal puis appelle auto_fill
-    if st.button("⚙️ Remplir automatiquement les lignes (panneaux, onduleurs, structures, smart meter, wifi)"):
-        # Signal to line_editor that this run is an explicit autofill and
-        # widget values should be overwritten with autofill results.
+    def _run_autofill(p_kWc: float):
+        """Exécute le remplissage auto en utilisant une puissance donnée et déclenche la mise à jour des widgets."""
         st.session_state["force_autofill_update"] = True
-        # gabarit minimal reprenant les désignations standard et valeurs par défaut
         template_rows = [
             {"Désignation": "Onduleur réseau", "Marque": "", "Quantité": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Onduleur hybride", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Smart Meter", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Wifi Dongle", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Panneaux", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 10},
-            {"Désignation": "Batterie", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"Désignation": "Batterie", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20, "CustomLabel": "Batterie 10 kWh"},
+            {"Désignation": "Batterie", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20, "CustomLabel": "Batterie 5 kWh"},
             {"Désignation": "Structures acier", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Structures aluminium", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Socles", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
@@ -2919,13 +2981,30 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
             {"Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
         ]
         df_template = pd.DataFrame(template_rows)
-        df_auto = auto_fill_from_power(df_template, catalog_now, puissance_kwp, puissance_panneau_w)
-        # Respecter le choix manuel de l'utilisateur pour le type de structure (si présent)
+        df_auto = auto_fill_from_power(df_template, catalog_now, p_kWc, puissance_panneau_w)
         try:
             import math
-            nb_panneaux = math.ceil(puissance_kwp * 1000.0 / puissance_panneau_w) if puissance_kwp > 0 else 0
+            nb_panneaux = math.ceil(p_kWc * 1000.0 / puissance_panneau_w) if p_kWc > 0 else 0
         except Exception:
             nb_panneaux = 0
+        # Forcer la ligne panneaux à refléter le nombre de panneaux calculé
+        try:
+            mask_pan = df_auto["Désignation"] == "Panneaux"
+            if mask_pan.any():
+                idx_pan = mask_pan.idxmax()
+                df_auto.at[idx_pan, "Quantité"] = nb_panneaux
+                df_auto.at[idx_pan, "Power"] = puissance_panneau_w
+        except Exception:
+            pass
+
+        # Socles = 2 x structures (donc 2 x nb panneaux)
+        try:
+            mask_soc = df_auto["Désignation"] == "Socles"
+            if mask_soc.any():
+                idx_soc = mask_soc.idxmax()
+                df_auto.at[idx_soc, "Quantité"] = nb_panneaux * 2
+        except Exception:
+            pass
         struct_choice = st.session_state.get("structure_type_choice", None)
         if struct_choice in ("Structures acier", "Structures aluminium") and nb_panneaux > 0:
             if struct_choice == "Structures acier":
@@ -2950,26 +3029,23 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                     df_auto.at[idx2, "Quantité"] = 0
 
         st.session_state.df_common_overrides = df_auto
-        # Mark that autofill ran and that onduleur widgets should be updated
-        # We set a small counter equal to the number of onduleur editors
-        # (réseau + hybride) so each will consume one update.
         st.session_state["force_autofill_update_count"] = 2
-        # Remplir aussi les clés de session pour que les widgets éditables soient préremplis
         label_map = {
-            "Onduleur réseau": "Onduleur réseau (scénario SANS batterie)",
-            "Onduleur hybride": "Onduleur hybride (scénario AVEC batterie)",
-            "Smart Meter": "Smart Meter",
-            "Wifi Dongle": "Wifi Dongle",
-            "Panneaux": "Panneaux solaires (Jinko 710)",
-            "Batterie": "Batterie de stockage (scénario AVEC batterie)",
-            "Structures acier": "Structures acier",
-            "Structures aluminium": "Structures aluminium",
-            "Socles": "Socles béton",
-            "Accessoires": "Accessoires & câblage",
-            "Tableau De Protection AC/DC": "Tableau de protection AC/DC",
-            "Installation": "Installation",
-            "Transport": "Transport",
-            "Suivi journalier, maintenance chaque 12 mois pendent 2 ans": "Suivi journalier & maintenance (2 ans)",
+            ("Onduleur réseau", None): "Onduleur réseau (scénario SANS batterie)",
+            ("Onduleur hybride", None): "Onduleur hybride (scénario AVEC batterie)",
+            ("Smart Meter", None): "Smart Meter",
+            ("Wifi Dongle", None): "Wifi Dongle",
+            ("Panneaux", None): "Panneaux solaires (Jinko 710)",
+            ("Batterie", "Batterie 10 kWh"): "Batterie 10 kWh (scénario AVEC batterie)",
+            ("Batterie", "Batterie 5 kWh"): "Batterie 5 kWh (scénario AVEC batterie)",
+            ("Structures acier", None): "Structures acier",
+            ("Structures aluminium", None): "Structures aluminium",
+            ("Socles", None): "Socles béton",
+            ("Accessoires", None): "Accessoires & câblage",
+            ("Tableau De Protection AC/DC", None): "Tableau de protection AC/DC",
+            ("Installation", None): "Installation",
+            ("Transport", None): "Transport",
+            ("Suivi journalier, maintenance chaque 12 mois pendent 2 ans", None): "Suivi journalier & maintenance (2 ans)",
         }
 
         try:
@@ -2977,66 +3053,138 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                 des = r.get("Désignation")
                 if not isinstance(des, str):
                     continue
-                label = label_map.get(des, des)
+                custom_label = r.get("CustomLabel")
+                label = label_map.get((des, custom_label), des if not custom_label else custom_label)
                 brand = (r.get("Marque") or "").strip()
                 qty = int(r.get("Quantité") or 0)
                 tva = int(r.get("TVA (%)") or 0)
-                sell = float(r.get("Prix Unit. TTC") or 0.0)
-                buy = float(r.get("Prix Achat TTC") or 0.0)
+                sell_val = float(r.get("Prix Unit. TTC") or 0.0)
+                buy_val = float(r.get("Prix Achat TTC") or 0.0)
+                power_val = r.get("Power", None)
+                phase_val = r.get("Phase", None)
 
-                # ensure widgets pick up autofill qty/TVA when not yet set
-                try:
-                    st.session_state.setdefault(f"qty_{des}_{label}", qty)
-                    st.session_state.setdefault(f"tva_{des}_{label}", tva)
-                except Exception:
-                    pass
-
-                # push qty / TVA so widgets pick them up on next render
+                # maj quantités / TVA
                 try:
                     st.session_state[f"qty_{des}_{label}"] = qty
                     st.session_state[f"tva_{des}_{label}"] = tva
                 except Exception:
                     pass
 
-                # For onduleurs, use the brand + power lookup key used by line_editor
-                def _format_power_key(p):
-                    try:
-                        if p is None:
-                            return ""
-                        pf = float(p)
-                        if pf.is_integer():
-                            return str(int(pf))
-                        return str(pf)
-                    except Exception:
-                        return str(p)
-
-                if des == "Onduleur réseau":
-                    ondu_power = st.session_state.get("ondu_res_power")
-                    ondu_phase = st.session_state.get("ondu_res_phase")
-                    lookup_key = _format_power_key(ondu_power)
-                    # also keep short named keys for components that expect them
-                    st.session_state["ondu_res_brand"] = brand
-                    st.session_state["ondu_res_power"] = ondu_power
-                    st.session_state["ondu_res_phase"] = ondu_phase
-                elif des == "Onduleur hybride":
-                    ondu_power = st.session_state.get("ondu_hyb_power")
-                    ondu_phase = st.session_state.get("ondu_hyb_phase")
-                    lookup_key = _format_power_key(ondu_power)
-                    st.session_state["ondu_hyb_brand"] = brand
-                    st.session_state["ondu_hyb_power"] = ondu_power
-                    st.session_state["ondu_hyb_phase"] = ondu_phase
-                elif des in ("Panneaux", "Batterie"):
-                    # non-onduleur items use stable sell/buy keys in line_editor
-                    # store brand tracking too
-                    st.session_state[f"brand_tracked_{des}_{label}"] = brand
-                else:
-                    # fallback: store under stable keys per-designation
-                    # fallback: nothing to push into widget state to avoid conflicts
+                # maj prix / marque / power pour tous les widgets
+                try:
+                    st.session_state[f"brand_{des}_{label}"] = brand
+                    st.session_state[f"sell_{des}_{label}"] = sell_val
+                    st.session_state[f"buy_{des}_{label}"] = buy_val
+                    if power_val is not None:
+                        st.session_state[f"power_{des}_{label}"] = power_val
+                    if phase_val is not None:
+                        st.session_state[f"phase_{des}_{label}"] = phase_val
+                except Exception:
                     pass
+
+                # onduleurs : mémoriser dans clés dédiées
+                if des == "Onduleur réseau":
+                    st.session_state["ondu_res_brand"] = brand
+                    st.session_state["ondu_res_power"] = power_val
+                    st.session_state["ondu_res_phase"] = phase_val
+                elif des == "Onduleur hybride":
+                    st.session_state["ondu_hyb_brand"] = brand
+                    st.session_state["ondu_hyb_power"] = power_val
+                    st.session_state["ondu_hyb_phase"] = phase_val
+                # tracking pour panneaux / batteries
+                if des in ("Panneaux", "Batterie"):
+                    st.session_state[f"brand_tracked_{des}_{label}"] = brand
+        except Exception:
+            pass
+        # Synchroniser explicitement certains widgets clés (panneaux/structures/socles) avec les quantités calculées
+        try:
+            # Panneaux
+            pan_row = df_auto[df_auto["Désignation"] == "Panneaux"]
+            if not pan_row.empty:
+                q = int(pan_row.iloc[0].get("Quantité", 0) or 0)
+                st.session_state[f"qty_Panneaux_Panneaux solaires (Jinko 710)"] = q
+                # Power déjà poussé plus haut via loop; rappeler pour être sûr
+                st.session_state[f"power_Panneaux_Panneaux solaires (Jinko 710)"] = pan_row.iloc[0].get("Power", puissance_panneau_w)
+            # Structures acier
+            sa_row = df_auto[df_auto["Désignation"] == "Structures acier"]
+            if not sa_row.empty:
+                q = int(sa_row.iloc[0].get("Quantité", 0) or 0)
+                st.session_state[f"qty_Structures acier_Structures acier"] = q
+            # Structures aluminium
+            sal_row = df_auto[df_auto["Désignation"] == "Structures aluminium"]
+            if not sal_row.empty:
+                q = int(sal_row.iloc[0].get("Quantité", 0) or 0)
+                st.session_state[f"qty_Structures aluminium_Structures aluminium"] = q
+            # Socles
+            soc_row = df_auto[df_auto["Désignation"] == "Socles"]
+            if not soc_row.empty:
+                q = int(soc_row.iloc[0].get("Quantité", 0) or 0)
+                st.session_state[f"qty_Socles_Socles béton"] = q
+            # Onduleur réseau
+            ondu_res_row = df_auto[df_auto["Désignation"] == "Onduleur réseau"]
+            if not ondu_res_row.empty:
+                r = ondu_res_row.iloc[0]
+                qty_res = int(r.get("Quantité", 0) or 0)
+                p_res = r.get("Power", None)
+                if qty_res == 0 and p_res:
+                    try:
+                        import math as _math
+                        qty_res = max(1, int(_math.ceil(puissance_kwp / float(p_res)))) if puissance_kwp > 0 else 1
+                    except Exception:
+                        qty_res = 1
+                st.session_state[f"qty_Onduleur réseau_Onduleur réseau (scénario SANS batterie)"] = qty_res
+            # Onduleur hybride
+            ondu_hyb_row = df_auto[df_auto["Désignation"] == "Onduleur hybride"]
+            if not ondu_hyb_row.empty:
+                r = ondu_hyb_row.iloc[0]
+                qty_h = int(r.get("Quantité", 0) or 0)
+                p_h = r.get("Power", None)
+                if qty_h == 0 and p_h:
+                    try:
+                        import math as _math
+                        qty_h = max(1, int(_math.ceil(puissance_kwp / float(p_h)))) if puissance_kwp > 0 else 1
+                    except Exception:
+                        qty_h = 1
+                st.session_state[f"qty_Onduleur hybride_Onduleur hybride (scénario AVEC batterie)"] = qty_h
         except Exception:
             pass
 
         st.success("Lignes remplies automatiquement : Jinko 710, Huawei (sans batt), Deye (avec batt), structures, smart meter et wifi.")
+
+    # Bouton Optimiser : ne modifie que la puissance kWc et enchaîne le remplissage
+    if st.button("⚙️ Optimiser et remplir"):
+        try:
+            pv_annual_per_kwp = sum(GHI) * EFFICIENCY if GHI and EFFICIENCY else 0
+        except Exception:
+            pv_annual_per_kwp = 0
+        if roi_total_kwh > 0 and pv_annual_per_kwp > 0 and puissance_panneau_w > 0:
+            suggested_kwp = roi_total_kwh / pv_annual_per_kwp
+            import math as _m
+            nb_panels = max(1, _m.ceil(suggested_kwp * 1000.0 / puissance_panneau_w))
+            suggested_kwp = nb_panels * puissance_panneau_w / 1000.0
+            st.session_state["puissance_kwp_override"] = suggested_kwp
+            # pousser la valeur dans le widget et demander un auto-fill sur le rerun
+            st.session_state["run_autofill_now"] = True
+            st.success(f"Puissance conseillée : {suggested_kwp:.2f} kWc - application automatique du remplissage.")
+            try:
+                if hasattr(st, "rerun"):
+                    st.rerun()
+                elif hasattr(st, "experimental_rerun"):
+                    st.experimental_rerun()
+            except Exception:
+                pass
+        else:
+            st.info("Estimation impossible : vérifiez les factures et les données d'irradiation.")
+
+    # Bouton manuel de remplissage auto
+    if st.button("⚙️ Remplir automatiquement les lignes (panneaux, onduleurs, structures, smart meter, wifi)"):
+        _run_autofill(puissance_kwp)
+
+    # Si l'optimiseur a demandé un remplissage, l'exécuter ici après rerun
+    # Si l'optimiseur a demandé un remplissage, l'exécuter ici après rerun
+    if st.session_state.pop("run_autofill_now", False):
+        target_kwp = st.session_state.get("puissance_kwp", st.session_state.get("puissance_kwp_override", puissance_kwp))
+        _run_autofill(target_kwp)
 
     # Lignes standard communes — utiliser overrides si l'auto-fill a été exécuté
     overrides = {}
@@ -3047,14 +3195,16 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                 des = r.get("Désignation")
                 if not isinstance(des, str):
                     continue
-                overrides[des] = {
+                custom_lbl = r.get("CustomLabel", None)
+                key_name = f"{des}__{custom_lbl}" if custom_lbl else des
+                overrides[key_name] = {
                     "Marque": r.get("Marque", ""),
                     "Quantité": int(r.get("Quantité") or 0),
                     "Prix Unit. TTC": float(r.get("Prix Unit. TTC") or 0.0),
                     "Prix Achat TTC": float(r.get("Prix Achat TTC") or 0.0),
                     "TVA (%)": int(r.get("TVA (%)") or 0),
                     "PhotoKey": r.get("PhotoKey", None),
-                    "CustomLabel": r.get("CustomLabel", None),
+                    "CustomLabel": custom_lbl,
                 }
         except Exception:
             overrides = {}
@@ -3149,13 +3299,29 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         ),
         line_editor(
             "Batterie",
-            "Batterie de stockage (scénario AVEC batterie)",
-            overrides.get("Batterie", {}).get("Quantité", 0),
-            overrides.get("Batterie", {}).get("TVA (%)", 20),
+            "Batterie 10 kWh (scénario AVEC batterie)",
+            overrides.get("Batterie__Batterie 10 kWh", {}).get("Quantité", 0),
+            overrides.get("Batterie__Batterie 10 kWh", {}).get("TVA (%)", 20),
             catalog_now,
-            default_brand=overrides.get("Batterie", {}).get("Marque", ""),
-            default_sell=overrides.get("Batterie", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Batterie", {}).get("Prix Achat TTC", None),
+            default_brand=overrides.get("Batterie__Batterie 10 kWh", {}).get("Marque", "Deyness"),
+            default_power=10,
+            default_sell=overrides.get("Batterie__Batterie 10 kWh", {}).get("Prix Unit. TTC", None),
+            default_buy=overrides.get("Batterie__Batterie 10 kWh", {}).get("Prix Achat TTC", None),
+            default_photo_key=overrides.get("Batterie__Batterie 10 kWh", {}).get("PhotoKey", None),
+            custom_label="Batterie 10 kWh",
+        ),
+        line_editor(
+            "Batterie",
+            "Batterie 5 kWh (scénario AVEC batterie)",
+            overrides.get("Batterie__Batterie 5 kWh", {}).get("Quantité", 0),
+            overrides.get("Batterie__Batterie 5 kWh", {}).get("TVA (%)", 20),
+            catalog_now,
+            default_brand=overrides.get("Batterie__Batterie 5 kWh", {}).get("Marque", "Deyness"),
+            default_power=5,
+            default_sell=overrides.get("Batterie__Batterie 5 kWh", {}).get("Prix Unit. TTC", None),
+            default_buy=overrides.get("Batterie__Batterie 5 kWh", {}).get("Prix Achat TTC", None),
+            default_photo_key=overrides.get("Batterie__Batterie 5 kWh", {}).get("PhotoKey", None),
+            custom_label="Batterie 5 kWh",
         ),
         line_editor(
             "Structures acier",
@@ -3249,17 +3415,16 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
 
     df_common = pd.DataFrame(rows_common)
 
+    df_auto = df_common.copy()
     if st.session_state.df_common_overrides is not None:
-        df_auto = st.session_state.df_common_overrides.copy()
         with st.expander("DEBUG : Valeurs auto-fill (overrides)"):
             try:
-                st.dataframe(pd.DataFrame(df_auto), use_container_width=True)
+                st.dataframe(pd.DataFrame(st.session_state.df_common_overrides), use_container_width=True)
             except Exception:
-                st.write(df_auto)
-    else:
-        df_auto = df_common.copy()
+                st.write(st.session_state.df_common_overrides)
 
     st.markdown("Aperçu des lignes utilisées pour le calcul (après auto-fill éventuel) :")
+    # le tableau reflète toujours les valeurs saisies (widgets) ; les overrides servent uniquement à préremplir
     st.dataframe(df_auto, use_container_width=True)
 
     # Lignes perso SANS
@@ -3515,7 +3680,32 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
 
     # ROI
     kwh_mensuels = [f / KWH_PRICE if KWH_PRICE > 0 else 0 for f in factures_roi]
-    prod_pv = [GHI[i] * puissance_kwp * EFFICIENCY for i in range(12)]
+    # Puissance PV effective basée sur les panneaux saisis (quantité x puissance)
+    puissance_kwp_effective = puissance_kwp
+    try:
+        pan_rows = df_sans_final[df_sans_final["Désignation"] == "Panneaux"]
+        if not pan_rows.empty:
+            qty_pan = float(pan_rows.iloc[0].get("Quantité", 0) or 0)
+            power_w = 0.0
+            if "Power" in pan_rows.columns and pan_rows.iloc[0].get("Power") not in (None, ""):
+                try:
+                    power_w = float(str(pan_rows.iloc[0].get("Power")).replace(",", "."))
+                except Exception:
+                    power_w = 0.0
+            if power_w <= 0:
+                import re as _re
+                marque = str(pan_rows.iloc[0].get("Marque", "") or "")
+                m = _re.search(r"(\\d+(?:[.,]\\d+)?)", marque)
+                if m:
+                    try:
+                        power_w = float(m.group(1).replace(",", "."))
+                    except Exception:
+                        power_w = 0.0
+            if power_w > 0 and qty_pan > 0:
+                puissance_kwp_effective = qty_pan * power_w / 1000.0
+    except Exception:
+        pass
+    prod_pv = [GHI[i] * puissance_kwp_effective * EFFICIENCY for i in range(12)]
 
     winter_month_indices = {11, 0, 1, 2}
     self_consumed_sans = []

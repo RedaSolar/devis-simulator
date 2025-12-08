@@ -1017,23 +1017,29 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
         idx = mask_ondu_hyb.idxmax()
         info_deye = select_inverter_for_power(catalog, "Onduleur Hybride", puissance_kwp)
         if info_deye:
-            # Store brand, power, and phase in session state for widget to retrieve
-            st.session_state["ondu_hyb_brand"] = info_deye["marque"]
-            st.session_state["ondu_hyb_power"] = info_deye["power"]
-            st.session_state["ondu_hyb_phase"] = info_deye["phase"]
+                # Store brand, power, and phase in session state for widget to retrieve
+                st.session_state["ondu_hyb_brand"] = info_deye["marque"]
+                st.session_state["ondu_hyb_power"] = info_deye["power"]
+                st.session_state["ondu_hyb_phase"] = info_deye["phase"]
 
-            df.at[idx, "Marque"] = info_deye["marque"]
-            # Compute number of hybrid inverters needed
-            import math as _math
-            if info_deye.get("power") and info_deye["power"] > 0:
-                nb_ondu_h = int(_math.ceil(puissance_kwp / float(info_deye["power"]))) if puissance_kwp > 0 else 0
-            else:
-                nb_ondu_h = 1
-            df.at[idx, "Quantité"] = max(0, nb_ondu_h)
-            if df.at[idx, "Prix Unit. TTC"] == 0 and info_deye["sell"] is not None:
-                df.at[idx, "Prix Unit. TTC"] = info_deye["sell"]
-            if df.at[idx, "Prix Achat TTC"] == 0 and info_deye["buy"] is not None:
-                df.at[idx, "Prix Achat TTC"] = info_deye["buy"]
+                df.at[idx, "Marque"] = info_deye["marque"]
+                # Compute number of hybrid inverters needed
+                import math as _math
+                if info_deye.get("power") and info_deye["power"] > 0:
+                    nb_ondu_h = int(_math.ceil(puissance_kwp / float(info_deye["power"]))) if puissance_kwp > 0 else 0
+                else:
+                    nb_ondu_h = 1
+                if puissance_kwp > 0:
+                    nb_ondu_h = max(1, nb_ondu_h)
+                df.at[idx, "Quantité"] = max(0, nb_ondu_h)
+                if df.at[idx, "Prix Unit. TTC"] == 0 and info_deye["sell"] is not None:
+                    df.at[idx, "Prix Unit. TTC"] = info_deye["sell"]
+                if df.at[idx, "Prix Achat TTC"] == 0 and info_deye["buy"] is not None:
+                    df.at[idx, "Prix Achat TTC"] = info_deye["buy"]
+
+        if puissance_kwp > 0 and df.at[idx, "Quantité"] <= 0:
+            # fallback to at least one hybrid inverter so the UI reflects a real system
+            df.at[idx, "Quantité"] = 1
 
     # Pour TOUS les items, chercher les prix dans le catalogue si pas déjà remplis
     for idx, row in df.iterrows():
@@ -2918,7 +2924,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     custom_templates = load_custom_templates()
 
     label_map = {
-        "Onduleur réseau": "Onduleur réseau (scénario SANS batterie)",
+        "Onduleur réseau": "Onduleur injection (scénario SANS batterie)",
         "Onduleur hybride": "Onduleur hybride (scénario AVEC batterie)",
         "Smart Meter": "Smart Meter",
         "Wifi Dongle": "Wifi Dongle",
@@ -2933,6 +2939,17 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         "Transport": "Transport",
         "Suivi journalier, maintenance chaque 12 mois pendent 2 ans": "Suivi journalier & maintenance (2 ans)",
     }
+
+    def _resolve_label(designation, custom_label):
+        """Return a usable label, ignoring NaN / empty custom labels."""
+        cleaned = custom_label
+        if pd.isna(cleaned):
+            cleaned = None
+        if isinstance(cleaned, str):
+            cleaned = cleaned.strip()
+            if not cleaned or cleaned.lower() == "nan":
+                cleaned = None
+        return cleaned or label_map.get(designation, designation)
 
     # Bouton pour remplir automatiquement — construit un gabarit minimal puis appelle auto_fill
     if st.button("⚙️ Remplir automatiquement les lignes (panneaux, onduleurs, structures, smart meter, wifi)"):
@@ -3007,7 +3024,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                 if not isinstance(des, str):
                     continue
                 custom_label = r.get("CustomLabel")
-                label = custom_label or label_map.get(des, des)
+                label = _resolve_label(des, custom_label)
                 brand = (r.get("Marque") or "").strip()
                 qty = int(r.get("Quantité") or 0)
                 tva = int(r.get("TVA (%)") or 0)
@@ -3077,7 +3094,7 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                 des = r.get("Désignation")
                 if not isinstance(des, str):
                     continue
-                label = r.get("CustomLabel") or label_map.get(des, des)
+                label = _resolve_label(des, r.get("CustomLabel"))
                 overrides[(des, label)] = {
                     "Marque": r.get("Marque", ""),
                     "Quantité": int(r.get("Quantité") or 0),
@@ -3326,8 +3343,8 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     else:
         df_auto = df_common.copy()
 
-    st.markdown("Aperçu des lignes utilisées pour le calcul (après auto-fill éventuel) :")
-    st.dataframe(df_auto, use_container_width=True)
+    st.markdown("Aperçu des lignes utilisées pour le calcul (après ajustements manuels ou auto-fill) :")
+    st.dataframe(df_common, use_container_width=True)
 
     # Lignes perso SANS
     st.subheader("Lignes personnalisées — scénario SANS batterie")

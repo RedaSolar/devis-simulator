@@ -823,16 +823,9 @@ def select_inverter_for_power(catalog, onduleur_type: str, puissance_kwp: float)
         return min(collection, key=lambda x: x[0])
 
     if puissance_kwp > 0:
-        exact = [c for c in candidates if c[0] >= puissance_kwp]
-        if exact:
-            best = _best_from(exact)
-        else:
-            min_threshold = puissance_kwp * 0.8
-            above = [c for c in candidates if c[0] >= min_threshold]
-            if above:
-                best = _best_from(above)
-            else:
-                best = max(candidates, key=lambda x: x[0])
+        min_threshold = max(puissance_kwp * 0.8, 0.0)
+        valid = [c for c in candidates if c[0] >= min_threshold]
+        best = _best_from(valid) if valid else max(candidates, key=lambda x: x[0])
     else:
         best = _best_from(candidates)
     
@@ -914,7 +907,8 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
     # Nb panneaux (toujours Jinko 710)
     import math
     if puissance_kwp > 0 and puissance_panneau_w > 0:
-        nb_panneaux = math.ceil(puissance_kwp * 1000.0 / puissance_panneau_w)
+        ratio = puissance_kwp * 1000.0 / puissance_panneau_w
+        nb_panneaux = max(1, int(round(ratio)))
     else:
         nb_panneaux = 0
 
@@ -1088,7 +1082,7 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
         idx_bat_secondary = bat_indices[1] if len(bat_indices) > 1 else None
         
         # Calculer le nombre de batteries 5kWh nécessaires (minimum 1)
-        nb_bat_5kwh = max(1, math.ceil(puissance_kwp / 5.0))
+        nb_bat_5kwh = max(1, int(round(puissance_kwp / 5.0)))
         # Consolidation : convertir 2×5kWh en 1×10kWh
         nb_bat_10kwh = nb_bat_5kwh // 2
         remaining_5kwh = nb_bat_5kwh % 2

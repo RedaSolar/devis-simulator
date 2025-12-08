@@ -1695,7 +1695,6 @@ def generate_double_devis_pdf(
 
     project_summary_html = (
         f"<b>Proposition commerciale – {type_phrase}</b><br/>"
-        f"Projet : {project_text}<br/>"
         f"Réf. : {int(doc_number)} – {today}"
     )
     header_para = Paragraph(project_summary_html, style_project_header)
@@ -2002,10 +2001,18 @@ def generate_double_devis_pdf(
                 ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
             ]
         )
-        for row_idx in (2, 4, 5):
-            roi_style.add("FONTNAME", (1, row_idx), (2, row_idx), "Helvetica-Bold")
-            roi_style.add("TEXTCOLOR", (1, row_idx), (2, row_idx), colors.HexColor(TEXT_DARK))
-            roi_style.add("FONTSIZE", (1, row_idx), (2, row_idx), 10)
+        label_to_row = {label: idx for idx, (label, *_rest) in enumerate(summary_rows, start=1)}
+        highlight_labels = [
+            "Investissement TTC",
+            "Économie annuelle estimée",
+            "Temps de retour sur investissement",
+        ]
+        for label in highlight_labels:
+            row_idx = label_to_row.get(label)
+            if row_idx:
+                roi_style.add("FONTNAME", (1, row_idx), (2, row_idx), "Helvetica-Bold")
+                roi_style.add("TEXTCOLOR", (1, row_idx), (2, row_idx), colors.HexColor(TEXT_DARK))
+                roi_style.add("FONTSIZE", (1, row_idx), (2, row_idx), 10)
         summary_table.setStyle(roi_style)
         elements.append(summary_table)
         elements.append(Spacer(1, 6))
@@ -2216,11 +2223,10 @@ def generate_double_devis_pdf(
     elements.append(Paragraph("POURQUOI CHOISIR TAQINOR ?", heading1_style))
     elements.append(Spacer(1, 4))
     pourquoi_lines = [
-        "Installation conçue et suivie par des ingénieurs spécialisés dans le solaire",
-        "Matériel premium : Huawei, Deye, Canadian Solar",
-        "Service après-vente disponible 7j/7 (WhatsApp & téléphone)",
-        "Installation propre, sécurisée et conforme aux normes en vigueur",
-        "Suivi de production en temps réel via application mobile et possibilité d’évolution future",
+        "Une équipe d’ingénieurs spécialisés en photovoltaïque, habitués aux projets résidentiels et tertiaires au Maroc.",
+        "Des équipements premium (panneaux Canadian Solar, onduleurs Huawei / Deye) dimensionnés spécifiquement pour votre profil de consommation.",
+        "Une installation réalisée dans les règles de l’art, avec contrôles, tests et mise en service détaillée sur site.",
+        "Un suivi dans la durée, un SAV réactif et un accès à votre production en temps réel via l’application de monitoring.",
     ]
     elements.append(
         ListFlowable(

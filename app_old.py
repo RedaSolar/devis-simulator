@@ -113,6 +113,9 @@ if "roi_fact_init" not in st.session_state:
 if "df_common_overrides" not in st.session_state:
     st.session_state.df_common_overrides = None
 
+if "puissance_panneau_w" not in st.session_state:
+    st.session_state["puissance_panneau_w"] = 710
+
 # ---------- FONCTIONS AIDE ROI ----------
 def interpoler_factures(hiver, ete):
     if ete == 0:
@@ -2577,6 +2580,8 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
     # For non-onduleur items, use standard layout
     cols = st.columns([1.2, 1.0, 0.8, 1.0, 1.0, 0.8])
     brand_final = ""
+    sell_price = 0.0
+    buy_price = 0.0
     
     if designation == "Panneaux":
         # Panneaux: Marque + Puissance
@@ -2806,19 +2811,29 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
 
     # Puissance PV
     st.subheader("⚡ Puissance PV pour le ROI et le devis")
+    default_panel_power = st.session_state.get("puissance_panneau_w", 710)
+    default_kwp_value = max(1.0, 8 * default_panel_power / 1000.0)
+    panel_step_kw = max(0.01, default_panel_power / 1000.0)
     col_est1, col_est2 = st.columns(2)
     with col_est1:
         puissance_kwp = st.number_input(
             "Puissance PV (kWc)",
             min_value=1.0,
             max_value=200.0,
-            value=5.0,
-            step=0.5,
+            value=default_kwp_value,
+            step=panel_step_kw,
             key="puissance_kwp",
         )
     with col_est2:
-        puissance_panneau_w = 710  # toujours Jinko 710
-        st.markdown("Puissance d'un panneau : **710 Wc (Jinko)**")
+        puissance_panneau_w = st.number_input(
+            "Puissance d'un panneau (Wc)",
+            min_value=100,
+            max_value=1000,
+            value=default_panel_power,
+            step=10,
+            key="puissance_panneau_w",
+        )
+        st.markdown(f"Référence actuelle : **{puissance_panneau_w} Wc** (Jinko 710 par défaut)")
 
     # FACTURES ROI
     st.subheader("💡 Factures d'électricité (pour le ROI)")
@@ -2899,11 +2914,30 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     )
     custom_templates = load_custom_templates()
 
+    label_map = {
+        "Onduleur réseau": "Onduleur réseau (scénario SANS batterie)",
+        "Onduleur hybride": "Onduleur hybride (scénario AVEC batterie)",
+        "Smart Meter": "Smart Meter",
+        "Wifi Dongle": "Wifi Dongle",
+        "Panneaux": "Panneaux solaires (Jinko 710)",
+        "Batterie": "Batterie de stockage (scénario AVEC batterie)",
+        "Structures acier": "Structures acier",
+        "Structures aluminium": "Structures aluminium",
+        "Socles": "Socles béton",
+        "Accessoires": "Accessoires & câblage",
+        "Tableau De Protection AC/DC": "Tableau de protection AC/DC",
+        "Installation": "Installation",
+        "Transport": "Transport",
+        "Suivi journalier, maintenance chaque 12 mois pendent 2 ans": "Suivi journalier & maintenance (2 ans)",
+    }
+
     # Bouton pour remplir automatiquement — construit un gabarit minimal puis appelle auto_fill
     if st.button("⚙️ Remplir automatiquement les lignes (panneaux, onduleurs, structures, smart meter, wifi)"):
         # Signal to line_editor that this run is an explicit autofill and
         # widget values should be overwritten with autofill results.
         st.session_state["force_autofill_update"] = True
+        battery_label_primary = "Batterie 10 kWh (scénario AVEC batterie)"
+        battery_label_secondary = "Batterie 5 kWh (scénario AVEC batterie)"
         # gabarit minimal reprenant les désignations standard et valeurs par défaut
         template_rows = [
             {"Désignation": "Onduleur réseau", "Marque": "", "Quantité": 1, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
@@ -2911,7 +2945,8 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
             {"Désignation": "Smart Meter", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Wifi Dongle", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Panneaux", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 10},
-            {"Désignation": "Batterie", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
+            {"Désignation": "Batterie", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20, "CustomLabel": battery_label_primary},
+            {"Désignation": "Batterie", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20, "CustomLabel": battery_label_secondary},
             {"Désignation": "Structures acier", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Structures aluminium", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
             {"Désignation": "Socles", "Marque": "", "Quantité": 0, "Prix Achat TTC": 0.0, "Prix Unit. TTC": 0.0, "TVA (%)": 20},
@@ -2923,6 +2958,13 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         ]
         df_template = pd.DataFrame(template_rows)
         df_auto = auto_fill_from_power(df_template, catalog_now, puissance_kwp, puissance_panneau_w)
+        mask_bat_template = df_template["Désignation"] == "Batterie"
+        bat_template_fields = df_template.loc[mask_bat_template, ["Marque", "Prix Achat TTC", "Prix Unit. TTC", "TVA (%)"]].reset_index(drop=True)
+        bat_template_labels = df_template.loc[mask_bat_template, "CustomLabel"].reset_index(drop=True)
+        mask_bat_auto = df_auto["Désignation"] == "Batterie"
+        if mask_bat_template.sum() == mask_bat_auto.sum():
+            df_auto.loc[mask_bat_auto, ["Marque", "Prix Achat TTC", "Prix Unit. TTC", "TVA (%)"]] = bat_template_fields.values
+            df_auto.loc[mask_bat_auto, "CustomLabel"] = bat_template_labels.values
         # Respecter le choix manuel de l'utilisateur pour le type de structure (si présent)
         try:
             import math
@@ -2958,29 +3000,13 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         # (réseau + hybride) so each will consume one update.
         st.session_state["force_autofill_update_count"] = 2
         # Remplir aussi les clés de session pour que les widgets éditables soient préremplis
-        label_map = {
-            "Onduleur réseau": "Onduleur réseau (scénario SANS batterie)",
-            "Onduleur hybride": "Onduleur hybride (scénario AVEC batterie)",
-            "Smart Meter": "Smart Meter",
-            "Wifi Dongle": "Wifi Dongle",
-            "Panneaux": "Panneaux solaires (Jinko 710)",
-            "Batterie": "Batterie de stockage (scénario AVEC batterie)",
-            "Structures acier": "Structures acier",
-            "Structures aluminium": "Structures aluminium",
-            "Socles": "Socles béton",
-            "Accessoires": "Accessoires & câblage",
-            "Tableau De Protection AC/DC": "Tableau de protection AC/DC",
-            "Installation": "Installation",
-            "Transport": "Transport",
-            "Suivi journalier, maintenance chaque 12 mois pendent 2 ans": "Suivi journalier & maintenance (2 ans)",
-        }
-
         try:
             for _, r in pd.DataFrame(df_auto).iterrows():
                 des = r.get("Désignation")
                 if not isinstance(des, str):
                     continue
-                label = label_map.get(des, des)
+                custom_label = r.get("CustomLabel")
+                label = custom_label or label_map.get(des, des)
                 brand = (r.get("Marque") or "").strip()
                 qty = int(r.get("Quantité") or 0)
                 tva = int(r.get("TVA (%)") or 0)
@@ -3050,7 +3076,8 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                 des = r.get("Désignation")
                 if not isinstance(des, str):
                     continue
-                overrides[des] = {
+                label = r.get("CustomLabel") or label_map.get(des, des)
+                overrides[(des, label)] = {
                     "Marque": r.get("Marque", ""),
                     "Quantité": int(r.get("Quantité") or 0),
                     "Prix Unit. TTC": float(r.get("Prix Unit. TTC") or 0.0),
@@ -3061,15 +3088,22 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                 }
         except Exception:
             overrides = {}
+
+    def override_entry(designation, label):
+        return overrides.get((designation, label), {})
+
+    def override_value(designation, label, key, default=None):
+        return override_entry(designation, label).get(key, default)
     # Si un onduleur réseau est présent (quantité > 0), on ajoute par défaut Smart Meter et Wifi Dongle
     # (avec quantité 1) afin que les widgets correspondants soient préremplis et éditables.
     try:
-        ond_res_qty = overrides.get("Onduleur réseau", {}).get("Quantité", 0)
+        ond_res_label = label_map["Onduleur réseau"]
+        ond_res_qty = override_value("Onduleur réseau", ond_res_label, "Quantité", 0)
         if ond_res_qty > 0:
-            # Smart Meter
-            if "Smart Meter" not in overrides:
+            smart_label = label_map["Smart Meter"]
+            if ( "Smart Meter", smart_label ) not in overrides:
                 sell_sm, buy_sm = get_prices(load_catalog(), "Smart Meter", "")
-                overrides["Smart Meter"] = {
+                overrides[("Smart Meter", smart_label)] = {
                     "Marque": "",
                     "Quantité": 1,
                     "Prix Unit. TTC": float(sell_sm or 0.0),
@@ -3077,12 +3111,12 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                     "TVA (%)": 20,
                 }
             else:
-                if overrides["Smart Meter"].get("Quantité", 0) == 0:
-                    overrides["Smart Meter"]["Quantité"] = 1
-            # Wifi Dongle
-            if "Wifi Dongle" not in overrides:
+                if override_value("Smart Meter", smart_label, "Quantité", 0) == 0:
+                    overrides[("Smart Meter", smart_label)]["Quantité"] = 1
+            wifi_label = label_map["Wifi Dongle"]
+            if ("Wifi Dongle", wifi_label) not in overrides:
                 sell_wd, buy_wd = get_prices(load_catalog(), "Wifi Dongle", "")
-                overrides["Wifi Dongle"] = {
+                overrides[("Wifi Dongle", wifi_label)] = {
                     "Marque": "",
                     "Quantité": 1,
                     "Prix Unit. TTC": float(sell_wd or 0.0),
@@ -3090,145 +3124,174 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
                     "TVA (%)": 20,
                 }
             else:
-                if overrides["Wifi Dongle"].get("Quantité", 0) == 0:
-                    overrides["Wifi Dongle"]["Quantité"] = 1
+                if override_value("Wifi Dongle", wifi_label, "Quantité", 0) == 0:
+                    overrides[("Wifi Dongle", wifi_label)]["Quantité"] = 1
     except Exception:
         pass
+
+    label_ondu_res = label_map["Onduleur réseau"]
+    label_ondu_hyb = label_map["Onduleur hybride"]
+    label_smart_meter = label_map["Smart Meter"]
+    label_wifi = label_map["Wifi Dongle"]
+    label_panneaux = label_map["Panneaux"]
+    label_bat_10 = "Batterie 10 kWh (scénario AVEC batterie)"
+    label_bat_5 = "Batterie 5 kWh (scénario AVEC batterie)"
+    label_struct_acier = label_map["Structures acier"]
+    label_struct_aluminium = label_map["Structures aluminium"]
+    label_socles = label_map["Socles"]
+    label_accessoires = label_map["Accessoires"]
+    label_tableau = label_map["Tableau De Protection AC/DC"]
+    label_installation = label_map["Installation"]
+    label_transport = label_map["Transport"]
+    label_suivi = label_map["Suivi journalier, maintenance chaque 12 mois pendent 2 ans"]
 
     rows_common = [
         line_editor(
             "Onduleur réseau",
-            "Onduleur réseau (scénario SANS batterie)",
-            overrides.get("Onduleur réseau", {}).get("Quantité", 1),
-            overrides.get("Onduleur réseau", {}).get("TVA (%)", 20),
+            label_ondu_res,
+            override_value("Onduleur réseau", label_ondu_res, "Quantité", 1),
+            override_value("Onduleur réseau", label_ondu_res, "TVA (%)", 20),
             catalog_now,
-            default_brand=overrides.get("Onduleur réseau", {}).get("Marque", ""),
-            default_sell=overrides.get("Onduleur réseau", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Onduleur réseau", {}).get("Prix Achat TTC", None),
+            default_brand=override_value("Onduleur réseau", label_ondu_res, "Marque", ""),
+            default_sell=override_value("Onduleur réseau", label_ondu_res, "Prix Unit. TTC", None),
+            default_buy=override_value("Onduleur réseau", label_ondu_res, "Prix Achat TTC", None),
             brand_only=True,
             default_power=st.session_state.get("ondu_res_power"),
             default_phase=st.session_state.get("ondu_res_phase"),
         ),
         line_editor(
             "Onduleur hybride",
-            "Onduleur hybride (scénario AVEC batterie)",
-            overrides.get("Onduleur hybride", {}).get("Quantité", 0),
-            overrides.get("Onduleur hybride", {}).get("TVA (%)", 20),
+            label_ondu_hyb,
+            override_value("Onduleur hybride", label_ondu_hyb, "Quantité", 0),
+            override_value("Onduleur hybride", label_ondu_hyb, "TVA (%)", 20),
             catalog_now,
-            default_brand=overrides.get("Onduleur hybride", {}).get("Marque", ""),
-            default_sell=overrides.get("Onduleur hybride", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Onduleur hybride", {}).get("Prix Achat TTC", None),
+            default_brand=override_value("Onduleur hybride", label_ondu_hyb, "Marque", ""),
+            default_sell=override_value("Onduleur hybride", label_ondu_hyb, "Prix Unit. TTC", None),
+            default_buy=override_value("Onduleur hybride", label_ondu_hyb, "Prix Achat TTC", None),
             brand_only=True,
             default_power=st.session_state.get("ondu_hyb_power"),
             default_phase=st.session_state.get("ondu_hyb_phase"),
         ),
         line_editor(
             "Smart Meter",
-            "Smart Meter",
-            overrides.get("Smart Meter", {}).get("Quantité", 0),
-            overrides.get("Smart Meter", {}).get("TVA (%)", 20),
+            label_smart_meter,
+            override_value("Smart Meter", label_smart_meter, "Quantité", 0),
+            override_value("Smart Meter", label_smart_meter, "TVA (%)", 20),
             catalog_now,
-            default_sell=overrides.get("Smart Meter", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Smart Meter", {}).get("Prix Achat TTC", None),
+            default_sell=override_value("Smart Meter", label_smart_meter, "Prix Unit. TTC", None),
+            default_buy=override_value("Smart Meter", label_smart_meter, "Prix Achat TTC", None),
         ),
         line_editor(
             "Wifi Dongle",
-            "Wifi Dongle",
-            overrides.get("Wifi Dongle", {}).get("Quantité", 0),
-            overrides.get("Wifi Dongle", {}).get("TVA (%)", 20),
+            label_wifi,
+            override_value("Wifi Dongle", label_wifi, "Quantité", 0),
+            override_value("Wifi Dongle", label_wifi, "TVA (%)", 20),
             catalog_now,
-            default_sell=overrides.get("Wifi Dongle", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Wifi Dongle", {}).get("Prix Achat TTC", None),
+            default_sell=override_value("Wifi Dongle", label_wifi, "Prix Unit. TTC", None),
+            default_buy=override_value("Wifi Dongle", label_wifi, "Prix Achat TTC", None),
         ),
         line_editor(
             "Panneaux",
-            "Panneaux solaires (Jinko 710)",
-            overrides.get("Panneaux", {}).get("Quantité", 0),
-            overrides.get("Panneaux", {}).get("TVA (%)", 10),
+            label_panneaux,
+            override_value("Panneaux", label_panneaux, "Quantité", 0),
+            override_value("Panneaux", label_panneaux, "TVA (%)", 10),
             catalog_now,
-            default_brand=overrides.get("Panneaux", {}).get("Marque", ""),
-            default_sell=overrides.get("Panneaux", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Panneaux", {}).get("Prix Achat TTC", None),
+            default_brand=override_value("Panneaux", label_panneaux, "Marque", ""),
+            default_sell=override_value("Panneaux", label_panneaux, "Prix Unit. TTC", None),
+            default_buy=override_value("Panneaux", label_panneaux, "Prix Achat TTC", None),
         ),
         line_editor(
             "Batterie",
-            "Batterie de stockage (scénario AVEC batterie)",
-            overrides.get("Batterie", {}).get("Quantité", 0),
-            overrides.get("Batterie", {}).get("TVA (%)", 20),
+            label_bat_10,
+            override_value("Batterie", label_bat_10, "Quantité", 0),
+            override_value("Batterie", label_bat_10, "TVA (%)", 20),
             catalog_now,
-            default_brand=overrides.get("Batterie", {}).get("Marque", ""),
-            default_sell=overrides.get("Batterie", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Batterie", {}).get("Prix Achat TTC", None),
+            custom_label=label_bat_10,
+            default_brand=override_value("Batterie", label_bat_10, "Marque", ""),
+            default_sell=override_value("Batterie", label_bat_10, "Prix Unit. TTC", None),
+            default_buy=override_value("Batterie", label_bat_10, "Prix Achat TTC", None),
+            default_power=10,
+        ),
+        line_editor(
+            "Batterie",
+            label_bat_5,
+            override_value("Batterie", label_bat_5, "Quantité", 0),
+            override_value("Batterie", label_bat_5, "TVA (%)", 20),
+            catalog_now,
+            custom_label=label_bat_5,
+            default_brand=override_value("Batterie", label_bat_5, "Marque", ""),
+            default_sell=override_value("Batterie", label_bat_5, "Prix Unit. TTC", None),
+            default_buy=override_value("Batterie", label_bat_5, "Prix Achat TTC", None),
+            default_power=5,
         ),
         line_editor(
             "Structures acier",
-            "Structures acier",
-            overrides.get("Structures acier", {}).get("Quantité", 0),
-            overrides.get("Structures acier", {}).get("TVA (%)", 20),
+            label_struct_acier,
+            override_value("Structures acier", label_struct_acier, "Quantité", 0),
+            override_value("Structures acier", label_struct_acier, "TVA (%)", 20),
             catalog_now,
-            default_sell=overrides.get("Structures acier", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Structures acier", {}).get("Prix Achat TTC", None),
+            default_sell=override_value("Structures acier", label_struct_acier, "Prix Unit. TTC", None),
+            default_buy=override_value("Structures acier", label_struct_acier, "Prix Achat TTC", None),
         ),
         line_editor(
             "Structures aluminium",
-            "Structures aluminium",
-            overrides.get("Structures aluminium", {}).get("Quantité", 0),
-            overrides.get("Structures aluminium", {}).get("TVA (%)", 20),
+            label_struct_aluminium,
+            override_value("Structures aluminium", label_struct_aluminium, "Quantité", 0),
+            override_value("Structures aluminium", label_struct_aluminium, "TVA (%)", 20),
             catalog_now,
-            default_sell=overrides.get("Structures aluminium", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Structures aluminium", {}).get("Prix Achat TTC", None),
+            default_sell=override_value("Structures aluminium", label_struct_aluminium, "Prix Unit. TTC", None),
+            default_buy=override_value("Structures aluminium", label_struct_aluminium, "Prix Achat TTC", None),
         ),
         line_editor(
             "Socles",
-            "Socles béton",
-            overrides.get("Socles", {}).get("Quantité", 0),
-            overrides.get("Socles", {}).get("TVA (%)", 20),
+            label_socles,
+            override_value("Socles", label_socles, "Quantité", 0),
+            override_value("Socles", label_socles, "TVA (%)", 20),
             catalog_now,
-            default_sell=overrides.get("Socles", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Socles", {}).get("Prix Achat TTC", None),
+            default_sell=override_value("Socles", label_socles, "Prix Unit. TTC", None),
+            default_buy=override_value("Socles", label_socles, "Prix Achat TTC", None),
         ),
         line_editor(
             "Accessoires",
-            "Accessoires & câblage",
-            overrides.get("Accessoires", {}).get("Quantité", 1),
-            overrides.get("Accessoires", {}).get("TVA (%)", 20),
+            label_accessoires,
+            override_value("Accessoires", label_accessoires, "Quantité", 1),
+            override_value("Accessoires", label_accessoires, "TVA (%)", 20),
             catalog_now,
-            default_sell=overrides.get("Accessoires", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Accessoires", {}).get("Prix Achat TTC", None),
+            default_sell=override_value("Accessoires", label_accessoires, "Prix Unit. TTC", None),
+            default_buy=override_value("Accessoires", label_accessoires, "Prix Achat TTC", None),
         ),
         line_editor(
             "Tableau De Protection AC/DC",
-            "Tableau de protection AC/DC",
-            overrides.get("Tableau De Protection AC/DC", {}).get("Quantité", 1),
-            overrides.get("Tableau De Protection AC/DC", {}).get("TVA (%)", 20),
+            label_tableau,
+            override_value("Tableau De Protection AC/DC", label_tableau, "Quantité", 1),
+            override_value("Tableau De Protection AC/DC", label_tableau, "TVA (%)", 20),
             catalog_now,
-            default_sell=overrides.get("Tableau De Protection AC/DC", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Tableau De Protection AC/DC", {}).get("Prix Achat TTC", None),
+            default_sell=override_value("Tableau De Protection AC/DC", label_tableau, "Prix Unit. TTC", None),
+            default_buy=override_value("Tableau De Protection AC/DC", label_tableau, "Prix Achat TTC", None),
         ),
         line_editor(
             "Installation",
-            "Installation",
-            overrides.get("Installation", {}).get("Quantité", 1),
-            overrides.get("Installation", {}).get("TVA (%)", 20),
+            label_installation,
+            override_value("Installation", label_installation, "Quantité", 1),
+            override_value("Installation", label_installation, "TVA (%)", 20),
             catalog_now,
-            default_sell=overrides.get("Installation", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Installation", {}).get("Prix Achat TTC", None),
+            default_sell=override_value("Installation", label_installation, "Prix Unit. TTC", None),
+            default_buy=override_value("Installation", label_installation, "Prix Achat TTC", None),
         ),
         line_editor(
             "Transport",
-            "Transport",
-            overrides.get("Transport", {}).get("Quantité", 1),
-            overrides.get("Transport", {}).get("TVA (%)", 20),
+            label_transport,
+            override_value("Transport", label_transport, "Quantité", 1),
+            override_value("Transport", label_transport, "TVA (%)", 20),
             catalog_now,
-
-            default_sell=overrides.get("Transport", {}).get("Prix Unit. TTC", None),
-            default_buy=overrides.get("Transport", {}).get("Prix Achat TTC", None),
+            default_sell=override_value("Transport", label_transport, "Prix Unit. TTC", None),
+            default_buy=override_value("Transport", label_transport, "Prix Achat TTC", None),
         ),
         line_editor(
             "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
-            "Suivi journalier & maintenance (2 ans)",
-            overrides.get("Suivi journalier, maintenance chaque 12 mois pendent 2 ans", {}).get("Quantité", 1),
-            overrides.get("Suivi journalier, maintenance chaque 12 mois pendent 2 ans", {}).get("TVA (%)", 20),
+            label_suivi,
+            override_value("Suivi journalier, maintenance chaque 12 mois pendent 2 ans", label_suivi, "Quantité", 1),
+            override_value("Suivi journalier, maintenance chaque 12 mois pendent 2 ans", label_suivi, "TVA (%)", 20),
             catalog_now,
         ),
     ]

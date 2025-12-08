@@ -117,7 +117,7 @@
           }
         }
       }
-    },
+    }
   },
   "Panneaux": {
     "__default__": {
@@ -187,8 +187,8 @@
       }
     },
     "Deyness 10Kwh": {
-      "sell_ttc": 27000.0,
-      "buy_ttc": 22000.0
+      "sell_ttc": 16000.0,
+      "buy_ttc": 12000.0
     },
     "Deyness 5Kwh": {
       "sell_ttc": 16000.0,

@@ -1003,8 +1003,13 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
             df.at[idx, "Marque"] = info_hw["marque"]
             # Compute number of inverters needed
             import math as _math
+            min_threshold = max(puissance_kwp * 0.8, 0.0)
             if info_hw.get("power") and info_hw["power"] > 0:
-                nb_ondu = int(_math.ceil(puissance_kwp / float(info_hw["power"]))) if puissance_kwp > 0 else 0
+                if info_hw["power"] >= min_threshold:
+                    nb_ondu = 1
+                else:
+                    ratio = puissance_kwp / float(info_hw["power"])
+                    nb_ondu = int(_math.ceil(ratio)) if puissance_kwp > 0 else 1
             else:
                 nb_ondu = 1
             df.at[idx, "Quantité"] = max(0, nb_ondu)
@@ -1027,8 +1032,13 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
                 df.at[idx, "Marque"] = info_deye["marque"]
                 # Compute number of hybrid inverters needed
                 import math as _math
+                min_threshold = max(puissance_kwp * 0.8, 0.0)
                 if info_deye.get("power") and info_deye["power"] > 0:
-                    nb_ondu_h = int(_math.ceil(puissance_kwp / float(info_deye["power"]))) if puissance_kwp > 0 else 0
+                    if info_deye["power"] >= min_threshold:
+                        nb_ondu_h = 1
+                    else:
+                        ratio = puissance_kwp / float(info_deye["power"])
+                        nb_ondu_h = int(_math.ceil(ratio)) if puissance_kwp > 0 else 1
                 else:
                     nb_ondu_h = 1
                 if puissance_kwp > 0:
@@ -1765,7 +1775,7 @@ def generate_double_devis_pdf(
     client_box_table.setStyle(
         TableStyle(
             [
-                ("BOX", (0, 0), (-1, -1), 2, colors.HexColor(BLUE_MAIN)),
+                ("BOX", (0, 0), (-1, -1), 1.2, colors.HexColor(BLUE_MAIN)),
                 ("LEFTPADDING", (0, 0), (-1, -1), 12),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 12),
                 ("TOPPADDING", (0, 0), (-1, -1), 10),

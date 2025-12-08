@@ -1,8 +1,8 @@
 {
   "Onduleur Injection": {
     "__default__": {
-      "sell_ttc": 16500.0,
-      "buy_ttc": 12500.0
+      "sell_ttc": 15000.0,
+      "buy_ttc": 11000.0
     },
     "Huawei": {
       "5": {
@@ -86,8 +86,8 @@
   },
   "Onduleur Hybride": {
     "__default__": {
-      "sell_ttc": 38000.0,
-      "buy_ttc": 30600.0
+      "sell_ttc": 29000.0,
+      "buy_ttc": 24000.0
     },
     "Deye": {
       "5": {

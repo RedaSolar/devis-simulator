@@ -818,15 +818,23 @@ def select_inverter_for_power(catalog, onduleur_type: str, puissance_kwp: float)
     
     if not candidates:
         return None
-    
-    # Chercher le plus petit onduleur avec kw >= 0.8 * puissance_kwp (pour rester proche de la taille de l'installation)
-    min_threshold = max(puissance_kwp * 0.8, 0.0) if puissance_kwp > 0 else 0.0
-    above = [c for c in candidates if c[0] >= min_threshold]
-    if above:
-        best = min(above, key=lambda x: x[0])
+
+    def _best_from(collection):
+        return min(collection, key=lambda x: x[0])
+
+    if puissance_kwp > 0:
+        exact = [c for c in candidates if c[0] >= puissance_kwp]
+        if exact:
+            best = _best_from(exact)
+        else:
+            min_threshold = puissance_kwp * 0.8
+            above = [c for c in candidates if c[0] >= min_threshold]
+            if above:
+                best = _best_from(above)
+            else:
+                best = max(candidates, key=lambda x: x[0])
     else:
-        # Fallback: le plus grand disponible
-        best = max(candidates, key=lambda x: x[0])
+        best = _best_from(candidates)
     
     power_kw, marque, power_str, phase, sell, buy = best
     return {
@@ -1079,8 +1087,8 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
         idx_bat_primary = bat_indices[0] if bat_indices else None
         idx_bat_secondary = bat_indices[1] if len(bat_indices) > 1 else None
         
-        # Calculer le nombre de batteries 5kWh nécessaires
-        nb_bat_5kwh = math.ceil(puissance_kwp / 5.0)
+        # Calculer le nombre de batteries 5kWh nécessaires (minimum 1)
+        nb_bat_5kwh = max(1, math.ceil(puissance_kwp / 5.0))
         # Consolidation : convertir 2×5kWh en 1×10kWh
         nb_bat_10kwh = nb_bat_5kwh // 2
         remaining_5kwh = nb_bat_5kwh % 2
@@ -1124,6 +1132,8 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
                     df.at[idx_bat_primary, "Prix Unit. TTC"] = sell
                 if df.at[idx_bat_primary, "Prix Achat TTC"] == 0 and buy is not None:
                     df.at[idx_bat_primary, "Prix Achat TTC"] = buy
+        if idx_bat_primary is not None and df.at[idx_bat_primary, "Quantité"] <= 0:
+            df.at[idx_bat_primary, "Quantité"] = max(1, nb_bat_10kwh or 1)
         
         # Fill secondary battery row with remaining 5kWh (if exists and needed)
         if idx_bat_secondary is not None and remaining_5kwh > 0 and dey_5_info:
@@ -2941,13 +2951,13 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
     }
 
     def _resolve_label(designation, custom_label):
-        """Return a usable label, ignoring NaN / empty custom labels."""
+        """Return the label used by the line editor so overrides keep matching."""
         cleaned = custom_label
         if pd.isna(cleaned):
             cleaned = None
         if isinstance(cleaned, str):
             cleaned = cleaned.strip()
-            if not cleaned or cleaned.lower() == "nan":
+            if not cleaned:
                 cleaned = None
         return cleaned or label_map.get(designation, designation)
 

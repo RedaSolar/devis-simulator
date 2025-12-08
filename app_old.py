@@ -28,6 +28,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfgen import canvas
 import matplotlib.pyplot as plt
 from io import BytesIO
+import shutil
 
 # ---------- CONSTANTES VISUELLES ----------
 BLUE_MAIN = "#0A5275"        # Bleu TAQINOR
@@ -2404,6 +2405,19 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
         default_brand_idx = 0
         if default_brand and default_brand in available_brands:
             default_brand_idx = available_brands.index(default_brand)
+        # allow pending brand change to be applied before widget instantiation
+        pending_brand_key = f"{widget_brand_key}_pending"
+        pending_brand = st.session_state.pop(pending_brand_key, None)
+        if pending_brand:
+            st.session_state[widget_brand_key] = pending_brand
+        pending_power_key = f"{widget_power_key}_pending"
+        pending_power = st.session_state.pop(pending_power_key, None)
+        if pending_power:
+            st.session_state[widget_power_key] = pending_power
+        pending_phase_key = f"{widget_phase_key}_pending"
+        pending_phase = st.session_state.pop(pending_phase_key, None)
+        if pending_phase:
+            st.session_state[widget_phase_key] = pending_phase
         brand_col = cols_ondu[0]
         brand_sel = brand_col.selectbox(
             "Marque",
@@ -2516,9 +2530,10 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
                     power_key = str(int(new_power_kw) if float(new_power_kw).is_integer() else new_power_kw)
                     set_prices(load_catalog(), designation, new_brand_name.strip(), sell_ttc=new_sell_val or None, buy_ttc=new_buy_val or None, power_key=power_key, phase=phase_to_use)
                     st.success(f"Marque {new_brand_name} {power_key} kW ({phase_to_use}) ajoutée.")
-                    st.session_state[widget_brand_key] = new_brand_name.strip()
-                    st.session_state[widget_power_key] = f"{float(new_power_kw):g} kW"
-                    st.session_state[widget_phase_key] = phase_to_use
+                    st.session_state[pending_brand_key] = new_brand_name.strip()
+                    st.session_state[f"{widget_power_key}_pending"] = f"{float(new_power_kw):g} kW"
+                    st.session_state[f"{widget_phase_key}_pending"] = phase_to_use
+                    st.experimental_rerun()
                 except Exception as e:
                     st.error(f"Impossible d'ajouter la marque : {e}")
             else:
@@ -3778,6 +3793,12 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
             type_label=type_label,
             type_phrase=type_phrase,
         )
+        target_dir = DEVIS_DIR
+        target_dir.mkdir(parents=True, exist_ok=True)
+        final_path = target_dir / pdf_path.name
+        if pdf_path != final_path:
+            shutil.copy(str(pdf_path), str(final_path))
+            pdf_path = final_path
 
         st.success(f"Devis généré ✅ → {pdf_path}")
         with open(pdf_path, "rb") as f:

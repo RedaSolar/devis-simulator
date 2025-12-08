@@ -1771,7 +1771,7 @@ def generate_double_devis_pdf(
     client_box_table.setStyle(
         TableStyle(
             [
-                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor(BLUE_MAIN)),
+                ("BOX", (0, 0), (-1, -1), 2, colors.HexColor(BLUE_MAIN)),
                 ("LEFTPADDING", (0, 0), (-1, -1), 12),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 12),
                 ("TOPPADDING", (0, 0), (-1, -1), 10),
@@ -1926,6 +1926,7 @@ def generate_double_devis_pdf(
         elements.append(Spacer(1, 10))
         add_divider()
         elements.append(Spacer(1, 6))
+        elements.append(PageBreak())
         elements.append(Paragraph("SYNTHÈSE FINANCIÈRE & ROI", heading1_style))
         elements.append(Spacer(1, 8))
         elements.append(Paragraph("Analyse détaillée du retour sur investissement", heading2_style))
@@ -1977,28 +1978,31 @@ def generate_double_devis_pdf(
             colWidths=[210, 135, 135],
             hAlign="CENTER",
         )
-        summary_table.setStyle(
-            TableStyle(
-                [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BLUE_MAIN)),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                    ("ALIGN", (0, 0), (-1, 0), "CENTER"),
-                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                    ("TOPPADDING", (0, 0), (-1, 0), 7),
-                    ("BOTTOMPADDING", (0, 0), (-1, 0), 7),
-                    ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor(BLUE_MAIN)),
-                    ("INNERGRID", (0, 1), (-1, -1), 0.3, colors.HexColor("#D5E6F2")),
-                    ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
-                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), (colors.white, colors.HexColor(BLUE_LIGHT))),
-                    ("LEFTPADDING", (0, 1), (-1, -1), 6),
-                    ("RIGHTPADDING", (0, 1), (-1, -1), 6),
-                    ("TOPPADDING", (0, 1), (-1, -1), 5),
-                    ("BOTTOMPADDING", (0, 1), (-1, -1), 5),
-                    ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
-                ]
-            )
+        roi_style = TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BLUE_MAIN)),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("TOPPADDING", (0, 0), (-1, 0), 7),
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 7),
+                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor(BLUE_MAIN)),
+                ("INNERGRID", (0, 1), (-1, -1), 0.3, colors.HexColor("#D5E6F2")),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), (colors.white, colors.HexColor(BLUE_LIGHT))),
+                ("LEFTPADDING", (0, 1), (-1, -1), 6),
+                ("RIGHTPADDING", (0, 1), (-1, -1), 6),
+                ("TOPPADDING", (0, 1), (-1, -1), 5),
+                ("BOTTOMPADDING", (0, 1), (-1, -1), 5),
+                ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+            ]
         )
+        for row_idx in (2, 4, 5):
+            roi_style.add("FONTNAME", (1, row_idx), (2, row_idx), "Helvetica-Bold")
+            roi_style.add("TEXTCOLOR", (1, row_idx), (2, row_idx), colors.HexColor(TEXT_DARK))
+            roi_style.add("FONTSIZE", (1, row_idx), (2, row_idx), 10)
+        summary_table.setStyle(roi_style)
         elements.append(summary_table)
         elements.append(Spacer(1, 6))
 

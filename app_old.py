@@ -1151,10 +1151,10 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
     elements = []
     style_normal = styles["Normal"]
     style_normal.fontName = "Helvetica"
-    style_normal.fontSize = 10
-    style_normal.leading = 13
+    style_normal.fontSize = 9.5
+    style_normal.leading = 11.5
     style_normal.textColor = colors.HexColor(TEXT_DARK)
-    style_normal.spaceAfter = 6
+    style_normal.spaceAfter = 3
 
     style_header = ParagraphStyle(
         "header",
@@ -1372,7 +1372,7 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
     data.append([total_ht_lbl, "", "", "", "", "", total_ht_fmt])
     data.append([total_ttc_lbl, "", "", "", "", "", total_ttc_fmt])
 
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 6))
 
     def make_premium_table(data_table):
         table = Table(
@@ -1404,8 +1404,8 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
                 ("INNERGRID", (0, 1), (-1, -3), 0.3, colors.HexColor("#DDDDDD")),
                 ("LEFTPADDING", (0, 1), (-1, -1), 6),
                 ("RIGHTPADDING", (0, 1), (-1, -1), 6),
-                ("TOPPADDING", (0, 1), (-1, -3), 5),
-                ("BOTTOMPADDING", (0, 1), (-1, -3), 5),
+                ("TOPPADDING", (0, 1), (-1, -3), 3),
+                ("BOTTOMPADDING", (0, 1), (-1, -3), 3),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("ALIGN", (0, 1), (0, -1), "CENTER"),
                 ("ALIGN", (1, 1), (2, -1), "LEFT"),
@@ -1435,8 +1435,8 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
         style.add("BACKGROUND", (0, before_last_row), (-1, last_row), colors.whitesmoke)
         style.add("FONTNAME", (0, before_last_row), (-1, last_row), "Helvetica-Bold")
         style.add("LINEABOVE", (0, before_last_row), (-1, before_last_row), 1, colors.HexColor(TEXT_DARK))
-        style.add("TOPPADDING", (0, before_last_row), (-1, last_row), 6)
-        style.add("BOTTOMPADDING", (0, before_last_row), (-1, last_row), 6)
+        style.add("TOPPADDING", (0, before_last_row), (-1, last_row), 4)
+        style.add("BOTTOMPADDING", (0, before_last_row), (-1, last_row), 4)
 
         table.setStyle(style)
         table._argW = [
@@ -1451,7 +1451,7 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
         return table
 
     table = make_premium_table(data)
-    elements += [table, Spacer(1, 12)]
+    elements += [table, Spacer(1, 6)]
 
     # Notes
     if notes:
@@ -1505,10 +1505,10 @@ def generate_double_devis_pdf(
         "body",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=10,
-        leading=13,
+        fontSize=9.5,
+        leading=11.5,
         textColor=colors.HexColor(TEXT_DARK),
-        spaceAfter=6,
+        spaceAfter=4,
     )
     style_body = style_normal
     style_small = ParagraphStyle(
@@ -1524,6 +1524,20 @@ def generate_double_devis_pdf(
         bulletIndent=0,
         spaceAfter=4,
     )
+    style_long_text = ParagraphStyle(
+        "long_text",
+        parent=style_body,
+        fontSize=9,
+        leading=11,
+        spaceAfter=3,
+    )
+    style_cond_bullet = ParagraphStyle(
+        "cond_bullet",
+        parent=style_long_text,
+        leftIndent=14,
+        bulletIndent=0,
+        spaceAfter=2,
+    )
     style_h1 = ParagraphStyle(
         "style_h1",
         parent=styles["Heading1"],
@@ -1531,8 +1545,8 @@ def generate_double_devis_pdf(
         fontSize=17,
         leading=21,
         textColor=colors.HexColor(BLUE_MAIN),
-        spaceBefore=14,
-        spaceAfter=8,
+        spaceBefore=10,
+        spaceAfter=5,
         alignment=0,
     )
     style_h2 = ParagraphStyle(
@@ -1542,8 +1556,8 @@ def generate_double_devis_pdf(
         fontSize=13.5,
         leading=17,
         textColor=colors.HexColor(TEXT_DARK),
-        spaceBefore=10,
-        spaceAfter=6,
+        spaceBefore=7,
+        spaceAfter=4,
         alignment=0,
     )
     style_company = ParagraphStyle(
@@ -1698,7 +1712,7 @@ def generate_double_devis_pdf(
         )
     )
     elements.append(header_table)
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 6))
 
     title_para = Paragraph("Devis Installation Photovoltaïque", cover_title_style)
     subtitle_para = Paragraph(
@@ -1737,55 +1751,40 @@ def generate_double_devis_pdf(
     )
 
     elements.append(hero_table)
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 4))
 
-    # --- SUMMARY BOX (CLIENT & PROJET) ---
-    summary_label_style = ParagraphStyle(
-        "summary_label",
-        parent=style_normal,
-        fontSize=9,
-        leading=11,
-        textColor=colors.HexColor(TEXT_DARK),
-        fontName="Helvetica-Bold",
+    client_box_table = Table(
+        [
+            [
+                Paragraph(
+                    f"Client : {client_name or '-'}<br/>"
+                    f"Adresse : {client_address or '-'}<br/>"
+                    f"Téléphone : {client_phone or '-'}<br/>"
+                    f"Projet : {type_phrase}<br/>"
+                    f"Puissance totale installée : {puissance_totale_kwc:.2f} kWc via {nombre_panneaux} panneaux de {puissance_panneau} W",
+                    style_normal,
+                )
+            ]
+        ],
+        colWidths=[17 * cm],
     )
-    summary_value_style = ParagraphStyle(
-        "summary_value",
-        parent=style_normal,
-        fontSize=9,
-        leading=11,
-        textColor=colors.HexColor(TEXT_DARK),
-    )
-
-    config_text = f"{nombre_panneaux} x {puissance_panneau} W"
-    summary_rows = [
-        [Paragraph("Client", summary_label_style), Paragraph(client_name or "-", summary_value_style)],
-        [Paragraph("Adresse", summary_label_style), Paragraph(client_address or "-", summary_value_style)],
-        [Paragraph("Téléphone", summary_label_style), Paragraph(client_phone or "-", summary_value_style)],
-        [Paragraph("Numéro du devis", summary_label_style), Paragraph(f"{int(doc_number)}", summary_value_style)],
-        [Paragraph("Date d’émission", summary_label_style), Paragraph(today, summary_value_style)],
-        [Paragraph("Puissance totale installée", summary_label_style), Paragraph(f"{puissance_totale_kwc:.2f} kWc", summary_value_style)],
-        [Paragraph("Configuration proposée", summary_label_style), Paragraph(config_text, summary_value_style)],
-    ]
-
-    summary_table = Table(summary_rows, colWidths=[180, 300], hAlign="CENTER")
-    summary_table.setStyle(
+    client_box_table.setStyle(
         TableStyle(
             [
+                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor(BLUE_MAIN)),
+                ("LEFTPADDING", (0, 0), (-1, -1), 12),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+                ("TOPPADDING", (0, 0), (-1, -1), 10),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
                 ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(BLUE_LIGHT)),
-                ("BOX", (0, 0), (-1, -1), 1.0, colors.HexColor(BLUE_MAIN)),
-                ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D5E6F2")),
-                ("LEFTPADDING", (0, 0), (-1, -1), 8),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
             ]
         )
     )
 
-    elements.append(Spacer(1, 12))
-    elements.append(summary_table)
-    elements.append(Spacer(1, 12))
+    elements.append(client_box_table)
+    elements.append(Spacer(1, 6))
 
     # RÉSUMÉ DU PROJET
     heading1_style = style_h1
@@ -1804,13 +1803,13 @@ def generate_double_devis_pdf(
     elements.append(Spacer(1, 6))
     elements.append(
         Paragraph(
-            "Ce devis présente une solution photovoltaïque sur mesure pour réduire durablement votre facture d’électricité, améliorer votre autonomie énergétique et valoriser votre patrimoine. L’installation proposée s’appuie sur des équipements premium (Canadian Solar, Huawei, Deye) dimensionnés selon votre profil de consommation pour maximiser l’autoconsommation et le retour sur investissement.",
-            style_normal,
+            "Ce devis présente une solution photovoltaïque clé en main pour réduire durablement votre facture d’électricité et renforcer votre autonomie énergétique. L’installation proposée utilise des équipements premium (Canadian Solar, Huawei, Deye) dimensionnés pour maximiser l’autoconsommation et le retour sur investissement.",
+            style_long_text,
         )
     )
     elements.append(Spacer(1, 6))
     bullet_intro = [
-        "Une installation de 5,68 kWc composée de 8 panneaux de 710 W",
+        f"Une installation de {puissance_totale_kwc:.2f} kWc composée de {nombre_panneaux} panneaux de {puissance_panneau} W",
         "Une comparaison entre une configuration SANS batterie et une configuration AVEC batterie",
         "Une estimation économique complète (production annuelle, économies, temps de retour sur investissement)",
         "Les garanties et engagements TAQINOR",
@@ -1827,8 +1826,8 @@ def generate_double_devis_pdf(
     elements.append(Paragraph("OBJECTIFS DU CLIENT", heading1_style))
     elements.append(Spacer(1, 6))
     client_objectifs = [
-        "Réduire significativement la facture d’électricité mensuelle",
-        "Gagner en confort et en sécurité énergétique grâce à une installation évolutive (batterie ou puissance supplémentaire ultérieure)",
+        "Réduire de façon significative la facture d’électricité mensuelle",
+        "Gagner en confort et en sécurité énergétique grâce à une installation évolutive (batterie ou extension future de puissance)",
     ]
     elements.append(
         ListFlowable(
@@ -1843,11 +1842,11 @@ def generate_double_devis_pdf(
     elements.append(Spacer(1, 6))
     elements.append(
         Paragraph(
-            f"TAQINOR propose deux configurations adaptées au profil de consommation du client :<br/>"
+            f"TAQINOR propose deux scénarios adaptés à votre profil de consommation :<br/>"
             f"• Une installation SANS batterie, idéale lorsque la majorité de la consommation a lieu en journée.<br/>"
-            f"• Une installation AVEC batterie, permettant d’augmenter significativement le taux d’autoconsommation, particulièrement lorsque les usages nocturnes sont importants ou en cas de coupures réseau.<br/>"
+            f"• Une installation AVEC batterie, qui augmente fortement le taux d’autoconsommation, particulièrement en cas de consommation nocturne importante ou de coupures réseau.<br/>"
             f"Les deux scénarios reposent sur une puissance totale installée de {puissance_totale_kwc:.2f} kWc via {nombre_panneaux} modules de {puissance_panneau} W.",
-            style_normal,
+            style_long_text,
         )
     )
     elements.append(Spacer(1, 4))
@@ -1861,7 +1860,7 @@ def generate_double_devis_pdf(
             elements.append(PageBreak())
             options_pagebreak_done = True
         if not options_heading_shown:
-            elements.append(Spacer(1, 12))
+            elements.append(Spacer(1, 6))
             add_divider()
             elements.append(Spacer(1, 6))
             elements.append(Paragraph("PRÉSENTATION DES OPTIONS", heading1_style))
@@ -1880,7 +1879,7 @@ def generate_double_devis_pdf(
             Paragraph(
                 "Cette configuration SANS batterie convient lorsque la consommation est majoritairement diurne. "
                 "Elle maximise directement l’autoconsommation sans stockage et constitue une solution simple, fiable et économiquement optimisée lorsque les usages nocturnes restent limités.",
-                style_normal,
+                style_long_text,
             )
         )
         elements.append(Spacer(1, 6))
@@ -1898,7 +1897,7 @@ def generate_double_devis_pdf(
             elements.append(PageBreak())
             options_pagebreak_done = True
         if not options_heading_shown:
-            elements.append(Spacer(1, 12))
+            elements.append(Spacer(1, 6))
             add_divider()
             elements.append(Spacer(1, 6))
             elements.append(Paragraph("PRÉSENTATION DES OPTIONS", heading1_style))
@@ -1910,7 +1909,7 @@ def generate_double_devis_pdf(
             Paragraph(
                 "Cette configuration AVEC batterie est adaptée lorsque la consommation nocturne est importante ou lorsque la continuité d’alimentation est un enjeu. "
                 "Le stockage augmente fortement le taux d’autoconsommation, améliore le confort énergétique et réduit la dépendance au réseau en cas de coupure.",
-                style_normal,
+                style_long_text,
             )
         )
         elements.append(Spacer(1, 6))
@@ -2001,7 +2000,7 @@ def generate_double_devis_pdf(
             )
         )
         elements.append(summary_table)
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 6))
 
         # Recommandation encadrée (affichée uniquement si sélectionnée)
         if recommended_option and recommended_option.lower() not in ("aucune recommandation", "aucune recommandation (client libre de choisir)"):
@@ -2031,7 +2030,7 @@ def generate_double_devis_pdf(
     img_roi._restrictSize(graph_max_width, graph_max_height)
     elements.append(img_roi)
     elements.append(Spacer(1, 6))
-    elements.append(Paragraph("Comparaison des économies mensuelles avec et sans batterie.", style_normal))
+    elements.append(Paragraph("Comparaison des économies mensuelles avec et sans batterie.", style_long_text))
     elements.append(Spacer(1, 8))
 
     # Graphique cumulatif 25 ans
@@ -2044,7 +2043,7 @@ def generate_double_devis_pdf(
         img_cumul._restrictSize(cum_max_w, cum_max_h)
         elements.append(img_cumul)
         elements.append(Spacer(1, 6))
-        elements.append(Paragraph("Ce graphique illustre le gain cumulé sur 25 ans et le point d’équilibre (ROI) pour chaque configuration.", style_normal))
+        elements.append(Paragraph("Ce graphique illustre le gain cumulé sur 25 ans et le point d’équilibre (ROI) pour chaque configuration.", style_long_text))
         elements.append(Spacer(1, 8))
 
     # Hypothèses de calcul & profil de consommation
@@ -2122,34 +2121,34 @@ def generate_double_devis_pdf(
             leftIndent=14,
         )
     )
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 6))
     
     # Section Conditions
     elements.append(Paragraph("<b>Conditions générales</b>", style_header_top))
-    elements.append(Spacer(1, 6))
+    elements.append(Spacer(1, 4))
     elements.append(
         Paragraph(
             "Les conditions ci-dessous définissent le cadre contractuel de l’offre TAQINOR pour votre installation photovoltaïque.",
-            style_normal,
+            style_long_text,
         )
     )
-    elements.append(Spacer(1, 6))
+    elements.append(Spacer(1, 4))
     
     conditions = [
         "Ce devis est valable <b>30 jours</b> à compter de sa date d'émission",
         "Toute commande implique l'adhésion sans réserve à nos conditions générales de vente",
-        "Les prix indiqués incluent la TVA 20%",
+        "Les prix indiquent la TVA applicable : 10% sur les modules photovoltaïques et 20% sur les autres équipements et prestations.",
         "La réalisation de ces travaux ne peut débuter sans signature du devis",
     ]
     elements.append(
         ListFlowable(
-            [ListItem(Paragraph(item, style_bullet)) for item in conditions],
+            [ListItem(Paragraph(item, style_cond_bullet)) for item in conditions],
             bulletType="bullet",
             bulletText="•",
             leftIndent=14,
         )
     )
-    elements.append(Spacer(1, 10))
+    elements.append(Spacer(1, 4))
     elements.append(Paragraph("Conditions financières & modalités de paiement", heading3_style if "heading3_style" in locals() else heading_style))
     elements.append(Spacer(1, 4))
     if installation_type == "Résidentielle":
@@ -2168,13 +2167,13 @@ def generate_double_devis_pdf(
             "Les paiements peuvent être effectués par virement bancaire ou par tout autre moyen accepté par TAQINOR et précisé sur la facture.",
         ]
     conditions_financieres_list = ListFlowable(
-        [ListItem(Paragraph(item, style_bullet)) for item in conditions_financieres_items],
+        [ListItem(Paragraph(item, style_cond_bullet)) for item in conditions_financieres_items],
         bulletType="bullet",
         bulletText="•",
         leftIndent=14,
     )
     elements.append(conditions_financieres_list)
-    elements.append(Spacer(1, 10))
+    elements.append(Spacer(1, 4))
     elements.append(Paragraph("Délai indicatif de réalisation", heading3_style if "heading3_style" in locals() else heading_style))
     elements.append(Spacer(1, 4))
     delai_text = (
@@ -2182,8 +2181,8 @@ def generate_double_devis_pdf(
         "réalisation de l’installation est de 7 à 14 jours ouvrés à compter de la réception de l’acompte et de la "
         "validation définitive du projet. Ce délai pourra être affiné lors de la planification et confirmé par écrit."
     )
-    elements.append(Paragraph(delai_text, style_normal))
-    elements.append(Spacer(1, 10))
+    elements.append(Paragraph(delai_text, style_long_text))
+    elements.append(Spacer(1, 4))
     elements.append(Paragraph("Périmètre de la prestation, exclusions & prérequis", heading3_style if "heading3_style" in locals() else heading_style))
     elements.append(Spacer(1, 4))
     perimetre_items = [
@@ -2193,21 +2192,21 @@ def generate_double_devis_pdf(
         "Toute contrainte découverte lors de la visite technique (toiture fragile, accès compliqué, non-conformité électrique majeure, etc.) pourra faire l’objet d’un avenant de devis avant démarrage des travaux."
     ]
     perimetre_list = ListFlowable(
-        [ListItem(Paragraph(item, style_bullet)) for item in perimetre_items],
+        [ListItem(Paragraph(item, style_cond_bullet)) for item in perimetre_items],
         bulletType="bullet",
         bulletText="•",
         leftIndent=14,
     )
     elements.append(perimetre_list)
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 4))
     
     # Page Pourquoi TAQINOR
     ensure_page_break()
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 4))
     add_divider()
-    elements.append(Spacer(1, 6))
+    elements.append(Spacer(1, 4))
     elements.append(Paragraph("POURQUOI CHOISIR TAQINOR ?", heading1_style))
-    elements.append(Spacer(1, 8))
+    elements.append(Spacer(1, 4))
     pourquoi_lines = [
         "Installation conçue et suivie par des ingénieurs spécialisés dans le solaire",
         "Matériel premium : Huawei, Deye, Canadian Solar",
@@ -2217,34 +2216,34 @@ def generate_double_devis_pdf(
     ]
     elements.append(
         ListFlowable(
-            [ListItem(Paragraph(line, style_bullet)) for line in pourquoi_lines],
+            [ListItem(Paragraph(line, style_cond_bullet)) for line in pourquoi_lines],
             bulletType="bullet",
             bulletText="•",
             leftIndent=14,
         )
     )
-    elements.append(Spacer(1, 10))
+    elements.append(Spacer(1, 4))
     elements.append(
         Paragraph(
             "Notre équipe reste à votre disposition pour toute question complémentaire ou adaptation de cette proposition. La planification de l’installation sera effectuée dès validation du devis et organisation logistique avec le client.",
-            style_normal,
+            style_long_text,
         )
     )
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 4))
 
     elements.append(Paragraph("Étapes suivantes", heading1_style))
-    elements.append(Spacer(1, 6))
+    elements.append(Spacer(1, 4))
     elements.append(
         Paragraph(
             "Pour valider ce devis, merci de nous retourner ce document signé ou de nous confirmer par e-mail / WhatsApp. Nous planifierons ensuite la visite technique et la date d’installation.",
-            style_normal,
+            style_long_text,
         )
     )
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 4))
     elements.append(Paragraph("Signature du client : ___________________________    Date : ___ / ___ / ______", style_normal))
-    elements.append(Spacer(1, 8))
+    elements.append(Spacer(1, 4))
     elements.append(Paragraph("Signature TAQINOR : ___________________________    Date : ___ / ___ / ______", style_normal))
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 4))
 
     # Footer on every page
     class NumberedCanvas(canvas.Canvas):
@@ -3838,3 +3837,4 @@ else:
             config["facture_counter"] = int(fact_number) + 1
             with open(CONFIG_FILE, "w", encoding="utf-8") as f:
                 json.dump(config, f, ensure_ascii=False, indent=2)
+

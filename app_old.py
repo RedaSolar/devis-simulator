@@ -819,8 +819,9 @@ def select_inverter_for_power(catalog, onduleur_type: str, puissance_kwp: float)
     if not candidates:
         return None
     
-    # Chercher le plus petit onduleur avec kw >= puissance_kwp
-    above = [c for c in candidates if c[0] >= puissance_kwp]
+    # Chercher le plus petit onduleur avec kw >= 0.8 * puissance_kwp (pour rester proche de la taille de l'installation)
+    min_threshold = max(puissance_kwp * 0.8, 0.0) if puissance_kwp > 0 else 0.0
+    above = [c for c in candidates if c[0] >= min_threshold]
     if above:
         best = min(above, key=lambda x: x[0])
     else:
@@ -2309,6 +2310,8 @@ def line_editor(designation, label, default_qty, default_tva, catalog,
                 default_brand=None, default_sell=None, default_buy=None,
                 brand_only=False, default_power=None, default_phase=None):
     st.markdown(f"##### {label}")
+    sell_price = 0.0
+    buy_price = 0.0
     
     # For onduleurs, use special 3-column layout (Marque / Puissance / Phase)
     if designation in ("Onduleur réseau", "Onduleur hybride"):
@@ -2959,11 +2962,9 @@ if mode == "Créer un Devis (1 ou 2 scénarios)":
         df_template = pd.DataFrame(template_rows)
         df_auto = auto_fill_from_power(df_template, catalog_now, puissance_kwp, puissance_panneau_w)
         mask_bat_template = df_template["Désignation"] == "Batterie"
-        bat_template_fields = df_template.loc[mask_bat_template, ["Marque", "Prix Achat TTC", "Prix Unit. TTC", "TVA (%)"]].reset_index(drop=True)
         bat_template_labels = df_template.loc[mask_bat_template, "CustomLabel"].reset_index(drop=True)
         mask_bat_auto = df_auto["Désignation"] == "Batterie"
         if mask_bat_template.sum() == mask_bat_auto.sum():
-            df_auto.loc[mask_bat_auto, ["Marque", "Prix Achat TTC", "Prix Unit. TTC", "TVA (%)"]] = bat_template_fields.values
             df_auto.loc[mask_bat_auto, "CustomLabel"] = bat_template_labels.values
         # Respecter le choix manuel de l'utilisateur pour le type de structure (si présent)
         try:

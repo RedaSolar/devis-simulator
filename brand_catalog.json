@@ -157,6 +157,10 @@
     "Jinko 710W": {
       "sell_ttc": 1100.0,
       "buy_ttc": 900.0
+    },
+    "Jinko 710W 710W": {
+      "sell_ttc": 1100.0,
+      "buy_ttc": 900.0
     }
   },
   "Batterie": {
@@ -221,7 +225,7 @@
   },
   "Accessoires": {
     "__default__": {
-      "sell_ttc": 3272.0000000000005,
+      "sell_ttc": 3000.0,
       "buy_ttc": 2000.0
     }
   },
@@ -251,7 +255,7 @@
   },
   "Transport": {
     "__default__": {
-      "sell_ttc": 2272.0000000000005,
+      "sell_ttc": 2000.0,
       "buy_ttc": 1000.0
     }
   },

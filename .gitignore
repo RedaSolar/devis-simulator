@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+
+# Local machine variants
+*-Reda_Laptop.*
+*_Reda_Laptop.*
+
+# Outputs & reports
+Output/
+devis_client/
+*.pdf
+
+# Old scripts
+run_devis_old.bat
+
+# Temporary scripts
+tmp_*.py
+tmp_*.ps1

@@ -1,5 +1,5 @@
 @echo off
-cd /d "C:\Users\kasri\OneDrive - Atlencia\Solar Panels\Simulator"
+cd /d "C:\Users\kasri\OneDrive - Atlencia\TAQINOR\Simulator"
 
 echo Netoyage du cache Streamlit...
 streamlit cache clear

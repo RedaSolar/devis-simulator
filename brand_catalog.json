@@ -1,8 +1,8 @@
 {
   "Onduleur Injection": {
     "__default__": {
-      "sell_ttc": 18000.0,
-      "buy_ttc": 13200.0
+      "sell_ttc": 12000.0,
+      "buy_ttc": 9500.0
     },
     "Huawei": {
       "5": {
@@ -101,8 +101,8 @@
   },
   "Onduleur Hybride": {
     "__default__": {
-      "sell_ttc": 38000.0,
-      "buy_ttc": 30600.0
+      "sell_ttc": 17000.0,
+      "buy_ttc": 12000.0
     },
     "Deye": {
       "5": {
@@ -247,25 +247,25 @@
   },
   "Smart Meter": {
     "__default__": {
-      "sell_ttc": 2000.0,
+      "sell_ttc": 1500.0,
       "buy_ttc": 1500.0
     }
   },
   "Wifi Dongle": {
     "__default__": {
-      "sell_ttc": 1000.0,
+      "sell_ttc": 800.0,
       "buy_ttc": 700.0
     }
   },
   "Accessoires": {
     "__default__": {
-      "sell_ttc": 3000.0,
+      "sell_ttc": 500.0,
       "buy_ttc": 2000.0
     }
   },
   "Tableau De Protection AC/DC": {
     "__default__": {
-      "sell_ttc": 3000.0,
+      "sell_ttc": 1500.0,
       "buy_ttc": 1500.0
     }
   },
@@ -289,8 +289,8 @@
   },
   "Transport": {
     "__default__": {
-      "sell_ttc": 2500.0,
-      "buy_ttc": 1000.0
+      "sell_ttc": 800.0,
+      "buy_ttc": 800.0
     }
   },
   "Autre": {
@@ -301,7 +301,7 @@
   },
   "Installation": {
     "__default__": {
-      "sell_ttc": 7000.0,
+      "sell_ttc": 3000.0,
       "buy_ttc": 4000.0
     }
   }

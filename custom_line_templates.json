@@ -3,5 +3,15 @@
     "label": "Structures Aluminium",
     "default_tva": 20,
     "default_photo": "structure_alimumium"
+  },
+  {
+    "label": "reparation instalation qui injecte sur le reseaux",
+    "default_tva": 20,
+    "default_photo": ""
+  },
+  {
+    "label": "reparation instalation solaire avec injection sur le reseaux",
+    "default_tva": 20,
+    "default_photo": "installation"
   }
 ]

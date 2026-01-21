@@ -6,7 +6,6 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
-import unicodedata
 from reportlab.lib.units import mm, cm
 import numpy as np
 from reportlab.platypus import (
@@ -570,73 +569,8 @@ def _num(s):
         return 0.0
 
 
-def _normalize_colname(name: str) -> str:
-    name = str(name).strip()
-    # Fix common mojibake in incoming column names (UTF-8 bytes decoded as latin1/cp1252)
-    # Example: "DÃ©signation" -> "Désignation"
-    if "Ã" in name or "Â" in name or "â" in name:
-        def _m_score(s: str) -> int:
-            return s.count("Ã") + s.count("Â") + s.count("â")
-
-        best = name
-        best_score = _m_score(name)
-
-        # Strict round-trip first
-        for enc in ("latin1", "cp1252"):
-            try:
-                candidate = name.encode(enc, errors="strict").decode("utf-8", errors="strict")
-            except Exception:
-                continue
-            cand_score = _m_score(candidate)
-            if cand_score < best_score:
-                best, best_score = candidate, cand_score
-                if best_score == 0:
-                    break
-
-        # Fallback: permissive decode can salvage partially-broken sequences
-        if best_score > 0:
-            for enc in ("latin1", "cp1252"):
-                try:
-                    candidate = name.encode(enc, errors="ignore").decode("utf-8", errors="ignore")
-                except Exception:
-                    continue
-                cand_score = _m_score(candidate)
-                if cand_score < best_score:
-                    best, best_score = candidate, cand_score
-                    if best_score == 0:
-                        break
-
-        name = best
-
-    name = re.sub(r"\s+", " ", name)
-    name = ''.join(ch for ch in unicodedata.normalize('NFKD', name) if not unicodedata.combining(ch))
-    return name.casefold()
-
-
-def _ensure_required_df_columns(df):
-    # Accept common variants like 'Designation' vs 'Désignation'
-    required = ['Désignation', 'Marque', 'Quantité', 'Prix Achat TTC', 'Prix Unit. TTC', 'TVA (%)']
-    norm_map = { _normalize_colname(c): c for c in df.columns }
-    for target in required:
-        if target in df.columns:
-            continue
-        want = _normalize_colname(target)
-        src = norm_map.get(want)
-        if src is None:
-            want2 = re.sub(r"[^a-z0-9]+", "", want)
-            for c in df.columns:
-                if re.sub(r"[^a-z0-9]+", "", _normalize_colname(c)) == want2:
-                    src = c
-                    break
-        if src is not None:
-            df.rename(columns={src: target}, inplace=True)
-        else:
-            raise KeyError(f"Missing required column {target!r}. Columns: {list(df.columns)!r}")
-
-
 def sanitize_df(df):
     df = df.copy()
-    _ensure_required_df_columns(df)
     orig = df["Désignation"].astype(str).str.strip()
     canon = orig.str.lower().map(CANON_MAP)
     df["Désignation"] = canon.fillna(orig)

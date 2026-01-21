@@ -13,5 +13,10 @@
     "label": "reparation instalation solaire avec injection sur le reseaux",
     "default_tva": 20,
     "default_photo": "installation"
+  },
+  {
+    "label": "pergola en acier galvaniser",
+    "default_tva": 20,
+    "default_photo": ""
   }
 ]

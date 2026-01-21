@@ -1,8 +1,8 @@
 {
   "Onduleur Injection": {
     "__default__": {
-      "sell_ttc": 12000.0,
-      "buy_ttc": 9500.0
+      "sell_ttc": 15000.0,
+      "buy_ttc": 11000.0
     },
     "Huawei": {
       "5": {
@@ -101,8 +101,8 @@
   },
   "Onduleur Hybride": {
     "__default__": {
-      "sell_ttc": 17000.0,
-      "buy_ttc": 12000.0
+      "sell_ttc": 28000.0,
+      "buy_ttc": 24000.0
     },
     "Deye": {
       "5": {
@@ -133,6 +133,10 @@
             "phase": "Triphase",
             "sell_ttc": 38000.0,
             "buy_ttc": 30600.0
+          },
+          "Triphase": {
+            "sell_ttc": 36000.0,
+            "buy_ttc": 30000.0
           }
         }
       },
@@ -142,6 +146,10 @@
             "phase": "Triphase",
             "sell_ttc": 47000.0,
             "buy_ttc": 4200.0
+          },
+          "Triphase": {
+            "sell_ttc": 47000.0,
+            "buy_ttc": 42000.0
           }
         }
       }
@@ -181,8 +189,8 @@
       }
     },
     "Canadien Solar 710W": {
-      "sell_ttc": 1100.0,
-      "buy_ttc": 900.0
+      "sell_ttc": 1250.0,
+      "buy_ttc": 980.0
     },
     "jinko": {
       "sell_ttc": 1100.0,
@@ -248,24 +256,24 @@
   "Smart Meter": {
     "__default__": {
       "sell_ttc": 1500.0,
-      "buy_ttc": 1500.0
+      "buy_ttc": 2000.0
     }
   },
   "Wifi Dongle": {
     "__default__": {
-      "sell_ttc": 800.0,
+      "sell_ttc": 1000.0,
       "buy_ttc": 700.0
     }
   },
   "Accessoires": {
     "__default__": {
-      "sell_ttc": 500.0,
+      "sell_ttc": 1000.0,
       "buy_ttc": 2000.0
     }
   },
   "Tableau De Protection AC/DC": {
     "__default__": {
-      "sell_ttc": 1500.0,
+      "sell_ttc": 1000.0,
       "buy_ttc": 1500.0
     }
   },
@@ -289,7 +297,7 @@
   },
   "Transport": {
     "__default__": {
-      "sell_ttc": 800.0,
+      "sell_ttc": 1000.0,
       "buy_ttc": 800.0
     }
   },

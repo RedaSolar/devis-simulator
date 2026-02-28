@@ -1233,6 +1233,12 @@ def build_devis_section_elements(df, notes, styles, scenario_title):
         fontSize=11,
         leading=13,
     )
+    style_small = ParagraphStyle(
+        "small",
+        parent=style_normal,
+        fontSize=9,
+        leading=11,
+    )
     style_header_white = ParagraphStyle(
         "header_white",
         parent=style_header,

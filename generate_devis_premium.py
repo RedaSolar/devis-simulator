@@ -438,7 +438,7 @@ def _style_ax(fig, ax):
     ax.grid(axis="y", color="#F3F4F6", linewidth=0.8, zorder=0)
 
 def make_chart_roi():
-    fig, ax = plt.subplots(figsize=(13, 3.5), dpi=130)
+    fig, ax = plt.subplots(figsize=(13, 4.5), dpi=130)
     _style_ax(fig, ax)
     x = np.array(YEARS); ys = np.array(CUMUL_S); ya = np.array(CUMUL_A)
     ax.axhline(0, color="#D1D5DB", linewidth=1.0, linestyle="--", zorder=1)
@@ -467,17 +467,40 @@ def make_chart_roi():
     return b64(buf)
 
 def make_chart_monthly():
-    fig, ax = plt.subplots(figsize=(13, 3.0), dpi=130)
-    _style_ax(fig, ax)
-    x = np.arange(12); w = 0.38
-    ax.bar(x - w/2, ECO_S_M, w, color=CNM, alpha=0.85, label="Sans batterie", zorder=3)
-    ax.bar(x + w/2, ECO_A_M, w, color=CA,  alpha=0.90, label="Avec batterie",  zorder=3)
-    ax.set_xticks(x); ax.set_xticklabels(MONTHS, fontsize=8.5, color=CG4)
-    ax.set_ylabel("MAD / mois", fontsize=9, color=CG4, labelpad=4)
-    leg = ax.legend(fontsize=9, frameon=True, loc="upper center",
-                    bbox_to_anchor=(0.5, 1.22), ncol=2, edgecolor="#E5E7EB", facecolor="white")
+    # Estimate ONEE monthly bill: proxy = ECO_S_ANN / 0.65 distributed by ECO_S_M seasonality
+    _onee_annual = ECO_S_ANN / 0.65
+    _eco_s_sum   = sum(ECO_S_M)
+    _onee_m      = [round(v * _onee_annual / _eco_s_sum) for v in ECO_S_M]
+
+    fig, ax = plt.subplots(figsize=(13, 4.0), dpi=130)
+    fig.patch.set_facecolor("white"); ax.set_facecolor("white")
+    for s in ["top", "right"]: ax.spines[s].set_visible(False)
+    ax.spines["left"].set_color("#EAECF0"); ax.spines["bottom"].set_color("#EAECF0")
+
+    x = np.arange(12); w = 0.27
+    c_onee = "#E05A5A"
+    ax.bar(x - w,   _onee_m, w, color=c_onee, alpha=0.82, label="Facture ONEE (estimée)", zorder=3, linewidth=0)
+    ax.bar(x,       ECO_S_M, w, color=CNM,    alpha=0.85, label="Économies Option 1",      zorder=3, linewidth=0)
+    ax.bar(x + w,   ECO_A_M, w, color=CA,     alpha=0.90, label="Économies Option 2",      zorder=3, linewidth=0)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(MONTHS, fontsize=9, color="#374151")
+    ax.tick_params(axis="x", length=0, pad=5)
+    ax.tick_params(axis="y", colors="#9BA3AE", labelsize=8)
+    ax.set_ylabel("MAD / mois", fontsize=9, color="#9BA3AE", labelpad=6)
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{int(v):,}".replace(",", "\u202f")))
+    ax.grid(axis="y", color="#F3F4F6", linewidth=0.7, zorder=0)
+    ax.set_axisbelow(True)
+    ax.set_xlim(-0.6, 11.6)
+
+    leg = ax.legend(fontsize=8.5, frameon=True, loc="upper center",
+                    bbox_to_anchor=(0.5, 1.18), ncol=3,
+                    edgecolor="#E5E7EB", facecolor="white",
+                    handlelength=1.2, handleheight=1.0,
+                    borderpad=0.6, columnspacing=1.2)
     leg.get_frame().set_linewidth(0.8)
-    plt.tight_layout(pad=0.5); fig.subplots_adjust(top=0.80)
+
+    plt.tight_layout(pad=0.4); fig.subplots_adjust(top=0.82)
     buf = io.BytesIO(); plt.savefig(buf, format="png", bbox_inches="tight", facecolor="white"); plt.close(fig)
     return b64(buf)
 
@@ -544,6 +567,8 @@ def page1():
 
   <!-- ═══ DARK NAVY HERO ═══ -->
   <div style="background:{CN};flex-shrink:0;position:relative;padding:6px 28px 38px 28px;">
+    <!-- Amber radial glow — top-right, behind N°412 -->
+    <div style="position:absolute;top:0;right:0;width:230px;height:150px;background:radial-gradient(ellipse at 85% 10%, rgba(245,166,35,0.20) 0%, transparent 65%);pointer-events:none;z-index:0;"></div>
 
     <!-- Row 1: Logo box (left) + subtitle text (right) -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;">
@@ -558,7 +583,7 @@ def page1():
     <div style="color:{CA};font-size:6px;letter-spacing:1.5px;font-weight:600;margin-top:8px;margin-bottom:3px;white-space:nowrap;">TAQA &nbsp;&#183;&nbsp; INNOVATION &nbsp;&#183;&nbsp; NOR</div>
 
     <!-- Gold separator — AFTER tagline, BEFORE PROPOSITION -->
-    <div style="height:1px;background:{CA};opacity:0.5;margin-bottom:4px;"></div>
+    <div style="height:1px;background:{CA};opacity:0.80;margin-bottom:4px;"></div>
 
     <!-- Row 2: Title+client left / Ref+validity right -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
@@ -603,19 +628,19 @@ def page1():
 
       <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
         <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">Puissance Install&#233;e</div>
-        <div class="serif" style="font-size:17pt;color:{CN};line-height:1.05;">{KWC}&nbsp;kWc</div>
+        <div class="serif" style="font-size:19pt;color:{CN};line-height:1.05;">{KWC}&nbsp;kWc</div>
         <div style="font-size:6.5pt;color:{CG4};margin-top:3px;">{NB_PAN} panneaux &#215; {WP}&nbsp;W</div>
       </div>
 
       <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
         <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">Production Annuelle</div>
-        <div class="serif" style="font-size:17pt;color:{CN};line-height:1.05;">{pk}&nbsp;kWh</div>
+        <div class="serif" style="font-size:19pt;color:{CN};line-height:1.05;">{pk}&nbsp;kWh</div>
         <div style="font-size:6.5pt;color:{CG4};margin-top:3px;">&#233;nergie propre / an</div>
       </div>
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:#FFFBF2;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
         <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">&#201;conomies / an</div>
-        <div class="serif" style="font-size:12pt;color:{CN};line-height:1.1;"><span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span></div>
+        <div class="serif" style="font-size:13pt;color:{CN};line-height:1.1;"><span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span></div>
         <div style="font-size:6.5pt;color:{CA};margin-top:3px;">selon option choisie</div>
       </div>
 
@@ -634,11 +659,11 @@ def page1():
   <div style="display:flex;flex-shrink:0;gap:12px;padding:0 24px 10px;align-items:flex-start;">
 
     <!-- OPTION 1 -->
-    <div style="flex:1;border:1.5px solid {CA};border-top:5px solid {CA};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:white;">
+    <div style="flex:1;border:1.5px solid {CA};border-top:5px solid {CA};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:white;box-shadow:0 6px 24px rgba(0,0,0,0.08),0 1px 4px rgba(0,0,0,0.04);">
       <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 1</div>
       <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Sans batterie</div>
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Autoconsommation directe</div>
-      <div class="serif" style="font-size:28pt;font-weight:400;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
+      <div class="serif" style="font-size:30pt;font-weight:400;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
         <span style="white-space:nowrap;">{ts}</span>
       </div>
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
@@ -658,12 +683,12 @@ def page1():
     </div>
 
     <!-- OPTION 2 — amber border, warm amber bg, RECOMMANDÉ badge, DARK NAVY top bar -->
-    <div style="flex:1;border:1.5px solid {CA};border-top:6px solid {CN};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:{CAL};">
+    <div style="flex:1;border:1.5px solid {CA};border-top:6px solid {CN};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:{CAL};box-shadow:0 6px 24px rgba(245,166,35,0.18),0 0 0 1px rgba(245,166,35,0.15),0 1px 4px rgba(0,0,0,0.04);">
       <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 2</div>
-      <div style="display:block;background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:4px 9px;border-radius:3px;text-transform:uppercase;text-align:center;margin-bottom:6px;width:100%;box-sizing:border-box;">&#9733; RECOMMAND&#201;</div>
+      <div style="display:block;background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:8px;text-transform:uppercase;text-align:center;margin-bottom:6px;width:100%;box-sizing:border-box;">&#9733; RECOMMAND&#201;</div>
       <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Avec batterie</div>
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
-      <div class="serif" style="font-size:28pt;font-weight:400;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
+      <div class="serif" style="font-size:30pt;font-weight:400;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
         <span style="white-space:nowrap;">{ta}</span>
       </div>
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
@@ -755,18 +780,19 @@ def page2(sans_items, img_roi, img_mon):
     </div>
   </div>
 
-  <div style="padding:4px 24px 6px;flex-grow:1;display:flex;flex-direction:column;gap:5px;">
-    <div style="background:{CG1};border-radius:7px;padding:7px 11px;border:1px solid {CG2};">
+  <div style="padding:4px 24px 6px;flex-grow:1;display:flex;flex-direction:column;gap:10px;">
+    <div style="background:{CG1};border-radius:7px;padding:8px 11px;border:1px solid {CG2};">
       <div style="font-size:7pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">
         &#128200; Gain cumul\u00e9 sur 25 ans \u2014 Point de retour sur investissement
       </div>
-      <img src="{img_roi}" style="width:100%;max-height:160px;object-fit:contain;display:block;">
+      <img src="{img_roi}" style="width:100%;max-height:200px;object-fit:contain;display:block;">
     </div>
-    <div style="background:{CG1};border-radius:7px;padding:7px 11px;border:1px solid {CG2};">
-      <div style="font-size:7pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">
+    <div style="background:{CG1};border-radius:7px;padding:8px 11px;border:1px solid {CG2};">
+      <div style="font-size:7pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px;">
         &#128197; \u00c9conomies mensuelles estim\u00e9es (MAD / mois)
       </div>
-      <img src="{img_mon}" style="width:100%;max-height:145px;object-fit:contain;display:block;">
+      <div style="font-size:6pt;color:{CG4};font-style:italic;margin-bottom:4px;">Facture ONEE estim\u00e9e vs \u00e9conomies solaires par mois</div>
+      <img src="{img_mon}" style="width:100%;max-height:185px;object-fit:contain;display:block;">
     </div>
   </div>
 
@@ -950,17 +976,6 @@ def page3():
       </div>
     </div>
 
-    <!-- LEGAL STAMP BAR -->
-    <div style="background:#0F1E35;border-radius:8px;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-      <div style="display:flex;flex-direction:column;">
-        <div style="color:white;font-weight:700;font-size:11px;">Taqinor Solutions SARLAU</div>
-        <div style="color:rgba(255,255,255,0.60);font-size:9px;">RC&#160;: 691&#8239;213 &nbsp;&#183;&nbsp; ICE&#160;: 003&#8239;799&#8239;642&#8239;000&#8239;067</div>
-      </div>
-      <div style="display:flex;flex-direction:column;text-align:right;">
-        <div style="color:rgba(255,255,255,0.60);font-size:9px;">Capital social&#160;: 100&#8239;000 MAD</div>
-        <div style="color:rgba(255,255,255,0.60);font-size:9px;">SARLAU &nbsp;&#183;&nbsp; Casablanca</div>
-      </div>
-    </div>
   </div>
 
   {footer_p3()}

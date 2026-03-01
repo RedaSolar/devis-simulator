@@ -15,7 +15,11 @@
       "Bash(__NEW_LINE_0cc92f1ae2e0eabe__ curl:*)",
       "Bash(pdftotext:*)",
       "Bash(pdftoppm:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(timeout 60 python:*)",
+      "Bash(dir:*)",
+      "Bash(python3:*)",
+      "Bash(claude config:*)"
     ]
   }
 }

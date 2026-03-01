@@ -341,17 +341,14 @@ def _logo_dark_b64():
     return base64.b64encode(buf.getvalue()).decode()
 
 def logo_p1_dark():
-    """Logo for dark header — white filled stamp card using raw logo.png."""
+    """Logo for dark header — transparent, no white box."""
     p = BASE_DIR / "logo.png"
     if p.exists():
-        img_tag = (f'<img src="{b64(p)}" alt="TAQINOR" '
-                   f'style="height:68px;width:auto;object-fit:contain;display:block;">')
-        return (f'<div style="background:white;padding:11px;display:inline-block;">'
-                f'{img_tag}'
-                f'</div>')
-    # Fallback: text logo on white stamp
-    return (f'<div style="background:white;padding:11px 15px;display:inline-block;">'
-            f'<div style="font-size:15px;font-weight:900;color:{CN};letter-spacing:1px;line-height:1.1;">'
+        return (f'<img src="{b64(p)}" alt="TAQINOR" '
+                f'style="height:82px;width:auto;object-fit:contain;display:block;">')
+    # Fallback: text on dark background
+    return (f'<div style="display:inline-block;">'
+            f'<div style="font-size:17px;font-weight:900;color:white;letter-spacing:1px;line-height:1.1;">'
             f'TAQIN<span style="color:{CA};">&#9733;</span>R</div>'
             f'</div>')
 
@@ -510,7 +507,7 @@ def make_chart_monthly():
 
     # Custom legend handles: patch for bar, line+marker for each line series
     legend_handles = [
-        Patch(facecolor=c_bar, alpha=0.60, label="Facture sans PV (estim\u00e9e)", linewidth=0),
+        Patch(facecolor=c_bar, alpha=0.60, label="Facture ONEE sans PV", linewidth=0),
         Line2D([0], [0], color=CNM, linewidth=2.2, marker="o", markersize=5.5,
                markerfacecolor="white", markeredgewidth=1.8, markeredgecolor=CNM,
                label="\u00c9conomies Option\u00a01 \u2013 Sans batterie"),
@@ -593,7 +590,7 @@ def page1():
   <!-- ═══ DARK NAVY HERO ═══ -->
   <div style="background:{CN};flex-shrink:0;position:relative;padding:14px 28px 40px 28px;">
     <!-- Amber radial glow — top-right, behind N°412 -->
-    <div style="position:absolute;top:0;right:0;width:230px;height:150px;background:radial-gradient(ellipse at 85% 10%, rgba(245,166,35,0.20) 0%, transparent 65%);pointer-events:none;z-index:0;"></div>
+    <div style="position:absolute;top:0;right:0;width:260px;height:170px;background:radial-gradient(ellipse at 82% 12%, rgba(245,166,35,0.26) 0%, transparent 62%);pointer-events:none;z-index:0;"></div>
 
     <!-- Row 1: Logo box (left) + subtitle text (right) -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;">
@@ -605,7 +602,7 @@ def page1():
     </div>
 
     <!-- Tagline BELOW logo box — 20px gap -->
-    <div style="color:{CA};font-size:6px;letter-spacing:1.5px;font-weight:600;margin-top:8px;margin-bottom:3px;white-space:nowrap;">TAQA &nbsp;&#183;&nbsp; INNOVATION &nbsp;&#183;&nbsp; NOR</div>
+    <div style="color:{CA};font-size:6px;letter-spacing:2.5px;font-weight:600;margin-top:8px;margin-bottom:3px;white-space:nowrap;">TAQA &nbsp;&#183;&nbsp; INNOVATION &nbsp;&#183;&nbsp; NOR</div>
 
     <!-- Gold separator — AFTER tagline, BEFORE PROPOSITION -->
     <div style="height:1px;background:{CA};opacity:0.80;margin-bottom:4px;"></div>
@@ -622,8 +619,8 @@ def page1():
       <!-- RIGHT: Ref label + N°412 + date + Validité badge -->
       <div style="text-align:right;flex-shrink:0;">
         <div style="font-size:7pt;color:{CG4};margin-bottom:1px;">R&#233;f&#233;rence devis</div>
-        <div class="serif" style="font-size:50pt;font-weight:400;color:{CA};line-height:0.90;letter-spacing:-2px;">N&#176;&nbsp;{REF}</div>
-        <div style="font-size:8.5pt;color:white;margin-top:5px;">{DATE_STR}</div>
+        <div class="serif" style="font-size:35pt;font-weight:400;color:{CA};line-height:0.90;letter-spacing:-1px;">N&#176;&nbsp;{REF}</div>
+        <div style="font-size:8.5pt;color:rgba(255,255,255,0.82);margin-top:5px;">{DATE_STR}</div>
         <div style="margin-top:5px;display:inline-block;background:{CA};color:{CN};border-radius:5px;padding:3px 10px;font-size:6.5pt;font-weight:700;">Validit&#233;&#160;: 30 jours</div>
       </div>
 
@@ -651,13 +648,13 @@ def page1():
   <div style="padding:2px 24px 8px;flex-shrink:0;">
     <div style="display:flex;gap:9px;">
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 3px 14px rgba(0,0,0,0.07),0 1px 3px rgba(0,0,0,0.04);">
         <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">Puissance Install&#233;e</div>
         <div class="serif" style="font-size:19pt;color:{CN};line-height:1.05;">{KWC}&nbsp;kWc</div>
         <div style="font-size:6.5pt;color:{CG4};margin-top:3px;">{NB_PAN} panneaux &#215; {WP}&nbsp;W</div>
       </div>
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 3px 14px rgba(0,0,0,0.07),0 1px 3px rgba(0,0,0,0.04);">
         <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">Production Annuelle</div>
         <div class="serif" style="font-size:19pt;color:{CN};line-height:1.05;">{pk}&nbsp;kWh</div>
         <div style="font-size:6.5pt;color:{CG4};margin-top:3px;">&#233;nergie propre / an</div>
@@ -816,7 +813,7 @@ def page2(sans_items, img_roi, img_mon):
       <div style="font-size:7pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px;">
         &#128197; \u00c9conomies mensuelles estim\u00e9es (MAD / mois)
       </div>
-      <div style="font-size:6pt;color:{CG4};font-style:italic;margin-bottom:4px;">Facture ONEE estim\u00e9e vs \u00e9conomies solaires par mois</div>
+      <div style="font-size:6pt;color:{CG4};font-style:italic;margin-bottom:4px;">Facture ONEE vs \u00e9conomies solaires par mois</div>
       <img src="{img_mon}" style="width:100%;max-height:185px;object-fit:contain;display:block;">
     </div>
   </div>
@@ -932,7 +929,7 @@ def page3():
         <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Solde \u00e0 la r\u00e9ception&#160;: 70&#37;</li>
         <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>D\u00e9lai d&#8217;installation&#160;: 7\u201314 jours ouvr\u00e9s</li>
         <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>TVA 10&#37; modules / 20&#37; autres</li>
-        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Tarifs de r\u00e9f\u00e9rence&#160;: bar\u00e8me ONEE/SRM tranche&#160;3</li>
+        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Tarifs de r\u00e9f\u00e9rence&#160;: bar\u00e8me ONEE/SRM</li>
       </ul>
     </div>
   </div>

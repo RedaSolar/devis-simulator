@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find . -type f -not -path './.git/*' -not -path './__pycache__/*' -exec ls -lh {} ;)",
+      "Bash(wc:*)",
+      "Bash(du:*)",
+      "Bash(ls:*)",
+      "Bash(python:*)",
+      "Bash(cmd:*)",
+      "Bash(netstat:*)",
+      "Bash(tasklist:*)",
+      "Bash(curl:*)",
+      "Bash(__NEW_LINE_1d8b9ff7844840fc__ curl:*)",
+      "Bash(__NEW_LINE_c1776b08444d5b7a__ curl:*)",
+      "Bash(__NEW_LINE_0cc92f1ae2e0eabe__ curl:*)",
+      "Bash(pdftotext:*)",
+      "Bash(pdftoppm:*)",
+      "Bash(git:*)"
+    ]
+  }
+}

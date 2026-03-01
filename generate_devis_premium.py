@@ -297,17 +297,17 @@ def logo_p1_dark():
     if b64_str:
         img_tag = (f'<img src="data:image/png;base64,{b64_str}" alt="TAQINOR" '
                    f'style="height:44px;object-fit:contain;display:block;">')
-        return (f'<div style="display:inline-flex;flex-direction:column;align-items:flex-start;gap:3px;">'
+        return (f'<div style="display:inline-flex;flex-direction:column;align-items:flex-start;gap:4px;">'
                 f'{img_tag}'
-                f'<div style="font-size:8px;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;">'
-                f'T&nbsp;A&nbsp;Q&nbsp;A&nbsp;&nbsp;&#183;&nbsp;&nbsp;I&nbsp;N&nbsp;N&nbsp;O&nbsp;V&nbsp;A&nbsp;T&nbsp;I&nbsp;O&nbsp;N&nbsp;&nbsp;&#183;&nbsp;&nbsp;N&nbsp;O&nbsp;R</div>'
+                f'<div style="font-size:6.5pt;letter-spacing:2.5px;color:{CA};font-weight:700;text-transform:uppercase;padding-left:2px;">'
+                f'TAQA&nbsp;&#183;&nbsp;INNOVATION&nbsp;&#183;&nbsp;NOR</div>'
                 f'</div>')
     # Fallback: text logo
     return (f'<div style="display:inline-flex;flex-direction:column;align-items:flex-start;">'
             f'<div style="font-size:18px;font-weight:900;color:white;letter-spacing:1px;line-height:1.1;">'
             f'TAQIN<span style="color:{CA};">&#9733;</span>R</div>'
-            f'<div style="font-size:8px;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-top:3px;">'
-            f'T&nbsp;A&nbsp;Q&nbsp;A&nbsp;&nbsp;&#183;&nbsp;&nbsp;I&nbsp;N&nbsp;N&nbsp;O&nbsp;V&nbsp;A&nbsp;T&nbsp;I&nbsp;O&nbsp;N&nbsp;&nbsp;&#183;&nbsp;&nbsp;N&nbsp;O&nbsp;R</div>'
+            f'<div style="font-size:6.5pt;letter-spacing:2.5px;color:{CA};font-weight:700;text-transform:uppercase;margin-top:4px;padding-left:2px;">'
+            f'TAQA&nbsp;&#183;&nbsp;INNOVATION&nbsp;&#183;&nbsp;NOR</div>'
             f'</div>')
 
 def footer_p1():
@@ -580,9 +580,9 @@ def page1():
       </div>
     </div>
 
-    <!-- OPTION 2 — navy border 2px, "Option 2" label navy, separate amber RECOMMANDÉ badge -->
-    <div style="flex:1;border:2px solid {CN};border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;background:white;">
-      <div style="font-size:5.5pt;letter-spacing:3px;color:{CN};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Option 2</div>
+    <!-- OPTION 2 — amber border, warm amber bg, RECOMMANDÉ badge -->
+    <div style="flex:1;border:2px solid {CA};border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;background:{CAL};">
+      <div style="font-size:5.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Option 2</div>
       <span style="background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:2px 9px;border-radius:20px;text-transform:uppercase;align-self:flex-start;margin-bottom:6px;">&#9733; RECOMMAND&#201;</span>
       <div style="font-size:13pt;font-weight:800;color:{CN};margin-bottom:2px;">Avec batterie</div>
       <div style="font-size:7.5pt;color:{CA};font-weight:600;margin-bottom:8px;">Stockage + autonomie nocturne</div>
@@ -914,7 +914,7 @@ def generate():
     sys.stdout.buffer.flush()
     html = build_html()
 
-    out = BASE_DIR / "devis_client" / f"devis_taqinor_{ref}_v11.pdf"
+    out = BASE_DIR / "devis_client" / f"devis_taqinor_{ref}_v12.pdf"
     out.parent.mkdir(exist_ok=True)
 
     print("[2/3] Writing temp HTML...")

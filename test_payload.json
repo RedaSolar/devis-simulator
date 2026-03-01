@@ -1,0 +1,23 @@
+{
+  "doc_number": 8888,
+  "installation_type": "Résidentielle",
+  "client_name": "Test Client",
+  "client_address": "123 Rue Test",
+  "client_phone": "0600000000",
+  "scenario_choice": "Les deux (Sans + Avec)",
+  "recommended_option": "Aucune recommandation",
+  "puissance_kwp": 4.15,
+  "puissance_panneau_w": 415,
+  "notes_sans": [],
+  "notes_avec": [],
+  "roi_data": {"factures_mensuelles": [500,500,500,500,500,500,700,700,700,700,700,700], "day_usage_percent": 60},
+  "product_lines": [
+    {"designation": "Panneaux", "marque": "JA Solar 415W", "quantite": 10, "prix_achat_ttc": 1000, "prix_unit_ttc": 1200, "tva": 20},
+    {"designation": "Onduleur réseau", "marque": "Huawei 5kW", "quantite": 1, "prix_achat_ttc": 3000, "prix_unit_ttc": 3500, "tva": 20},
+    {"designation": "Onduleur hybride", "marque": "Huawei 5kW", "quantite": 1, "prix_achat_ttc": 3500, "prix_unit_ttc": 4000, "tva": 20},
+    {"designation": "Batterie", "marque": "Pylontech 5kWh", "quantite": 2, "prix_achat_ttc": 5000, "prix_unit_ttc": 6000, "tva": 20},
+    {"designation": "Installation", "marque": "", "quantite": 1, "prix_achat_ttc": 2000, "prix_unit_ttc": 2500, "tva": 20}
+  ],
+  "custom_lines_sans": [],
+  "custom_lines_avec": []
+}

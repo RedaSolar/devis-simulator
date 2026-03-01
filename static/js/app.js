@@ -1,0 +1,900 @@
+// =========================================================
+// TAQINOR Solar Quote Simulator — Application Logic
+// =========================================================
+
+const MONTHS_FR = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Août","Sep","Oct","Nov","Déc"];
+
+let roiChart = null;
+let currentProductLines = [];
+let currentRoiResult = null;
+
+// ---- Toast Notifications ----
+function showToast(message, type = 'info', duration = 4000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const icons = { success: '✓', danger: '✕', warning: '⚠', info: 'ℹ' };
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || 'ℹ'}</span>
+        <span class="toast-msg">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    container.appendChild(toast);
+    if (duration > 0) {
+        setTimeout(() => toast.remove(), duration);
+    }
+}
+
+// ---- Tab Navigation ----
+function showTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-link[data-tab]').forEach(el => el.classList.remove('active'));
+    const tabEl = document.getElementById(`tab-${tabName}`);
+    if (tabEl) tabEl.classList.add('active');
+    const navEl = document.querySelector(`.nav-link[data-tab="${tabName}"]`);
+    if (navEl) navEl.classList.add('active');
+
+    // Load data for specific tabs
+    if (tabName === 'history') loadHistory();
+    if (tabName === 'catalog') loadCatalog();
+    if (tabName === 'admin') loadUsers();
+}
+
+// ---- Initialize App ----
+async function initApp() {
+    if (!requireAuth()) return;
+    const user = getUser();
+
+    // Update UI with user info
+    const userInfoEl = document.getElementById('user-info');
+    if (userInfoEl && user) {
+        userInfoEl.innerHTML = `
+            <span class="user-badge">
+                ${user.username}
+                <span class="role">${user.role}</span>
+            </span>
+        `;
+    }
+
+    // Show/hide admin tab
+    const adminTabBtn = document.getElementById('nav-admin');
+    if (adminTabBtn) {
+        adminTabBtn.style.display = (user && user.role === 'admin') ? 'inline-flex' : 'none';
+    }
+
+    // Set default doc number
+    try {
+        const res = await authFetch('/api/devis');
+        if (res && res.ok) {
+            const history = await res.json();
+            const maxNum = history.reduce((m, d) => Math.max(m, parseInt(d.doc_number) || 0), 0);
+            const docNumEl = document.getElementById('doc-number');
+            if (docNumEl && docNumEl.value <= 0) {
+                docNumEl.value = maxNum + 1;
+            }
+        }
+    } catch (e) { /* non-critical */ }
+
+    // Initialize monthly bills
+    renderMonthlyInputs([500, 450, 400, 380, 360, 500, 700, 680, 580, 480, 430, 480]);
+
+    // Show first tab
+    showTab('devis');
+
+    // Slider display
+    const slider = document.getElementById('day-usage');
+    if (slider) {
+        const sliderVal = document.getElementById('day-usage-val');
+        if (sliderVal) sliderVal.textContent = slider.value + '%';
+        slider.addEventListener('input', () => {
+            if (sliderVal) sliderVal.textContent = slider.value + '%';
+        });
+    }
+
+    // Default product lines table
+    renderProductLines(getDefaultProductLines());
+}
+
+function getDefaultProductLines() {
+    return [
+        { designation: "Onduleur réseau",   marque: "", quantite: 1, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Onduleur hybride",  marque: "", quantite: 1, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Smart Meter",       marque: "", quantite: 0, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Wifi Dongle",       marque: "", quantite: 0, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Panneaux",          marque: "", quantite: 0, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Batterie",          marque: "", quantite: 1, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Batterie",          marque: "", quantite: 0, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Structures acier",  marque: "", quantite: 0, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Structures aluminium", marque: "", quantite: 0, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Socles",            marque: "", quantite: 0, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Accessoires",       marque: "", quantite: 1, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Tableau De Protection AC/DC", marque: "", quantite: 1, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Installation",      marque: "", quantite: 1, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Transport",         marque: "", quantite: 1, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+        { designation: "Suivi journalier, maintenance chaque 12 mois pendent 2 ans", marque: "", quantite: 1, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
+    ];
+}
+
+// ---- Monthly Inputs ----
+function renderMonthlyInputs(values) {
+    const grid = document.getElementById('monthly-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    MONTHS_FR.forEach((month, i) => {
+        const val = (values && values[i] !== undefined) ? values[i] : 500;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'month-input-wrapper';
+        wrapper.innerHTML = `
+            <span class="month-label">${month}</span>
+            <input type="number" class="form-control month-input" id="month-${i}"
+                   value="${Math.round(val)}" min="0" step="10" placeholder="0">
+        `;
+        grid.appendChild(wrapper);
+    });
+}
+
+function getMonthlyValues() {
+    return MONTHS_FR.map((_, i) => {
+        const el = document.getElementById(`month-${i}`);
+        return el ? parseFloat(el.value) || 0 : 0;
+    });
+}
+
+// ---- Estimate Months ----
+async function estimateMonths() {
+    const fHiver = parseFloat(document.getElementById('f-hiver')?.value) || 0;
+    const fEte = parseFloat(document.getElementById('f-ete')?.value) || 0;
+    if (fHiver <= 0 && fEte <= 0) {
+        showToast('Entrez au moins une facture (hiver ou été)', 'warning');
+        return;
+    }
+    const btn = document.getElementById('btn-estimate-months');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Calcul...'; }
+    try {
+        const res = await authFetch('/api/roi/estimate-months', {
+            method: 'POST',
+            body: JSON.stringify({ f_hiver: fHiver, f_ete: fEte }),
+        });
+        if (!res) return;
+        if (!res.ok) {
+            const err = await res.json();
+            showToast('Erreur: ' + (err.detail || 'Inconnue'), 'danger');
+            return;
+        }
+        const data = await res.json();
+        renderMonthlyInputs(data.monthly);
+        showToast('Factures mensuelles estimées!', 'success');
+    } catch (e) {
+        showToast('Erreur réseau: ' + e.message, 'danger');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '📊 Estimer 12 mois'; }
+    }
+}
+
+// ---- Bill Estimator Sync (client-side interpolation, mirrors Python interpoler_factures) ----
+function interpolerFactures(hiver, ete) {
+    if (ete <= 0) return Array(12).fill(hiver);
+    const premiere = Array.from({length: 7}, (_, i) => hiver + (ete - hiver) / 6 * i);
+    const seconde  = Array.from({length: 5}, (_, i) => ete  - (ete - hiver) / 4 * i);
+    return [...premiere, ...seconde];
+}
+
+function syncBillEstimator() {
+    const fHiver = parseFloat(document.getElementById('f-hiver')?.value) || 0;
+    const fEte   = parseFloat(document.getElementById('f-ete')?.value)   || 0;
+    if (fHiver <= 0) return;
+    renderMonthlyInputs(interpolerFactures(fHiver, fEte > 0 ? fEte : fHiver));
+}
+
+// ---- Auto-fill ----
+async function autoFill() {
+    const kwp = parseFloat(document.getElementById('puissance-kwp')?.value) || 0;
+    const panW = parseInt(document.getElementById('puissance-panneau')?.value) || 710;
+    if (kwp <= 0) {
+        showToast('Entrez la puissance PV (kWp)', 'warning');
+        return;
+    }
+    const btn = document.getElementById('btn-autofill');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Remplissage...'; }
+    try {
+        const res = await authFetch('/api/autofill', {
+            method: 'POST',
+            body: JSON.stringify({ puissance_kwp: kwp, puissance_panneau_w: panW }),
+        });
+        if (!res) return;
+        if (!res.ok) {
+            const err = await res.json();
+            showToast('Erreur autofill: ' + (err.detail || 'Inconnue'), 'danger');
+            return;
+        }
+        const lines = await res.json();
+        currentProductLines = lines;
+        renderProductLines(lines);
+        updateTotals();
+        showToast('Produits auto-remplis depuis le catalogue!', 'success');
+    } catch (e) {
+        showToast('Erreur réseau: ' + e.message, 'danger');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '⚡ Auto-remplir'; }
+    }
+}
+
+// ---- Product Lines Table ----
+function renderProductLines(lines) {
+    currentProductLines = lines || [];
+    const tbody = document.getElementById('product-lines-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    lines.forEach((line, i) => {
+        const tr = document.createElement('tr');
+        tr.dataset.idx = i;
+        tr.innerHTML = `
+            <td>
+                <input type="text" class="table-input table-input-wide" data-field="designation" data-idx="${i}"
+                       value="${escHtml(line.designation || '')}" placeholder="Désignation">
+            </td>
+            <td>
+                <input type="text" class="table-input" data-field="marque" data-idx="${i}"
+                       value="${escHtml(line.marque || '')}" placeholder="Marque">
+            </td>
+            <td>
+                <input type="number" class="table-input table-input-num" data-field="quantite" data-idx="${i}"
+                       value="${line.quantite || 0}" min="0" step="1">
+            </td>
+            <td>
+                <input type="number" class="table-input table-input-num" data-field="prix_unit_ttc" data-idx="${i}"
+                       value="${line.prix_unit_ttc || 0}" min="0" step="100">
+            </td>
+            <td>
+                <input type="number" class="table-input table-input-num" data-field="prix_achat_ttc" data-idx="${i}"
+                       value="${line.prix_achat_ttc || 0}" min="0" step="100">
+            </td>
+            <td>
+                <select class="table-input" data-field="tva" data-idx="${i}">
+                    ${[0,7,10,14,20].map(v => `<option value="${v}" ${v === (line.tva || 20) ? 'selected' : ''}>${v}%</option>`).join('')}
+                </select>
+            </td>
+            <td class="text-right">
+                <span class="row-total" data-idx="${i}">${formatMoney(line.prix_unit_ttc * line.quantite)}</span>
+            </td>
+            <td>
+                <button class="btn btn-danger btn-sm" onclick="removeProductLine(${i})" title="Supprimer">×</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Attach change listeners
+    tbody.querySelectorAll('[data-field]').forEach(el => {
+        el.addEventListener('input', onProductLineChange);
+        el.addEventListener('change', onProductLineChange);
+    });
+    updateTotals();
+}
+
+function onProductLineChange(e) {
+    const el = e.target;
+    const idx = parseInt(el.dataset.idx);
+    const field = el.dataset.field;
+    if (idx < 0 || idx >= currentProductLines.length) return;
+    const val = (field === 'designation' || field === 'marque') ? el.value : parseFloat(el.value) || 0;
+    currentProductLines[idx][field] = val;
+
+    // Update row total
+    const line = currentProductLines[idx];
+    const total = (line.prix_unit_ttc || 0) * (line.quantite || 0);
+    const totalEl = document.querySelector(`.row-total[data-idx="${idx}"]`);
+    if (totalEl) totalEl.textContent = formatMoney(total);
+
+    updateTotals();
+}
+
+function addProductLine() {
+    currentProductLines.push({ designation: "", marque: "", quantite: 0, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 });
+    renderProductLines(currentProductLines);
+}
+
+function removeProductLine(idx) {
+    currentProductLines.splice(idx, 1);
+    renderProductLines(currentProductLines);
+}
+
+function updateTotals() {
+    const lines = getCurrentProductLines();
+    // SANS: exclude Batterie and Onduleur hybride
+    const sanLines = lines.filter(l => !['Batterie', 'Onduleur hybride'].includes(l.designation));
+    // AVEC: exclude Onduleur réseau
+    const avecLines = lines.filter(l => l.designation !== 'Onduleur réseau');
+
+    const totalSans = sanLines.reduce((s, l) => s + (l.prix_unit_ttc * l.quantite), 0);
+    const totalAvec = avecLines.reduce((s, l) => s + (l.prix_unit_ttc * l.quantite), 0);
+
+    const elSans = document.getElementById('total-sans');
+    const elAvec = document.getElementById('total-avec');
+    if (elSans) elSans.textContent = formatMoney(totalSans);
+    if (elAvec) elAvec.textContent = formatMoney(totalAvec);
+
+    return { totalSans, totalAvec };
+}
+
+function getCurrentProductLines() {
+    // Read from DOM to ensure freshness
+    const tbody = document.getElementById('product-lines-tbody');
+    if (!tbody) return currentProductLines;
+    const result = [];
+    tbody.querySelectorAll('tr[data-idx]').forEach(tr => {
+        const idx = parseInt(tr.dataset.idx);
+        if (idx >= 0 && idx < currentProductLines.length) {
+            result.push({ ...currentProductLines[idx] });
+        }
+    });
+    return result.length ? result : currentProductLines;
+}
+
+// ---- Custom Lines ----
+function addCustomLine(scenario) {
+    const tbody = document.getElementById(`custom-${scenario}-tbody`);
+    if (!tbody) return;
+    const idx = tbody.children.length;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" class="table-input table-input-wide" placeholder="Désignation" name="custom_des_${scenario}_${idx}"></td>
+        <td><input type="text" class="table-input" placeholder="Marque" name="custom_marque_${scenario}_${idx}"></td>
+        <td><input type="number" class="table-input table-input-num" placeholder="0" min="0" step="1" name="custom_qty_${scenario}_${idx}" value="1"></td>
+        <td><input type="number" class="table-input table-input-num" placeholder="0" min="0" name="custom_pu_${scenario}_${idx}" value="0"></td>
+        <td><input type="number" class="table-input table-input-num" placeholder="0" min="0" name="custom_pa_${scenario}_${idx}" value="0"></td>
+        <td>
+            <select class="table-input" name="custom_tva_${scenario}_${idx}">
+                ${[0,7,10,14,20].map(v => `<option value="${v}" ${v===20?'selected':''}>${v}%</option>`).join('')}
+            </select>
+        </td>
+        <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">×</button></td>
+    `;
+    tbody.appendChild(tr);
+}
+
+function getCustomLines(scenario) {
+    const tbody = document.getElementById(`custom-${scenario}-tbody`);
+    if (!tbody) return [];
+    const lines = [];
+    tbody.querySelectorAll('tr').forEach((tr, i) => {
+        const des = tr.querySelector(`[name^="custom_des_${scenario}"]`)?.value || '';
+        if (!des.trim()) return;
+        lines.push({
+            designation: des.trim(),
+            marque: tr.querySelector(`[name^="custom_marque_${scenario}"]`)?.value || '',
+            quantite: parseFloat(tr.querySelector(`[name^="custom_qty_${scenario}"]`)?.value) || 0,
+            prix_unit_ttc: parseFloat(tr.querySelector(`[name^="custom_pu_${scenario}"]`)?.value) || 0,
+            prix_achat_ttc: parseFloat(tr.querySelector(`[name^="custom_pa_${scenario}"]`)?.value) || 0,
+            tva: parseFloat(tr.querySelector(`[name^="custom_tva_${scenario}"]`)?.value) || 20,
+        });
+    });
+    return lines;
+}
+
+// ---- Notes ----
+function addNote(scenario) {
+    const container = document.getElementById(`notes-${scenario}`);
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'note-row';
+    row.innerHTML = `
+        <textarea placeholder="Texte de la note..." rows="1"></textarea>
+        <button class="btn btn-danger btn-sm" onclick="this.closest('.note-row').remove()">×</button>
+    `;
+    container.appendChild(row);
+}
+
+function getNotes(scenario) {
+    const container = document.getElementById(`notes-${scenario}`);
+    if (!container) return [];
+    return Array.from(container.querySelectorAll('textarea'))
+        .map(el => el.value.trim())
+        .filter(Boolean);
+}
+
+// ---- Calculate ROI ----
+async function calculateROI() {
+    const kwp = parseFloat(document.getElementById('puissance-kwp')?.value) || 0;
+    if (kwp <= 0) { showToast('Entrez la puissance PV (kWp)', 'warning'); return; }
+
+    const factures = getMonthlyValues();
+    const dayPct = parseInt(document.getElementById('day-usage')?.value) || 60;
+    const { totalSans, totalAvec } = updateTotals();
+
+    const btn = document.getElementById('btn-calc-roi');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Calcul ROI...'; }
+
+    try {
+        const res = await authFetch('/api/roi/calculate', {
+            method: 'POST',
+            body: JSON.stringify({
+                puissance_kwp: kwp,
+                factures_mensuelles: factures,
+                day_usage_percent: dayPct,
+                total_cost_sans: totalSans,
+                total_cost_avec: totalAvec,
+                battery_capacity_kwh: 10.0,
+            }),
+        });
+        if (!res) return;
+        if (!res.ok) {
+            const err = await res.json();
+            showToast('Erreur ROI: ' + (err.detail || 'Inconnue'), 'danger');
+            return;
+        }
+        const data = await res.json();
+        currentRoiResult = data;
+        renderROISummary(data, totalSans, totalAvec);
+        renderROIChart(data);
+        document.getElementById('roi-section')?.classList.remove('hidden');
+        showToast('ROI calculé avec succès!', 'success');
+    } catch (e) {
+        showToast('Erreur réseau: ' + e.message, 'danger');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '📈 Calculer ROI'; }
+    }
+}
+
+function renderROISummary(data, totalSans, totalAvec) {
+    const el = document.getElementById('roi-metrics');
+    if (!el) return;
+    const fmtNum = v => v !== null && v !== undefined ? v.toLocaleString('fr-MA') : 'N/A';
+    el.innerHTML = `
+        <div class="metric-card highlight">
+            <div class="metric-label">Production annuelle</div>
+            <div class="metric-value">${fmtNum(Math.round(data.production_annuelle_kwh))}</div>
+            <div class="metric-unit">kWh / an</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Éco. SANS batterie</div>
+            <div class="metric-value">${fmtNum(Math.round(data.eco_annuelle_sans))}</div>
+            <div class="metric-unit">MAD / an</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Éco. AVEC batterie</div>
+            <div class="metric-value">${fmtNum(Math.round(data.eco_annuelle_avec))}</div>
+            <div class="metric-unit">MAD / an</div>
+        </div>
+        <div class="metric-card highlight-orange">
+            <div class="metric-label">ROI SANS batterie</div>
+            <div class="metric-value">${data.payback_sans !== null ? data.payback_sans + ' ans' : 'N/A'}</div>
+            <div class="metric-unit">retour sur invest.</div>
+        </div>
+        <div class="metric-card highlight-orange">
+            <div class="metric-label">ROI AVEC batterie</div>
+            <div class="metric-value">${data.payback_avec !== null ? data.payback_avec + ' ans' : 'N/A'}</div>
+            <div class="metric-unit">retour sur invest.</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Coût SANS batterie</div>
+            <div class="metric-value">${fmtNum(Math.round(totalSans))}</div>
+            <div class="metric-unit">MAD TTC</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Coût AVEC batterie</div>
+            <div class="metric-value">${fmtNum(Math.round(totalAvec))}</div>
+            <div class="metric-unit">MAD TTC</div>
+        </div>
+    `;
+}
+
+function renderROIChart(data) {
+    const ctx = document.getElementById('roi-chart');
+    if (!ctx) return;
+    if (roiChart) { roiChart.destroy(); }
+    const cumul = data.cumulative_25;
+    roiChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: cumul.years,
+            datasets: [
+                {
+                    label: 'Sans batterie (MAD)',
+                    data: cumul.sans,
+                    borderColor: '#0A5275',
+                    backgroundColor: 'rgba(10,82,117,0.08)',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    fill: true,
+                    tension: 0.3,
+                },
+                {
+                    label: 'Avec batterie (MAD)',
+                    data: cumul.avec,
+                    borderColor: '#F28E2B',
+                    backgroundColor: 'rgba(242,142,43,0.06)',
+                    borderWidth: 2,
+                    borderDash: [5,3],
+                    pointRadius: 3,
+                    fill: true,
+                    tension: 0.3,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { position: 'top', labels: { font: { size: 12 } } },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('fr-MA')} MAD`,
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'Années' },
+                    grid: { display: false },
+                },
+                y: {
+                    title: { display: true, text: 'Gain cumulé (MAD)' },
+                    grid: { color: 'rgba(0,0,0,0.06)' },
+                    ticks: {
+                        callback: v => v.toLocaleString('fr-MA'),
+                    },
+                },
+            },
+        },
+    });
+}
+
+// ---- Collect Form Data ----
+function collectFormData() {
+    const docNumber = parseInt(document.getElementById('doc-number')?.value) || 1;
+    const installType = document.getElementById('install-type')?.value || 'Résidentielle';
+    const clientName = document.getElementById('client-name')?.value || '';
+    const clientAddress = document.getElementById('client-address')?.value || '';
+    const clientPhone = document.getElementById('client-phone')?.value || '';
+    const scenario = document.getElementById('scenario-choice')?.value || 'Les deux (Sans + Avec)';
+    const recommended = document.getElementById('recommended-option')?.value || 'Aucune recommandation';
+    const kwp = parseFloat(document.getElementById('puissance-kwp')?.value) || 0;
+    const panW = parseInt(document.getElementById('puissance-panneau')?.value) || 710;
+    const dayUsage = parseInt(document.getElementById('day-usage')?.value) || 60;
+    const structType = document.querySelector('input[name="structure-type"]:checked')?.value || 'acier';
+
+    const factures = getMonthlyValues();
+    const lines = getCurrentProductLines();
+    const customSans = getCustomLines('sans');
+    const customAvec = getCustomLines('avec');
+    const notesSans = getNotes('sans');
+    const notesAvec = getNotes('avec');
+
+    return {
+        doc_number: docNumber,
+        installation_type: installType,
+        client_name: clientName,
+        client_address: clientAddress,
+        client_phone: clientPhone,
+        scenario_choice: scenario,
+        recommended_option: recommended,
+        puissance_kwp: kwp,
+        puissance_panneau_w: panW,
+        roi_data: {
+            factures_mensuelles: factures,
+            day_usage_percent: dayUsage,
+        },
+        product_lines: lines,
+        custom_lines_sans: customSans,
+        custom_lines_avec: customAvec,
+        notes_sans: notesSans,
+        notes_avec: notesAvec,
+        structure_type: structType,
+    };
+}
+
+// ---- Generate PDF ----
+async function generatePDF() {
+    const data = collectFormData();
+    if (!data.client_name) { showToast('Entrez le nom du client', 'warning'); return; }
+    if (data.puissance_kwp <= 0) { showToast('Entrez la puissance PV (kWp)', 'warning'); return; }
+    if (!data.product_lines.length) { showToast('Ajoutez au moins une ligne produit', 'warning'); return; }
+
+    const btn = document.getElementById('btn-generate-pdf');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Génération PDF...'; }
+
+    try {
+        const res = await authFetch('/api/devis/generate', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+        if (!res) return;
+        if (!res.ok) {
+            const err = await res.json();
+            showToast('Erreur PDF: ' + (err.detail || 'Inconnue'), 'danger');
+            return;
+        }
+        const result = await res.json();
+        showDownloadBanner(result);
+        showToast('Devis PDF généré avec succès!', 'success', 6000);
+
+        // Update doc counter
+        const docNumEl = document.getElementById('doc-number');
+        if (docNumEl) docNumEl.value = parseInt(data.doc_number) + 1;
+    } catch (e) {
+        showToast('Erreur réseau: ' + e.message, 'danger');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '📄 Générer PDF'; }
+    }
+}
+
+function showDownloadBanner(result) {
+    const container = document.getElementById('download-area');
+    if (!container) return;
+    container.innerHTML = `
+        <div class="download-banner">
+            <span class="download-icon">📄</span>
+            <div>
+                <strong>Devis généré avec succès!</strong><br>
+                <small>${result.pdf_filename}</small><br>
+                <small>SANS: ${formatMoney(result.total_sans)} | AVEC: ${formatMoney(result.total_avec)}</small>
+            </div>
+            <button class="btn btn-primary btn-sm"
+                    onclick="downloadPDF('${result.devis_id}', '${result.pdf_filename}')">
+                ⬇ Télécharger PDF
+            </button>
+        </div>
+    `;
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ---- History Tab ----
+async function loadHistory() {
+    const tbody = document.getElementById('history-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1rem;"><span class="spinner spinner-dark"></span> Chargement...</td></tr>';
+    try {
+        const res = await authFetch('/api/devis');
+        if (!res) return;
+        if (!res.ok) { tbody.innerHTML = '<tr><td colspan="6">Erreur chargement</td></tr>'; return; }
+        const history = await res.json();
+        if (!history.length) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:1rem;">Aucun devis dans l\'historique</td></tr>';
+            return;
+        }
+        tbody.innerHTML = history.map(d => `
+            <tr>
+                <td><strong>${d.doc_number || d.devis_id}</strong></td>
+                <td>${escHtml(d.client_name || '—')}</td>
+                <td>${d.created_at || '—'}</td>
+                <td>${formatMoney(d.total_ttc)}</td>
+                <td>${escHtml(d.scenario_choice || '—')}</td>
+                <td>
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-sm"
+                                onclick="downloadPDF('${d.devis_id}')" title="Télécharger PDF">
+                           ⬇ PDF
+                        </button>
+                        <button class="btn btn-danger btn-sm"
+                                onclick="deleteDevis('${d.devis_id}')" title="Supprimer">× Suppr.</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" style="color:red;">Erreur: ${e.message}</td></tr>`;
+    }
+}
+
+async function downloadPDF(devisId, filename) {
+    try {
+        const res = await authFetch(`/api/devis/${devisId}/pdf`);
+        if (!res || !res.ok) { showToast('Erreur téléchargement PDF', 'danger'); return; }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename || `Devis_${devisId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        showToast('Erreur réseau: ' + e.message, 'danger');
+    }
+}
+
+async function deleteDevis(devisId) {
+    if (!confirm(`Supprimer le devis ${devisId}? Cette action est irréversible.`)) return;
+    try {
+        const res = await authFetch(`/api/devis/${devisId}`, { method: 'DELETE' });
+        if (!res) return;
+        if (res.status === 204 || res.ok) {
+            showToast('Devis supprimé', 'success');
+            loadHistory();
+        } else {
+            const err = await res.json();
+            showToast('Erreur: ' + (err.detail || 'Inconnue'), 'danger');
+        }
+    } catch (e) {
+        showToast('Erreur réseau: ' + e.message, 'danger');
+    }
+}
+
+// ---- Catalog Tab ----
+async function loadCatalog() {
+    const container = document.getElementById('catalog-display');
+    if (!container) return;
+    container.innerHTML = '<p><span class="spinner spinner-dark"></span> Chargement catalogue...</p>';
+    try {
+        const res = await authFetch('/api/catalog');
+        if (!res) return;
+        if (!res.ok) { container.innerHTML = '<p class="alert alert-danger">Erreur chargement catalogue</p>'; return; }
+        const catalog = await res.json();
+        renderCatalogDisplay(catalog, container);
+    } catch (e) {
+        container.innerHTML = `<p class="alert alert-danger">Erreur: ${e.message}</p>`;
+    }
+}
+
+function renderCatalogDisplay(catalog, container) {
+    const sections = [];
+    for (const [category, items] of Object.entries(catalog)) {
+        if (typeof items !== 'object' || !items) continue;
+        const itemsHtml = Object.entries(items)
+            .filter(([k]) => k !== '__default__')
+            .map(([brand, info]) => {
+                const sell = typeof info === 'object' && info.sell_ttc ? formatMoney(info.sell_ttc) : '—';
+                const buy = typeof info === 'object' && info.buy_ttc ? formatMoney(info.buy_ttc) : '—';
+                return `<tr><td>${escHtml(brand)}</td><td>${sell}</td><td>${buy}</td></tr>`;
+            }).join('');
+
+        if (!itemsHtml) continue;
+        sections.push(`
+            <div class="card" style="margin-bottom:1rem;">
+                <div class="card-header"><h3>${escHtml(category)}</h3></div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Marque / Référence</th><th>Prix Vente TTC</th><th>Prix Achat TTC</th></tr></thead>
+                        <tbody>${itemsHtml}</tbody>
+                    </table>
+                </div>
+            </div>
+        `);
+    }
+    container.innerHTML = sections.join('') || '<p class="alert alert-info">Catalogue vide</p>';
+}
+
+async function addCatalogInverter() {
+    const ondType = document.getElementById('inv-type')?.value;
+    const brand = document.getElementById('inv-brand')?.value?.trim();
+    const power = parseFloat(document.getElementById('inv-power')?.value) || 0;
+    const phase = document.getElementById('inv-phase')?.value || 'Monophase';
+    const sell = parseFloat(document.getElementById('inv-sell')?.value) || 0;
+    const buy = parseFloat(document.getElementById('inv-buy')?.value) || 0;
+    if (!brand || power <= 0) { showToast('Remplissez tous les champs requis', 'warning'); return; }
+    try {
+        const res = await authFetch('/api/catalog/inverter', {
+            method: 'POST',
+            body: JSON.stringify({ onduleur_type: ondType, brand, power_kw: power, phase, sell_ttc: sell, buy_ttc: buy }),
+        });
+        if (!res) return;
+        const data = await res.json();
+        showToast(data.message || 'Onduleur ajouté!', 'success');
+        loadCatalog();
+    } catch (e) { showToast('Erreur: ' + e.message, 'danger'); }
+}
+
+async function addCatalogPanel() {
+    const brand = document.getElementById('pan-brand')?.value?.trim();
+    const power = parseInt(document.getElementById('pan-power')?.value) || 0;
+    const sell = parseFloat(document.getElementById('pan-sell')?.value) || 0;
+    const buy = parseFloat(document.getElementById('pan-buy')?.value) || 0;
+    if (!brand || power <= 0) { showToast('Remplissez tous les champs requis', 'warning'); return; }
+    try {
+        const res = await authFetch('/api/catalog/panel', {
+            method: 'POST',
+            body: JSON.stringify({ brand, power_w: power, sell_ttc: sell, buy_ttc: buy }),
+        });
+        if (!res) return;
+        const data = await res.json();
+        showToast(data.message || 'Panneau ajouté!', 'success');
+        loadCatalog();
+    } catch (e) { showToast('Erreur: ' + e.message, 'danger'); }
+}
+
+async function addCatalogBattery() {
+    const brand = document.getElementById('bat-brand')?.value?.trim();
+    const cap = parseFloat(document.getElementById('bat-cap')?.value) || 0;
+    const sell = parseFloat(document.getElementById('bat-sell')?.value) || 0;
+    const buy = parseFloat(document.getElementById('bat-buy')?.value) || 0;
+    if (!brand || cap <= 0) { showToast('Remplissez tous les champs requis', 'warning'); return; }
+    try {
+        const res = await authFetch('/api/catalog/battery', {
+            method: 'POST',
+            body: JSON.stringify({ brand, capacity_kwh: cap, sell_ttc: sell, buy_ttc: buy }),
+        });
+        if (!res) return;
+        const data = await res.json();
+        showToast(data.message || 'Batterie ajoutée!', 'success');
+        loadCatalog();
+    } catch (e) { showToast('Erreur: ' + e.message, 'danger'); }
+}
+
+// ---- Admin Tab ----
+async function loadUsers() {
+    const tbody = document.getElementById('users-tbody');
+    if (!tbody) return;
+    const user = getUser();
+    if (!user || user.role !== 'admin') return;
+    tbody.innerHTML = '<tr><td colspan="4"><span class="spinner spinner-dark"></span> Chargement...</td></tr>';
+    try {
+        const res = await authFetch('/api/auth/users');
+        if (!res) return;
+        if (!res.ok) { tbody.innerHTML = '<tr><td colspan="4">Erreur</td></tr>'; return; }
+        const users = await res.json();
+        tbody.innerHTML = users.map(u => `
+            <tr>
+                <td>${u.id}</td>
+                <td><strong>${escHtml(u.username)}</strong></td>
+                <td><span class="badge badge-${u.role}">${u.role}</span></td>
+                <td>
+                    ${u.username !== 'admin' ? `
+                    <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${escHtml(u.username)}')">
+                        × Supprimer
+                    </button>` : '<em style="color:#aaa">protégé</em>'}
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="4" style="color:red;">Erreur: ${e.message}</td></tr>`;
+    }
+}
+
+async function addUser() {
+    const username = document.getElementById('new-username')?.value?.trim();
+    const password = document.getElementById('new-password')?.value;
+    const role = document.getElementById('new-role')?.value || 'user';
+    if (!username || !password) { showToast('Remplissez username et password', 'warning'); return; }
+    try {
+        const res = await authFetch('/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({ username, password, role }),
+        });
+        if (!res) return;
+        if (!res.ok) {
+            const err = await res.json();
+            showToast('Erreur: ' + (err.detail || 'Inconnue'), 'danger');
+            return;
+        }
+        showToast(`Utilisateur "${username}" créé!`, 'success');
+        document.getElementById('new-username').value = '';
+        document.getElementById('new-password').value = '';
+        loadUsers();
+    } catch (e) { showToast('Erreur: ' + e.message, 'danger'); }
+}
+
+async function deleteUser(userId, username) {
+    if (!confirm(`Supprimer l'utilisateur "${username}"?`)) return;
+    try {
+        const res = await authFetch(`/api/auth/users/${userId}`, { method: 'DELETE' });
+        if (!res) return;
+        if (res.status === 204 || res.ok) {
+            showToast(`Utilisateur "${username}" supprimé`, 'success');
+            loadUsers();
+        } else {
+            const err = await res.json();
+            showToast('Erreur: ' + (err.detail || 'Inconnue'), 'danger');
+        }
+    } catch (e) { showToast('Erreur: ' + e.message, 'danger'); }
+}
+
+// ---- Helpers ----
+function formatMoney(val) {
+    if (val === null || val === undefined || isNaN(val)) return '0 MAD';
+    return Math.round(val).toLocaleString('fr-MA') + ' MAD';
+}
+
+function escHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+// ---- Start app on DOM ready ----
+document.addEventListener('DOMContentLoaded', initApp);

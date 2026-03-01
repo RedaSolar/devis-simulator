@@ -293,21 +293,21 @@ def _logo_dark_b64():
 
 def logo_p1_dark():
     """Real logo.png on dark navy — white bg removed, dark text converted to white."""
+    # DIFF 1: 45px height, spaced subtitle T A Q A · I N N O V A T I O N · N O R at 9px/3px
+    subtitle = (f'<div style="color:{CA};font-size:9px;letter-spacing:3px;margin-top:3px;">'
+                f'T A Q A &nbsp;&#183;&nbsp; I N N O V A T I O N &nbsp;&#183;&nbsp; N O R</div>')
     b64_str = _logo_dark_b64()
     if b64_str:
         img_tag = (f'<img src="data:image/png;base64,{b64_str}" alt="TAQINOR" '
-                   f'style="height:44px;object-fit:contain;display:block;">')
-        return (f'<div style="display:inline-flex;flex-direction:column;align-items:flex-start;gap:4px;">'
-                f'{img_tag}'
-                f'<div style="font-size:6.5pt;letter-spacing:2.5px;color:{CA};font-weight:700;text-transform:uppercase;padding-left:2px;">'
-                f'TAQA&nbsp;&#183;&nbsp;INNOVATION&nbsp;&#183;&nbsp;NOR</div>'
+                   f'style="height:45px;object-fit:contain;display:block;">')
+        return (f'<div style="display:inline-flex;flex-direction:column;align-items:flex-start;">'
+                f'{img_tag}{subtitle}'
                 f'</div>')
     # Fallback: text logo
     return (f'<div style="display:inline-flex;flex-direction:column;align-items:flex-start;">'
             f'<div style="font-size:18px;font-weight:900;color:white;letter-spacing:1px;line-height:1.1;">'
             f'TAQIN<span style="color:{CA};">&#9733;</span>R</div>'
-            f'<div style="font-size:6.5pt;letter-spacing:2.5px;color:{CA};font-weight:700;text-transform:uppercase;margin-top:4px;padding-left:2px;">'
-            f'TAQA&nbsp;&#183;&nbsp;INNOVATION&nbsp;&#183;&nbsp;NOR</div>'
+            f'{subtitle}'
             f'</div>')
 
 def footer_p1():
@@ -484,8 +484,8 @@ def page1():
     return f"""
 <div class="page">
 
-  <!-- DARK NAVY HERO — v5: padding:22px 24px 55px -->
-  <div style="background:{CN};flex-shrink:0;position:relative;padding:22px 24px 55px;">
+  <!-- DARK NAVY HERO — DIFF 4: ~48% page height, generous padding-bottom -->
+  <div style="background:{CN};flex-shrink:0;position:relative;padding:22px 24px 220px;">
 
     <!-- Row 1: Logo left + descriptor right — v5: margin-bottom:16px -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
@@ -503,11 +503,11 @@ def page1():
         <div class="serif" style="font-size:34pt;color:white;line-height:1.0;letter-spacing:-1px;margin-bottom:8px;">Installation<br>Solaire</div>
         <div style="font-size:11pt;font-weight:700;color:white;margin-bottom:3px;">{CLIENT_NAME}</div>
         <div style="font-size:8pt;color:rgba(255,255,255,0.60);line-height:1.7;">{CLIENT_ADDR}<br>{CLIENT_PHONE}</div>
-        <div style="margin-top:8px;display:inline-block;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.20);border-radius:20px;padding:3px 11px;font-size:7.5pt;color:rgba(255,255,255,0.85);font-weight:600;">&#127968; {INST_TYPE}</div>
+        <div style="margin-top:6px;display:inline-block;border:1px solid rgba(255,255,255,0.4);border-radius:20px;padding:3px 10px;font-size:10px;color:white;">&#127968; {INST_TYPE}</div>
       </div>
       <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:5.5pt;letter-spacing:2px;color:rgba(255,255,255,0.50);font-weight:600;text-transform:uppercase;margin-bottom:3px;">R&#233;f&#233;rence devis</div>
-        <div class="serif" style="font-size:42pt;font-weight:800;color:{CA};line-height:1.0;letter-spacing:-1px;">N&#176;&nbsp;{REF}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,0.50);margin-bottom:3px;">R&#233;f&#233;rence devis</div>
+        <div class="serif" style="font-size:40px;font-weight:800;color:{CA};line-height:1.0;letter-spacing:-1px;">N&#176;&nbsp;{REF}</div>
         <div style="font-size:8pt;color:{CG4};margin-top:4px;">{DATE_STR}</div>
         <div style="margin-top:5px;display:inline-block;background:rgba(255,255,255,0.10);color:rgba(255,255,255,0.80);border:1px solid rgba(255,255,255,0.20);border-radius:20px;padding:2px 9px;font-size:7pt;font-weight:600;">Validit&#233;&#160;: 30 jours</div>
       </div>
@@ -552,11 +552,11 @@ def page1():
     <div style="font-size:6.5pt;letter-spacing:3px;color:{CN};font-weight:700;text-transform:uppercase;">Vos Options d&#8217;Installation</div>
   </div>
 
-  <!-- OPTION CARDS — fill remaining page height, cards stretch tall -->
-  <div style="padding:0 24px 6px;flex:1;min-height:0;overflow:hidden;display:flex;gap:12px;align-items:stretch;">
+  <!-- OPTION CARDS — DIFF 5+7: cards shrink to content, no white void -->
+  <div style="padding:0 24px 6px;flex:1;display:flex;gap:12px;align-items:flex-start;">
 
-    <!-- OPTION 1 — amber left border, stretches to fill height -->
-    <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;background:white;">
+    <!-- OPTION 1 — DIFF 5: shrinks to content height -->
+    <div style="flex:1;align-self:flex-start;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;background:white;">
       <div style="font-size:5.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Option 1</div>
       <div style="font-size:13pt;font-weight:800;color:{CN};margin-bottom:2px;">Sans batterie</div>
       <div style="font-size:7.5pt;color:{CGR};font-weight:600;margin-bottom:8px;">Autoconsommation directe</div>
@@ -572,7 +572,6 @@ def page1():
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Smart Meter + Wifi Dongle</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
       </ul>
-      <div style="flex:1;"></div>
       <div style="height:1px;background:{CG2};margin:7px 0;"></div>
       <div style="background:{CG1};border-radius:5px;padding:5px 9px;">
         <span style="font-size:7pt;color:{CG4};">&#201;conomie estim&#233;e&#160;: </span>
@@ -581,7 +580,7 @@ def page1():
     </div>
 
     <!-- OPTION 2 — amber border, warm amber bg, RECOMMANDÉ badge -->
-    <div style="flex:1;border:2px solid {CA};border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;background:{CAL};">
+    <div style="flex:1;align-self:flex-start;border:2px solid {CA};border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;background:{CAL};">
       <div style="font-size:5.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Option 2</div>
       <span style="background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:2px 9px;border-radius:20px;text-transform:uppercase;align-self:flex-start;margin-bottom:6px;">&#9733; RECOMMAND&#201;</span>
       <div style="font-size:13pt;font-weight:800;color:{CN};margin-bottom:2px;">Avec batterie</div>
@@ -599,7 +598,6 @@ def page1():
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Monitoring int&#233;gr&#233; via app Deye</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
       </ul>
-      <div style="flex:1;"></div>
       <div style="height:1px;background:{CG2};margin:7px 0;"></div>
       <div style="background:{CAL};border-radius:5px;padding:5px 9px;">
         <span style="font-size:7pt;color:{CG4};">&#201;conomie estim&#233;e&#160;: </span>
@@ -914,7 +912,7 @@ def generate():
     sys.stdout.buffer.flush()
     html = build_html()
 
-    out = BASE_DIR / "devis_client" / f"devis_taqinor_{ref}_v12.pdf"
+    out = BASE_DIR / "devis_client" / f"devis_taqinor_{ref}_FINAL.pdf"
     out.parent.mkdir(exist_ok=True)
 
     print("[2/3] Writing temp HTML...")
@@ -944,7 +942,7 @@ def generate():
         raise RuntimeError(f"Chrome failed.\n{r.stderr[:400]}")
 
     kb = out.stat().st_size // 1024
-    msg = f"\n\u2705 Done | Pages: 3 | {kb} KB\n"
+    msg = f"\n\u2705 7 fixes applied | Pages: 3 | {kb} KB\n"
     sys.stdout.buffer.write(msg.encode("utf-8", errors="replace"))
     sys.stdout.buffer.flush()
     return str(out)

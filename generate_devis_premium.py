@@ -565,11 +565,12 @@ CSS = f"""
 {_pf_face(700, _PF700)}
 {_pf_face(400, _PF400)}
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0;}}
+html{{background:#FFFFFF !important;}}
 body{{font-family:'DM Sans',sans-serif;font-size:9pt;color:{CG7};
-  background:#FFFFFF;
+  background:#FFFFFF !important;
   -webkit-print-color-adjust:exact;print-color-adjust:exact;}}
-@page{{size:A4;margin:0;}}
-.page{{width:210mm;height:297mm;overflow:hidden;break-after:page;display:flex;flex-direction:column;background:#FFFFFF;}}
+@page{{size:A4;margin:0;background:#FFFFFF;}}
+.page{{width:210mm;height:297mm;overflow:hidden;break-after:page;display:flex;flex-direction:column;background:#FFFFFF !important;}}
 .serif{{font-family:'DM Serif Display',Georgia,serif;}}
 .hc-serif{{font-family:'Playfair Display','Palatino Linotype','Book Antiqua',Georgia,serif;}}
 .eq{{width:100%;border-collapse:collapse;font-size:6.5pt;}}
@@ -642,18 +643,18 @@ def page1():
   </div>
 
   <!-- WHITE CONTENT AREA — fills remaining space, dark strip is compact -->
-  <div style="display:flex;flex-direction:column;padding:0;margin:0;flex:1;background:#FFFFFF;">
+  <div style="display:flex;flex-direction:column;padding:0;margin:0;flex:1;background:#FFFFFF !important;">
 
   <!-- CLIENT INFO — white area, below header band, no overlap -->
-  <div style="padding:8px 24px 4px;flex-shrink:0;background:#FFFFFF;">
+  <div style="padding:8px 24px 4px;flex-shrink:0;background:#FFFFFF !important;">
     <div style="font-size:13pt;font-weight:700;color:{CA};margin-bottom:2px;">{CLIENT_NAME}</div>
     <div style="font-size:8pt;color:{CG4};line-height:1.6;">{CLIENT_ADDR}<br>{CLIENT_PHONE}</div>
     <div style="margin-top:4px;display:inline-block;background:{CN};border-radius:3px;padding:2px 7px;font-size:7.5px;color:white;">&#127968; {INST_TYPE}</div>
   </div>
 
   <!-- KPI CARDS -->
-  <div style="padding:2px 24px 8px;flex-shrink:0;background:#FFFFFF;">
-    <div style="display:flex;gap:9px;background:#FFFFFF;">
+  <div style="padding:2px 24px 8px;flex-shrink:0;background:#FFFFFF !important;">
+    <div style="display:flex;gap:9px;background:#FFFFFF !important;">
 
       <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 3px 14px rgba(0,0,0,0.07),0 1px 3px rgba(0,0,0,0.04);">
         <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">Puissance Install&#233;e</div>
@@ -677,15 +678,15 @@ def page1():
   </div>
 
   <!-- SECTION TITLE -->
-  <div style="padding:5px 24px 7px;flex-shrink:0;background:#FFFFFF;">
-    <div style="display:inline-block;">
+  <div style="padding:5px 24px 7px;flex-shrink:0;background:#FFFFFF !important;">
+    <div style="display:inline-block;background:#FFFFFF !important;">
       <div style="font-size:7pt;letter-spacing:3px;color:{CG4};font-weight:500;text-transform:uppercase;">Vos Options d&#8217;Installation</div>
       <div style="height:2px;background:{CA};border-radius:1px;margin-top:3px;width:40px;"></div>
     </div>
   </div>
 
   <!-- OPTION CARDS ROW — equal height, fill remaining space -->
-  <div style="flex:1;min-height:0;display:flex;gap:12px;padding:0 24px 10px;align-items:stretch;background:#FFFFFF;">
+  <div style="flex:1;min-height:0;display:flex;gap:12px;padding:0 24px 10px;align-items:stretch;background:#FFFFFF !important;">
 
     <!-- OPTION 1 -->
     <div style="flex:1;border:1.5px solid {CA};border-top:5px solid {CA};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:white;box-shadow:0 6px 24px rgba(0,0,0,0.08),0 1px 4px rgba(0,0,0,0.04);">
@@ -1017,10 +1018,10 @@ def build_html():
     img_roi = make_chart_roi()
     img_mon = make_chart_monthly()
     return f"""<!DOCTYPE html>
-<html lang="fr"><head><meta charset="UTF-8">
+<html lang="fr" style="background:#FFFFFF !important;"><head><meta charset="UTF-8">
 <title>Devis TAQINOR N\u00b0 {REF}</title>
 <style>{CSS}</style></head>
-<body>
+<body style="background:#FFFFFF !important;">
 {page1()}
 {page2(SANS_ITEMS, img_roi, img_mon)}
 {page3()}

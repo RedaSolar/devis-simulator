@@ -653,22 +653,24 @@ def page1():
   </div>
 
   <!-- KPI CARDS -->
-  <div style="padding:2px 24px 8px;flex-shrink:0;background:#FFFFFF !important;">
+  <!-- FIX v39: removed box-shadow from all 3 KPI cards (was: 0 3px 14px rgba(0,0,0,0.07) and 0 2px 8px rgba(0,0,0,0.09)) -->
+  <!-- FIX v39: padding-bottom on KPI container changed from 8px → 4px (shadow bleed zone closed) -->
+  <div style="padding:2px 24px 4px;flex-shrink:0;background:#FFFFFF !important;">
     <div style="display:flex;gap:9px;background:#FFFFFF !important;">
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 3px 14px rgba(0,0,0,0.07),0 1px 3px rgba(0,0,0,0.04);">
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;">
         <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">Puissance Install&#233;e</div>
         <div class="serif" style="font-size:19pt;color:{CN};line-height:1.05;">{KWC}&nbsp;kWc</div>
         <div style="font-size:6.5pt;color:{CG4};margin-top:3px;">{NB_PAN} panneaux &#215; {WP}&nbsp;W</div>
       </div>
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 3px 14px rgba(0,0,0,0.07),0 1px 3px rgba(0,0,0,0.04);">
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;">
         <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">Production Annuelle</div>
         <div class="serif" style="font-size:19pt;color:{CN};line-height:1.05;">{pk}&nbsp;kWh</div>
         <div style="font-size:6.5pt;color:{CG4};margin-top:3px;">&#233;nergie propre / an</div>
       </div>
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:#FFFBF2;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:#FFFBF2;">
         <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">&#201;conomies / an</div>
         <div class="serif" style="font-size:13pt;color:{CN};line-height:1.1;"><span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span></div>
         <div style="font-size:6.5pt;color:{CA};margin-top:3px;">selon option choisie</div>

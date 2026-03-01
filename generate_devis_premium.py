@@ -351,7 +351,7 @@ def logo_p1_dark():
         b64_data = None
     if b64_data:
         return (f'<img src="data:image/png;base64,{b64_data}" alt="TAQINOR" '
-                f'style="height:96px;width:auto;object-fit:contain;display:block;">')
+                f'style="height:144px;width:auto;object-fit:contain;display:block;">')
     # Fallback: text on dark background
     return (f'<div style="display:inline-block;">'
             f'<div style="font-size:17px;font-weight:900;color:white;letter-spacing:1px;line-height:1.1;">'
@@ -773,7 +773,7 @@ def page2(sans_items, img_roi, img_mon):
       <div style="color:white;font-size:10pt;font-weight:700;">D\u00e9tail des \u00e9quipements &amp; Analyse financi\u00e8re</div>
       <div style="color:rgba(255,255,255,0.45);font-size:7pt;margin-top:2px;">Devis N\u00b0\u00a0{REF} \u2014 {CLIENT_NAME} \u2014 {DATE_STR}</div>
     </div>
-    {logo_html("28px")}
+    {logo_html("42px")}
   </div>
   <div style="height:3px;background:{CA};flex-shrink:0;"></div>
 
@@ -837,7 +837,7 @@ def page3():
       <div style="color:white;font-size:10pt;font-weight:700;">Confiance, Garanties &amp; Bon pour accord</div>
       <div style="color:rgba(255,255,255,0.45);font-size:7pt;margin-top:2px;">Devis N\u00b0\u00a0{REF} \u2014 {CLIENT_NAME}</div>
     </div>
-    {logo_html("28px")}
+    {logo_html("42px")}
   </div>
   <div style="height:3px;background:{CA};flex-shrink:0;"></div>
 

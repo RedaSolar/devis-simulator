@@ -299,7 +299,7 @@ def logo_p1_dark():
     b64_str = _logo_dark_b64()
     if b64_str:
         img_tag = (f'<img src="data:image/png;base64,{b64_str}" alt="TAQINOR" '
-                   f'style="height:45px;object-fit:contain;display:block;">')
+                   f'style="height:48px;object-fit:contain;display:block;">')
         return (f'<div style="display:inline-flex;flex-direction:column;align-items:flex-start;">'
                 f'{img_tag}{subtitle}'
                 f'</div>')
@@ -484,8 +484,8 @@ def page1():
     return f"""
 <div class="page">
 
-  <!-- DARK NAVY HERO — DIFF 4: ~48% page height, generous padding-bottom -->
-  <div style="background:{CN};flex-shrink:0;position:relative;padding:22px 24px 220px;">
+  <!-- DARK NAVY HERO — FIX 1: ~42% page height, half the padding -->
+  <div style="background:{CN};flex-shrink:0;position:relative;padding:22px 24px 110px;">
 
     <!-- Row 1: Logo left + descriptor right — v5: margin-bottom:16px -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
@@ -507,7 +507,7 @@ def page1():
       </div>
       <div style="text-align:right;flex-shrink:0;">
         <div style="font-size:9px;color:rgba(255,255,255,0.50);margin-bottom:3px;">R&#233;f&#233;rence devis</div>
-        <div class="serif" style="font-size:40px;font-weight:800;color:{CA};line-height:1.0;letter-spacing:-1px;">N&#176;&nbsp;{REF}</div>
+        <div class="serif" style="font-size:42px;font-weight:800;color:{CA};line-height:1.0;letter-spacing:-1px;">N&#176;&nbsp;{REF}</div>
         <div style="font-size:8pt;color:{CG4};margin-top:4px;">{DATE_STR}</div>
         <div style="margin-top:5px;display:inline-block;background:rgba(255,255,255,0.10);color:rgba(255,255,255,0.80);border:1px solid rgba(255,255,255,0.20);border-radius:20px;padding:2px 9px;font-size:7pt;font-weight:600;">Validit&#233;&#160;: 30 jours</div>
       </div>
@@ -552,8 +552,8 @@ def page1():
     <div style="font-size:6.5pt;letter-spacing:3px;color:{CN};font-weight:700;text-transform:uppercase;">Vos Options d&#8217;Installation</div>
   </div>
 
-  <!-- OPTION CARDS — DIFF 5+7: cards shrink to content, no white void -->
-  <div style="padding:0 24px 6px;flex:1;display:flex;gap:12px;align-items:flex-start;">
+  <!-- OPTION CARDS — FIX 5: shrink to content, no white void -->
+  <div style="padding:0 24px 6px;flex-shrink:0;display:flex;gap:12px;align-items:flex-start;">
 
     <!-- OPTION 1 — DIFF 5: shrinks to content height -->
     <div style="flex:1;align-self:flex-start;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;background:white;">
@@ -607,8 +607,8 @@ def page1():
 
   </div>
 
-  <!-- BOTTOM DARK STRIP — compact, pills left + process right -->
-  <div style="background:{CN};flex-shrink:0;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 24px;">
+  <!-- BOTTOM DARK STRIP — FIX 5: flex:1 absorbs remaining space, no white void -->
+  <div style="background:{CN};flex:1;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 24px;">
     <div style="display:flex;gap:8px;">
       <span style="border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:3px 10px;font-size:7pt;color:white;white-space:nowrap;">&#9728; 3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
       <span style="border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:3px 10px;font-size:7pt;color:white;white-space:nowrap;">&#9889; Prix ONEE en hausse</span>
@@ -912,7 +912,7 @@ def generate():
     sys.stdout.buffer.flush()
     html = build_html()
 
-    out = BASE_DIR / "devis_client" / f"devis_taqinor_{ref}_FINAL.pdf"
+    out = BASE_DIR / "devis_client" / f"devis_taqinor_{ref}_v13.pdf"
     out.parent.mkdir(exist_ok=True)
 
     print("[2/3] Writing temp HTML...")
@@ -942,7 +942,7 @@ def generate():
         raise RuntimeError(f"Chrome failed.\n{r.stderr[:400]}")
 
     kb = out.stat().st_size // 1024
-    msg = f"\n\u2705 7 fixes applied | Pages: 3 | {kb} KB\n"
+    msg = f"\n\u2705 v13 | 5 fixes page 1 only | Pages: 3 | {kb} KB\n"
     sys.stdout.buffer.write(msg.encode("utf-8", errors="replace"))
     sys.stdout.buffer.flush()
     return str(out)

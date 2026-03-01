@@ -14,33 +14,46 @@ matplotlib.use("Agg")
 
 BASE_DIR = Path(__file__).resolve().parent
 
-def _fetch_playfair(weight=700):
-    """Download Playfair Display woff2 and return base64 string; cache in temp dir."""
+def _fetch_gfont(family_url, weight=400, style="normal"):
+    """Download Google Font woff2 (Latin subset) and return base64; cached in temp dir."""
     import urllib.request, re as _re, tempfile as _tmp
-    cache = Path(_tmp.gettempdir()) / f"taqinor_playfair_{weight}.woff2"
+    safe = family_url.replace("+", "_").lower()
+    cache = Path(_tmp.gettempdir()) / f"taqinor_{safe}_{style}_{weight}.woff2"
     if cache.exists():
         return base64.b64encode(cache.read_bytes()).decode()
     try:
         _UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-        css_url = (f"https://fonts.googleapis.com/css2?family=Playfair+Display"
-                   f":wght@{weight}&display=block")
-        req = urllib.request.Request(css_url, headers={"User-Agent": _UA})
-        with urllib.request.urlopen(req, timeout=8) as r:
+        sp = f":ital,wght@1,{weight}" if style == "italic" else f":wght@{weight}"
+        url = f"https://fonts.googleapis.com/css2?family={family_url}{sp}&display=block"
+        req = urllib.request.Request(url, headers={"User-Agent": _UA})
+        with urllib.request.urlopen(req, timeout=10) as r:
             css = r.read().decode()
-        # last match is Latin subset
-        urls = _re.findall(r"url\((https://fonts\.gstatic\.com/[^)]+\.woff2)\)", css)
-        if not urls:
+        woffs = _re.findall(r"url\((https://fonts\.gstatic\.com/[^)]+\.woff2)\)", css)
+        if not woffs:
             return None
-        with urllib.request.urlopen(urls[-1], timeout=10) as r:
+        with urllib.request.urlopen(woffs[-1], timeout=15) as r:
             data = r.read()
         cache.write_bytes(data)
         return base64.b64encode(data).decode()
     except Exception:
         return None
 
-_PF700 = _fetch_playfair(700)
-_PF400 = _fetch_playfair(400)
+def _font_face(family, weight, style, b64):
+    if not b64:
+        return ""
+    return (f'@font-face{{font-family:"{family}";font-style:{style};font-weight:{weight};'
+            f'font-display:block;src:url("data:font/woff2;base64,{b64}") format("woff2");}}')
+
+# Fetch and cache all fonts needed for page 1
+_DS400     = _fetch_gfont("DM+Serif+Display", 400)   # DM Serif Display Regular
+_DMSANS400 = _fetch_gfont("DM+Sans", 400)             # DM Sans Regular
+_DMSANS500 = _fetch_gfont("DM+Sans", 500)             # DM Sans Medium
+_DMSANS700 = _fetch_gfont("DM+Sans", 700)             # DM Sans Bold
+
+# Playfair Display (pages 2-3 backward compat)
+_PF700 = _fetch_gfont("Playfair+Display", 700)
+_PF400 = _fetch_gfont("Playfair+Display", 400)
 
 def _pf_face(weight, b64):
     if not b64:
@@ -347,9 +360,9 @@ def footer_p1():
     return (f'<div style="background:white;padding:7px 24px;flex-shrink:0;display:flex;'
             f'align-items:center;justify-content:space-between;border-top:1px solid {CG2};">'
             f'<div style="font-size:9pt;font-weight:800;color:{CA};letter-spacing:1px;">TAQINOR</div>'
-            f'<div style="font-size:7pt;color:#6B7280;text-align:center;">'
+            f'<div style="font-size:7pt;color:#888888;text-align:center;">'
             f'contact@taqinor.com &nbsp;&#183;&nbsp; +212&#160;6&#160;61&#160;85&#160;04&#160;10 &nbsp;&#183;&nbsp; www.taqinor.ma</div>'
-            f'<div style="font-size:7pt;color:#6B7280;">Page 1&nbsp;/&nbsp;3 &nbsp;|&nbsp; R\u00e9f.&nbsp;{REF}</div>'
+            f'<div style="font-size:7pt;color:#888888;">Page 1&nbsp;/&nbsp;3 &nbsp;|&nbsp; R\u00e9f.&nbsp;{REF}</div>'
             f'</div>')
 
 def footer(n, total=3):
@@ -494,15 +507,18 @@ def equip_rows(items, hi_bat=False):
 
 # ── Global CSS ────────────────────────────────────────────────────────────────
 CSS = f"""
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&family=DM+Serif+Display&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap');
+{_font_face("DM Serif Display", 400, "normal", _DS400)}
+{_font_face("DM Sans", 400, "normal", _DMSANS400)}
+{_font_face("DM Sans", 500, "normal", _DMSANS500)}
+{_font_face("DM Sans", 700, "normal", _DMSANS700)}
 {_pf_face(700, _PF700)}
 {_pf_face(400, _PF400)}
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0;}}
-body{{font-family:'DM Sans','Segoe UI',system-ui,sans-serif;font-size:9pt;color:{CG7};
+body{{font-family:'DM Sans',sans-serif;font-size:9pt;color:{CG7};
   -webkit-print-color-adjust:exact;print-color-adjust:exact;}}
 @page{{size:A4;margin:0;}}
 .page{{width:210mm;height:297mm;overflow:hidden;break-after:page;display:flex;flex-direction:column;}}
-.serif{{font-family:'DM Serif Display','Palatino Linotype',Georgia,serif;}}
+.serif{{font-family:'DM Serif Display',Georgia,serif;}}
 .hc-serif{{font-family:'Playfair Display','Palatino Linotype','Book Antiqua',Georgia,serif;}}
 .eq{{width:100%;border-collapse:collapse;font-size:6.5pt;}}
 .eq th{{background:{CG1};color:{CG4};font-size:5.5pt;font-weight:700;text-transform:uppercase;
@@ -527,7 +543,7 @@ def page1():
 <div class="page">
 
   <!-- ═══ DARK NAVY HERO ═══ -->
-  <div style="background:{CN};flex-shrink:0;position:relative;padding:13px 28px 38px 28px;">
+  <div style="background:{CN};flex-shrink:0;position:relative;padding:6px 28px 38px 28px;">
 
     <!-- Row 1: Logo box (left) + subtitle text (right) -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;">
@@ -539,23 +555,23 @@ def page1():
     </div>
 
     <!-- Tagline BELOW logo box — 20px gap -->
-    <div style="color:{CA};font-size:6px;letter-spacing:1.5px;font-weight:600;margin-top:20px;margin-bottom:8px;white-space:nowrap;">TAQA &nbsp;&#183;&nbsp; INNOVATION &nbsp;&#183;&nbsp; NOR</div>
+    <div style="color:{CA};font-size:6px;letter-spacing:1.5px;font-weight:600;margin-top:8px;margin-bottom:3px;white-space:nowrap;">TAQA &nbsp;&#183;&nbsp; INNOVATION &nbsp;&#183;&nbsp; NOR</div>
 
     <!-- Gold separator — AFTER tagline, BEFORE PROPOSITION -->
-    <div style="height:1px;background:{CA};opacity:0.5;margin-bottom:10px;"></div>
+    <div style="height:1px;background:{CA};opacity:0.5;margin-bottom:4px;"></div>
 
     <!-- Row 2: Title+client left / Ref+validity right -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
 
       <!-- LEFT: PROPOSITION label + serif title -->
       <div style="flex:1;min-width:0;">
-        <div style="font-size:3.5pt;letter-spacing:2.5px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:12px;">PROPOSITION COMMERCIALE</div>
+        <div style="font-size:6.5pt;letter-spacing:2.5px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:6px;">PROPOSITION COMMERCIALE</div>
         <div class="serif" style="font-size:44pt;font-weight:400;color:white;line-height:1.0;letter-spacing:-0.5px;margin-bottom:8px;">Installation<br>Solaire</div>
       </div>
 
       <!-- RIGHT: Ref label + N°412 + date + Validité badge -->
       <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:7px;color:{CG4};margin-bottom:1px;">R&#233;f&#233;rence devis</div>
+        <div style="font-size:7pt;color:{CG4};margin-bottom:1px;">R&#233;f&#233;rence devis</div>
         <div class="serif" style="font-size:50pt;font-weight:400;color:{CA};line-height:0.90;letter-spacing:-2px;">N&#176;&nbsp;{REF}</div>
         <div style="font-size:8.5pt;color:white;margin-top:5px;">{DATE_STR}</div>
         <div style="margin-top:5px;display:inline-block;background:{CA};color:{CN};border-radius:5px;padding:3px 10px;font-size:6.5pt;font-weight:700;">Validit&#233;&#160;: 30 jours</div>
@@ -577,8 +593,8 @@ def page1():
   <!-- CLIENT INFO — white area, overlaps diagonal, gray text on light bg -->
   <div style="padding:6px 24px 4px;flex-shrink:0;margin-top:-10px;position:relative;z-index:1;">
     <div style="font-size:13pt;font-weight:700;color:{CA};margin-bottom:2px;">{CLIENT_NAME}</div>
-    <div style="font-size:7pt;color:{CG4};line-height:1.6;">{CLIENT_ADDR}<br>{CLIENT_PHONE}</div>
-    <div style="margin-top:4px;display:inline-block;border:1px solid {CG2};padding:2px 7px;font-size:7.5px;color:{CG4};">&#127968; {INST_TYPE}</div>
+    <div style="font-size:8pt;color:{CG4};line-height:1.6;">{CLIENT_ADDR}<br>{CLIENT_PHONE}</div>
+    <div style="margin-top:4px;display:inline-block;background:{CN};border-radius:3px;padding:2px 7px;font-size:7.5px;color:white;">&#127968; {INST_TYPE}</div>
   </div>
 
   <!-- KPI CARDS -->
@@ -600,7 +616,7 @@ def page1():
       <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
         <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">&#201;conomies / an</div>
         <div class="serif" style="font-size:12pt;color:{CN};line-height:1.1;"><span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span></div>
-        <div style="font-size:6.5pt;color:{CA};font-style:italic;margin-top:3px;">selon option choisie</div>
+        <div style="font-size:6.5pt;color:{CA};margin-top:3px;">selon option choisie</div>
       </div>
 
     </div>
@@ -609,7 +625,7 @@ def page1():
   <!-- SECTION TITLE -->
   <div style="padding:5px 24px 7px;flex-shrink:0;">
     <div style="display:inline-block;">
-      <div style="font-size:6pt;letter-spacing:3px;color:{CG4};font-weight:500;text-transform:uppercase;">Vos Options d&#8217;Installation</div>
+      <div style="font-size:7pt;letter-spacing:3px;color:{CG4};font-weight:500;text-transform:uppercase;">Vos Options d&#8217;Installation</div>
       <div style="height:2px;background:{CA};border-radius:1px;margin-top:3px;width:40px;"></div>
     </div>
   </div>
@@ -619,8 +635,8 @@ def page1():
 
     <!-- OPTION 1 -->
     <div style="flex:1;border:1.5px solid {CA};border-top:5px solid {CA};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:white;">
-      <div style="font-size:4.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 1</div>
-      <div style="font-size:11.5pt;font-weight:800;color:{CN};margin-bottom:2px;">Sans batterie</div>
+      <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 1</div>
+      <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Sans batterie</div>
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Autoconsommation directe</div>
       <div class="serif" style="font-size:28pt;font-weight:400;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
         <span style="white-space:nowrap;">{ts}</span>
@@ -643,9 +659,9 @@ def page1():
 
     <!-- OPTION 2 — amber border, warm amber bg, RECOMMANDÉ badge, DARK NAVY top bar -->
     <div style="flex:1;border:1.5px solid {CA};border-top:6px solid {CN};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:{CAL};">
-      <div style="font-size:4.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 2</div>
+      <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 2</div>
       <div style="display:block;background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:4px 9px;border-radius:3px;text-transform:uppercase;text-align:center;margin-bottom:6px;width:100%;box-sizing:border-box;">&#9733; RECOMMAND&#201;</div>
-      <div style="font-size:11.5pt;font-weight:800;color:{CN};margin-bottom:2px;">Avec batterie</div>
+      <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Avec batterie</div>
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
       <div class="serif" style="font-size:28pt;font-weight:400;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
         <span style="white-space:nowrap;">{ta}</span>

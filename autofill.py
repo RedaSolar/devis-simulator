@@ -413,3 +413,47 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
                 df.at[idx_bat_secondary, "Prix Achat TTC"] = dey_10_info[2]
 
     return df
+
+
+# ---------- AUTO-CALCUL ROI & ÉCONOMIES ----------
+def calculate_savings_roi(puissance_kwc: float, total_sans: float, total_avec: float) -> dict:
+    """
+    Auto-calcule la production annuelle, les économies et le ROI depuis la puissance
+    et les totaux de chaque option.  À appeler depuis le simulateur pour pré-remplir
+    les champs ROI dès que l'utilisateur saisit la puissance et que les prix sont connus.
+
+    Formules :
+      production_annuelle   = kwc × 1240 kWh/kWc/an  (GHI moyen Maroc)
+      economie_opt1 (sans)  = production × 60 % autoconso × 1,20 MAD/kWh
+      economie_opt2 (avec)  = production × 85 % autoconso × 1,20 MAD/kWh  (batterie)
+      roi                   = total_option / economie_annuelle
+      monthly               = economie_annuelle × facteur_saisonnier
+
+    Retourne un dict directement utilisable pour remplir QUOTE_INPUT ou les champs du simulateur.
+    """
+    production_annuelle = round(puissance_kwc * 1240)
+
+    # Taux d'autoconsommation × prix kWh ONEE de référence
+    economie_opt1 = round(production_annuelle * 0.60 * 1.20)
+    economie_opt2 = round(production_annuelle * 0.85 * 1.20)
+
+    # Retour sur investissement (années)
+    roi_opt1 = round(total_sans  / economie_opt1, 1) if economie_opt1 > 0 else 0.0
+    roi_opt2 = round(total_avec  / economie_opt2, 1) if economie_opt2 > 0 else 0.0
+
+    # Répartition mensuelle saisonnière (12 facteurs, somme = 1,000)
+    _SF = [0.053, 0.062, 0.083, 0.098, 0.114, 0.116,
+           0.116, 0.101, 0.087, 0.070, 0.052, 0.048]
+    eco_s_monthly = [round(economie_opt1 * f) for f in _SF]
+    eco_a_monthly = [round(economie_opt2 * f) for f in _SF]
+
+    return {
+        "prod_kwh":      production_annuelle,
+        "eco_s_ann":     economie_opt1,
+        "eco_a_ann":     economie_opt2,
+        "eco_a_cumul":   economie_opt2,   # même taux utilisé pour la courbe ROI
+        "roi_s":         roi_opt1,
+        "roi_a":         roi_opt2,
+        "eco_s_monthly": eco_s_monthly,
+        "eco_a_monthly": eco_a_monthly,
+    }

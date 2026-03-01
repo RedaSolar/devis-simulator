@@ -588,7 +588,7 @@ def page1():
 <div class="page">
 
   <!-- ═══ DARK NAVY HERO ═══ -->
-  <div style="background:{CN};flex-shrink:0;position:relative;padding:14px 28px 40px 28px;">
+  <div style="background:{CN};flex-shrink:0;position:relative;padding:20px 28px 48px 28px;">
     <!-- Amber radial glow — top-right, behind N°412 -->
     <div style="position:absolute;top:0;right:0;width:260px;height:170px;background:radial-gradient(ellipse at 82% 12%, rgba(245,166,35,0.26) 0%, transparent 62%);pointer-events:none;z-index:0;"></div>
 
@@ -637,8 +637,8 @@ def page1():
   <!-- WHITE CONTENT AREA — fills remaining space, dark strip is compact -->
   <div style="display:flex;flex-direction:column;padding:0;margin:0;flex:1;">
 
-  <!-- CLIENT INFO — white area, overlaps diagonal, gray text on light bg -->
-  <div style="padding:6px 24px 4px;flex-shrink:0;margin-top:-10px;position:relative;z-index:1;">
+  <!-- CLIENT INFO — white area, below header band, no overlap -->
+  <div style="padding:8px 24px 4px;flex-shrink:0;">
     <div style="font-size:13pt;font-weight:700;color:{CA};margin-bottom:2px;">{CLIENT_NAME}</div>
     <div style="font-size:8pt;color:{CG4};line-height:1.6;">{CLIENT_ADDR}<br>{CLIENT_PHONE}</div>
     <div style="margin-top:4px;display:inline-block;background:{CN};border-radius:3px;padding:2px 7px;font-size:7.5px;color:white;">&#127968; {INST_TYPE}</div>
@@ -677,8 +677,8 @@ def page1():
     </div>
   </div>
 
-  <!-- OPTION CARDS ROW — compact height, options as tall as content -->
-  <div style="display:flex;flex-shrink:0;gap:12px;padding:0 24px 10px;align-items:flex-start;">
+  <!-- OPTION CARDS ROW — equal height, fill remaining space -->
+  <div style="flex:1;min-height:0;display:flex;gap:12px;padding:0 24px 10px;align-items:stretch;">
 
     <!-- OPTION 1 -->
     <div style="flex:1;border:1.5px solid {CA};border-top:5px solid {CA};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:white;box-shadow:0 6px 24px rgba(0,0,0,0.08),0 1px 4px rgba(0,0,0,0.04);">
@@ -697,7 +697,7 @@ def page1():
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Smart Meter + Wifi Dongle</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
       </ul>
-      <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
+      <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>
       <div style="background:{CG1};border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
         <span style="font-size:7pt;color:{CG4};">&#201;conomie estim&#233;e&#160;: </span>
         <span style="font-size:10pt;font-weight:800;color:{CN};">{esa_mad}/an</span>
@@ -723,7 +723,7 @@ def page1():
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Monitoring int&#233;gr&#233; via app Deye</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
       </ul>
-      <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
+      <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>
       <div style="background:white;border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
         <span style="font-size:7pt;color:{CG4};">&#201;conomie estim&#233;e&#160;: </span>
         <span style="font-size:10pt;font-weight:800;color:{CN};">{eaa_mad}/an</span>

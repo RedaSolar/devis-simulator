@@ -302,10 +302,13 @@ def badge(mar):
             f'padding:1px 5px;font-size:5.5pt;font-weight:700;vertical-align:middle;">{mar}</span>')
 
 def logo_html(h="36px"):
-    """Dark logo for pages 2-3 navy headers."""
-    p = BASE_DIR / "logo.png"
-    if p.exists():
-        return f'<img src="{b64(p)}" alt="TAQINOR" style="height:{h};object-fit:contain;">'
+    """Dark logo for pages 2-3 navy headers — transparent, matching page 1 style."""
+    try:
+        b64_data = _logo_dark_b64()
+    except Exception:
+        b64_data = None
+    if b64_data:
+        return f'<img src="data:image/png;base64,{b64_data}" alt="TAQINOR" style="height:{h};width:auto;object-fit:contain;">'
     return (f'<span style="font-size:15pt;font-weight:900;letter-spacing:1px;color:white;">'
             f'TAQIN<span style="color:{CA};">&#9728;</span>R</span>')
 
@@ -622,7 +625,7 @@ def page1():
       <!-- RIGHT: Ref label + N°412 + date + Validité badge -->
       <div style="text-align:right;flex-shrink:0;">
         <div style="font-size:7pt;color:{CG4};margin-bottom:1px;">R&#233;f&#233;rence devis</div>
-        <div class="serif" style="font-size:35pt;font-weight:400;color:{CA};line-height:0.90;letter-spacing:-1px;">N&#176;&nbsp;{REF}</div>
+        <div class="serif" style="font-size:17.5pt;font-weight:400;color:{CA};line-height:0.90;letter-spacing:-1px;">N&#176;&nbsp;{REF}</div>
         <div style="font-size:8.5pt;color:rgba(255,255,255,0.82);margin-top:5px;">{DATE_STR}</div>
         <div style="margin-top:5px;display:inline-block;background:{CA};color:{CN};border-radius:5px;padding:3px 10px;font-size:6.5pt;font-weight:700;">Validit&#233;&#160;: 30 jours</div>
       </div>

@@ -341,11 +341,11 @@ def _logo_dark_b64():
     return base64.b64encode(buf.getvalue()).decode()
 
 def logo_p1_dark():
-    """Logo for dark header — white filled stamp card. Tagline rendered separately."""
-    b64_str = _logo_dark_b64()
-    if b64_str:
-        img_tag = (f'<img src="data:image/png;base64,{b64_str}" alt="TAQINOR" '
-                   f'style="height:58px;width:auto;object-fit:contain;display:block;">')
+    """Logo for dark header — white filled stamp card using raw logo.png."""
+    p = BASE_DIR / "logo.png"
+    if p.exists():
+        img_tag = (f'<img src="{b64(p)}" alt="TAQINOR" '
+                   f'style="height:68px;width:auto;object-fit:contain;display:block;">')
         return (f'<div style="background:white;padding:11px;display:inline-block;">'
                 f'{img_tag}'
                 f'</div>')
@@ -591,7 +591,7 @@ def page1():
 <div class="page">
 
   <!-- ═══ DARK NAVY HERO ═══ -->
-  <div style="background:{CN};flex-shrink:0;position:relative;padding:6px 28px 38px 28px;">
+  <div style="background:{CN};flex-shrink:0;position:relative;padding:14px 28px 40px 28px;">
     <!-- Amber radial glow — top-right, behind N°412 -->
     <div style="position:absolute;top:0;right:0;width:230px;height:150px;background:radial-gradient(ellipse at 85% 10%, rgba(245,166,35,0.20) 0%, transparent 65%);pointer-events:none;z-index:0;"></div>
 

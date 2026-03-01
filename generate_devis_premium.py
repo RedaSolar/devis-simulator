@@ -82,28 +82,24 @@ CGR = "#16A34A"
 # QUOTE_INPUT — seule section à modifier pour changer un devis
 # ═══════════════════════════════════════════════════════════════════════════════
 QUOTE_INPUT = {
-    "ref":              "412",
-    "date":             "28/02/2026",
-    "client_name":      "Reda Kasri",
-    "client_addr":      "5 Rue Ennoussour RDC",
-    "client_phone":     "0661850410",
-    "inst_type":        "R\u00e9sidentielle",
-    "puissance_kwc":    10.65,
-    "nb_panneaux":      15,
-    "watt_par_panneau": 710,
-    "city":             "Casablanca",
-    "prod_kwh":         13190,
-    "eco_s_ann":        15828,   # \u00e9conomies/an affich\u00e9es \u2014 Option 1
-    "eco_a_ann":        25232,   # \u00e9conomies/an affich\u00e9es \u2014 Option 2 (KPI)
-    "eco_a_cumul":      19478,   # taux r\u00e9el pour courbe ROI cumulatif
-    "roi_s":            3.3,
-    "roi_a":            5.5,
-    "eco_s_monthly":    [850, 980,1320,1560,1820,1850,1840,1610,1390,1120, 830, 760],
-    "eco_a_monthly":    [1380,1590,2140,2220,2470,2640,2650,2510,2280,1890,1380,1230],
-    # Batteries incluses dans l'Option 2
+    "client": {
+        "ref":       "412",
+        "date":      "28/02/2026",
+        "nom":       "Reda Kasri",
+        "adresse":   "5 Rue Ennoussour RDC",
+        "telephone": "0661850410",
+        "type":      "R\u00e9sidentielle",
+    },
+    "installation": {
+        "puissance_kwc":    10.65,
+        "nb_panneaux":      15,
+        "watt_par_panneau": 710,
+    },
+    "city": "Casablanca",
+    # Batteries incluses dans l'Option 2 (qty / pu_ttc)
     "battery_option": [
-        {"designation": "Batterie 5\u202fkWh",  "marque": "Deye", "quantite": 1, "prix_unit_ttc": 16000},
-        {"designation": "Batterie 10\u202fkWh", "marque": "Deye", "quantite": 1, "prix_unit_ttc": 27000},
+        {"designation": "Batterie 5\u202fkWh",  "marque": "Deye", "qty": 1, "pu_ttc": 16000},
+        {"designation": "Batterie 10\u202fkWh", "marque": "Deye", "qty": 1, "pu_ttc": 27000},
     ],
     # Overrides — None = formule bloc automatique
     "overrides": {
@@ -123,96 +119,153 @@ QUOTE_INPUT = {
 # ═══════════════════════════════════════════════════════════════════════════════
 # PRICING ENGINE
 # ═══════════════════════════════════════════════════════════════════════════════
-def calculate_quote(q):
-    """Block-based pricing engine. blocks = max(1, round(kwc/5))."""
-    kwc    = q["puissance_kwc"]
-    nb_pan = q["nb_panneaux"]
-    ovr    = q.get("overrides", {})
+def calculate_quote(client, installation, city, battery_option=None, overrides=None):
+    """Auto-pricing engine.
+    blocks = max(1, round(kwc/5))
+    production_annuelle = kwc \u00d7 1240 kWh/kWc/an
+    economie = production \u00d7 autoconsumption_rate \u00d7 1.20 MAD/kWh
+    """
+    kwc    = installation["puissance_kwc"]
+    nb_pan = installation["nb_panneaux"]
+    ovr    = overrides or {}
 
-    blocks = max(1, round(kwc / 5))
+    blocks    = max(1, round(kwc / 5))
+    nb_socles = nb_pan * 2
 
     def ov(key, default):
         v = ovr.get(key)
         return v if v is not None else default
 
-    installation     = ov("installation",     (blocks + 1) * 2400)
-    accessoires      = ov("accessoires",      blocks * 1000)
-    tableau          = ov("tableau",          blocks * 1500)
-    transport        = ov("transport",        1000)
-    structures_unit  = ov("structures_unit",  450)
-    onduleur_reseau  = ov("onduleur_reseau",  14000)
-    smart_meter      = ov("smart_meter",      1500)
-    wifi_dongle      = ov("wifi_dongle",      0)
-    prix_panneau     = ov("prix_panneau",     1100)
-    onduleur_hybride = ov("onduleur_hybride", 29000)
+    _transport_city = {
+        "casablanca": 0, "rabat": 500, "marrakech": 1000,
+        "fes": 1000, "agadir": 1500,
+    }
+    transport_default = _transport_city.get(city.lower(), 1000)
 
-    sans_items = [
-        {"designation": "Onduleur r\u00e9seau",              "marque": "Huawei",         "quantite": 1,      "prix_unit_ttc": onduleur_reseau},
-        {"designation": "Smart Meter",                       "marque": "Huawei",         "quantite": 1,      "prix_unit_ttc": smart_meter},
-        {"designation": "Wifi Dongle",                       "marque": "Huawei",         "quantite": 1,      "prix_unit_ttc": wifi_dongle},
-        {"designation": "Panneaux",                          "marque": "Canadian Solar", "quantite": nb_pan, "prix_unit_ttc": prix_panneau},
-        {"designation": "Structures acier",                  "marque": "",               "quantite": nb_pan, "prix_unit_ttc": structures_unit},
-        {"designation": "Socles",                            "marque": "",               "quantite": 30,     "prix_unit_ttc": 80},
-        {"designation": "Accessoires",                       "marque": "",               "quantite": 1,      "prix_unit_ttc": accessoires},
-        {"designation": "Tableau De Protection AC/DC",       "marque": "",               "quantite": 1,      "prix_unit_ttc": tableau},
-        {"designation": "Installation",                      "marque": "",               "quantite": 1,      "prix_unit_ttc": installation},
-        {"designation": "Transport",                         "marque": "",               "quantite": 1,      "prix_unit_ttc": transport},
+    installation_cost = ov("installation",    (blocks + 1) * 2400)
+    accessoires       = ov("accessoires",     blocks * 1000)
+    tableau           = ov("tableau",         blocks * 1500)
+    transport         = ov("transport",       transport_default)
+    structures_unit   = ov("structures_unit", 450)
+    onduleur_reseau   = ov("onduleur_reseau", 14000)
+    smart_meter       = ov("smart_meter",     1500)
+    wifi_dongle       = ov("wifi_dongle",     0)
+    prix_panneau      = ov("prix_panneau",    1100)
+    onduleur_hybride  = ov("onduleur_hybride",29000)
+
+    # Auto-calculated production & savings
+    production_annuelle = round(kwc * 1240)
+    economie_opt1       = round(production_annuelle * 0.60 * 1.20)
+    economie_opt2       = round(production_annuelle * 0.85 * 1.20)
+
+    # Seasonal distribution factors (12 months, sum \u2248 1.000)
+    _SF = [0.053, 0.062, 0.083, 0.098, 0.114, 0.116,
+           0.116, 0.101, 0.087, 0.070, 0.052, 0.048]
+    eco_s_monthly = [round(economie_opt1 * f) for f in _SF]
+    eco_a_monthly = [round(economie_opt2 * f) for f in _SF]
+
+    opt1_items = [
+        {"designation": "Onduleur r\u00e9seau",          "marque": "Huawei",         "qty": 1,         "pu_ttc": onduleur_reseau},
+        {"designation": "Smart Meter",                   "marque": "Huawei",         "qty": 1,         "pu_ttc": smart_meter},
+        {"designation": "Wifi Dongle",                   "marque": "Huawei",         "qty": 1,         "pu_ttc": wifi_dongle},
+        {"designation": "Panneaux",                      "marque": "Canadian Solar", "qty": nb_pan,    "pu_ttc": prix_panneau},
+        {"designation": "Structures acier",              "marque": "",               "qty": nb_pan,    "pu_ttc": structures_unit},
+        {"designation": "Socles",                        "marque": "",               "qty": nb_socles, "pu_ttc": 80},
+        {"designation": "Accessoires",                   "marque": "",               "qty": 1,         "pu_ttc": accessoires},
+        {"designation": "Tableau De Protection AC/DC",   "marque": "",               "qty": 1,         "pu_ttc": tableau},
+        {"designation": "Installation",                  "marque": "",               "qty": 1,         "pu_ttc": installation_cost},
+        {"designation": "Transport",                     "marque": "",               "qty": 1,         "pu_ttc": transport},
     ]
 
-    avec_base = [
-        {"designation": "Onduleur hybride",                  "marque": "Deye",           "quantite": 1,      "prix_unit_ttc": onduleur_hybride},
-        {"designation": "Panneaux",                          "marque": "Canadian Solar", "quantite": nb_pan, "prix_unit_ttc": prix_panneau},
+    batteries = list(battery_option or [])
+    opt2_items = [
+        {"designation": "Onduleur hybride",              "marque": "Deye",           "qty": 1,         "pu_ttc": onduleur_hybride},
+        {"designation": "Panneaux",                      "marque": "Canadian Solar", "qty": nb_pan,    "pu_ttc": prix_panneau},
+    ] + batteries + [
+        {"designation": "Structures acier",              "marque": "",               "qty": nb_pan,    "pu_ttc": structures_unit},
+        {"designation": "Socles",                        "marque": "",               "qty": nb_socles, "pu_ttc": 80},
+        {"designation": "Accessoires",                   "marque": "",               "qty": 1,         "pu_ttc": accessoires},
+        {"designation": "Tableau De Protection AC/DC",   "marque": "",               "qty": 1,         "pu_ttc": tableau},
+        {"designation": "Installation",                  "marque": "",               "qty": 1,         "pu_ttc": installation_cost},
+        {"designation": "Transport",                     "marque": "",               "qty": 1,         "pu_ttc": transport},
     ]
-    batteries = list(q.get("battery_option", []))
-    avec_tail = [
-        {"designation": "Structures acier",                  "marque": "",               "quantite": nb_pan, "prix_unit_ttc": structures_unit},
-        {"designation": "Socles",                            "marque": "",               "quantite": 30,     "prix_unit_ttc": 80},
-        {"designation": "Accessoires",                       "marque": "",               "quantite": 1,      "prix_unit_ttc": accessoires},
-        {"designation": "Tableau De Protection AC/DC",       "marque": "",               "quantite": 1,      "prix_unit_ttc": tableau},
-        {"designation": "Installation",                      "marque": "",               "quantite": 1,      "prix_unit_ttc": installation},
-        {"designation": "Transport",                         "marque": "",               "quantite": 1,      "prix_unit_ttc": transport},
-    ]
-    avec_items = avec_base + batteries + avec_tail
 
-    total_sans = sum(it["quantite"] * it["prix_unit_ttc"] for it in sans_items)
-    total_avec = sum(it["quantite"] * it["prix_unit_ttc"] for it in avec_items)
+    total_opt1 = sum(it["qty"] * it["pu_ttc"] for it in opt1_items)
+    total_opt2 = sum(it["qty"] * it["pu_ttc"] for it in opt2_items)
+
+    roi_opt1 = round(total_opt1 / economie_opt1, 1) if economie_opt1 else 0
+    roi_opt2 = round(total_opt2 / economie_opt2, 1) if economie_opt2 else 0
 
     return {
-        "sans_items": sans_items, "avec_items": avec_items,
-        "total_sans": total_sans, "total_avec": total_avec,
+        "client":       client,
+        "installation": {**installation, "production_annuelle": production_annuelle},
+        "option1": {
+            "items":           opt1_items,
+            "total":           total_opt1,
+            "economie_ann":    economie_opt1,
+            "monthly_savings": eco_s_monthly,
+            "roi":             roi_opt1,
+        },
+        "option2": {
+            "items":           opt2_items,
+            "total":           total_opt2,
+            "economie_ann":    economie_opt2,
+            "monthly_savings": eco_a_monthly,
+            "roi":             roi_opt2,
+        },
+        "city":   city,
         "blocks": blocks,
     }
 
 # ── Run pricing engine ────────────────────────────────────────────────────────
-_Q = calculate_quote(QUOTE_INPUT)
+quote = calculate_quote(
+    QUOTE_INPUT["client"],
+    QUOTE_INPUT["installation"],
+    QUOTE_INPUT["city"],
+    QUOTE_INPUT.get("battery_option"),
+    QUOTE_INPUT.get("overrides"),
+)
 
-CLIENT_NAME  = QUOTE_INPUT["client_name"]
-CLIENT_ADDR  = QUOTE_INPUT["client_addr"]
-CLIENT_PHONE = QUOTE_INPUT["client_phone"]
-REF          = QUOTE_INPUT["ref"]
-DATE_STR     = QUOTE_INPUT["date"]
-KWC          = QUOTE_INPUT["puissance_kwc"]
-NB_PAN       = QUOTE_INPUT["nb_panneaux"]
-WP           = QUOTE_INPUT["watt_par_panneau"]
-PROD_KWH     = QUOTE_INPUT["prod_kwh"]
-TOTAL_SANS   = _Q["total_sans"]
-TOTAL_AVEC   = _Q["total_avec"]
-ECO_S_ANN    = QUOTE_INPUT["eco_s_ann"]
-ECO_A_ANN    = QUOTE_INPUT["eco_a_ann"]
-ROI_S        = QUOTE_INPUT["roi_s"]
-ROI_A        = QUOTE_INPUT["roi_a"]
-INST_TYPE    = QUOTE_INPUT["inst_type"]
-SANS_ITEMS   = _Q["sans_items"]
-AVEC_ITEMS   = _Q["avec_items"]
+# ── Verification printout ─────────────────────────────────────────────────────
+print(f"[DEVIS] R\u00e9f {quote['client']['ref']} \u2014 {quote['client']['nom']}")
+print(f"        {quote['installation']['puissance_kwc']} kWc | "
+      f"{quote['installation']['nb_panneaux']} panneaux | "
+      f"Prod\u00a0: {quote['installation']['production_annuelle']:,} kWh/an")
+print(f"        Option 1 : {quote['option1']['total']:,}\u00a0MAD | "
+      f"ROI {quote['option1']['roi']} ans | "
+      f"\u00c9co {quote['option1']['economie_ann']:,}\u00a0MAD/an")
+print(f"        Option 2 : {quote['option2']['total']:,}\u00a0MAD | "
+      f"ROI {quote['option2']['roi']} ans | "
+      f"\u00c9co {quote['option2']['economie_ann']:,}\u00a0MAD/an")
+
+# ── Convenience aliases (all flow from quote dict) ────────────────────────────
+CLIENT_NAME  = quote["client"]["nom"]
+CLIENT_ADDR  = quote["client"]["adresse"]
+CLIENT_PHONE = quote["client"]["telephone"]
+REF          = quote["client"]["ref"]
+DATE_STR     = quote["client"]["date"]
+KWC          = quote["installation"]["puissance_kwc"]
+NB_PAN       = quote["installation"]["nb_panneaux"]
+WP           = quote["installation"]["watt_par_panneau"]
+PROD_KWH     = quote["installation"]["production_annuelle"]
+TOTAL_SANS   = quote["option1"]["total"]
+TOTAL_AVEC   = quote["option2"]["total"]
+ECO_S_ANN    = quote["option1"]["economie_ann"]
+ECO_A_ANN    = quote["option2"]["economie_ann"]
+ROI_S        = quote["option1"]["roi"]
+ROI_A        = quote["option2"]["roi"]
+INST_TYPE    = quote["client"]["type"]
+SANS_ITEMS   = quote["option1"]["items"]
+AVEC_ITEMS   = quote["option2"]["items"]
 
 MONTHS  = ["Jan","F\u00e9v","Mar","Avr","Mai","Jun",
            "Jul","Ao\u00fb","Sep","Oct","Nov","D\u00e9c"]
-ECO_S_M = QUOTE_INPUT["eco_s_monthly"]
-ECO_A_M = QUOTE_INPUT["eco_a_monthly"]
+ECO_S_M = quote["option1"]["monthly_savings"]
+ECO_A_M = quote["option2"]["monthly_savings"]
 
 YEARS   = list(range(26))
 CUMUL_S = [-TOTAL_SANS + ECO_S_ANN * y for y in YEARS]
-CUMUL_A = [-TOTAL_AVEC + QUOTE_INPUT["eco_a_cumul"] * y for y in YEARS]
+CUMUL_A = [-TOTAL_AVEC + ECO_A_ANN * y for y in YEARS]
 
 # ── SVG equipment icons ──────────────────────────────────────────────────────
 _SVG = {
@@ -245,19 +298,12 @@ _GAR = {
 }
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
-def fmt(v):
-    """Format as French MAD amount: 52\u202f650\u00a0MAD"""
+def fmt(n):
+    """Format number with French thin-space thousands separator: 52\u202f650"""
     try:
-        return f"{int(round(float(v))):,}".replace(",", "\u202f") + "\u00a0MAD"
+        return f"{int(round(float(n))):,}".replace(",", "\u202f")
     except Exception:
-        return str(v)
-
-def fnum(v):
-    """Format number with French thin-space thousands separator."""
-    try:
-        return f"{int(round(float(v))):,}".replace(",", "\u202f")
-    except Exception:
-        return str(v)
+        return str(n)
 
 def kwc_fr(v):
     """Format kWc value with French decimal comma: 10,65"""
@@ -530,7 +576,7 @@ def make_chart_monthly():
 def equip_rows(items, hi_bat=False):
     rows = ""; total = 0.0
     for i, it in enumerate(items):
-        des = it["designation"]; qty = it["quantite"]; pu = it["prix_unit_ttc"]
+        des = it["designation"]; qty = it["qty"]; pu = it["pu_ttc"]
         mar = (it.get("marque") or "").strip()
         total += qty * pu
         ico = icon_img(des, mar); bdg = badge(mar)
@@ -539,7 +585,7 @@ def equip_rows(items, hi_bat=False):
             if k in des.lower(): gar = v; break
         is_bat = "batterie" in des.lower() and hi_bat
         bg = f"background:{CAL};" if is_bat else (f"background:{CG1};" if i % 2 == 1 else "")
-        pu_s  = fmt(pu) if pu > 0 else "\u2014"
+        pu_s  = fmt(pu) + "\u00a0MAD" if pu > 0 else "\u2014"
         qty_s = int(qty) if qty == int(qty) else qty
         rows += (f'<tr style="{bg}"><td class="ti">{ico}</td>'
                  f'<td class="tl">{des}{"<br>" + bdg if bdg else ""}</td>'
@@ -547,7 +593,7 @@ def equip_rows(items, hi_bat=False):
                  f'<td class="tr">{pu_s}</td></tr>')
     rows += (f'<tr style="background:{CN};"><td></td>'
              f'<td colspan="3" style="text-align:right;color:{CA};font-weight:800;padding:5px 5px;">Total TTC</td>'
-             f'<td style="text-align:right;color:{CA};font-weight:800;padding:5px 5px;">{fmt(total)}</td></tr>')
+             f'<td style="text-align:right;color:{CA};font-weight:800;padding:5px 5px;">{fmt(total)}\u00a0MAD</td></tr>')
     return rows
 
 # ── Global CSS ────────────────────────────────────────────────────────────────
@@ -1021,24 +1067,21 @@ def build_html():
 
 # ── Generate PDF ──────────────────────────────────────────────────────────────
 def generate():
-    ref = QUOTE_INPUT["ref"]
-    print(f"[1/3] Building HTML for devis {ref}...")
-    sys.stdout.buffer.write(
-        f"  blocks={_Q['blocks']} | TOTAL_SANS={fmt(TOTAL_SANS)} | TOTAL_AVEC={fmt(TOTAL_AVEC)}\n"
-        .encode("utf-8", errors="replace"))
-    sys.stdout.buffer.flush()
+    import re as _re, unicodedata as _ud
+
+    def _slug(s):
+        s = _ud.normalize("NFD", s)
+        s = "".join(c for c in s if _ud.category(c) != "Mn")
+        return _re.sub(r"[^a-z0-9_]+", "_", s.lower()).strip("_")
+
+    ref  = quote["client"]["ref"]
+    slug = _slug(quote["client"]["nom"])
+    print(f"[1/3] Building HTML for devis {ref} \u2014 {quote['client']['nom']}...")
     html = build_html()
 
     out_dir = BASE_DIR / "devis_client"
     out_dir.mkdir(exist_ok=True)
-    import re as _re
-    existing = [
-        int(m.group(1))
-        for f in out_dir.glob(f"devis_taqinor_{ref}_v*.pdf")
-        if (m := _re.search(r"_v(\d+)\.pdf$", f.name))
-    ]
-    next_v = (max(existing) + 1) if existing else 1
-    out = out_dir / f"devis_taqinor_{ref}_v{next_v}.pdf"
+    out = out_dir / f"devis_taqinor_{ref}_{slug}.pdf"
 
     print("[2/3] Writing temp HTML...")
     with tempfile.NamedTemporaryFile(suffix=".html", delete=False,

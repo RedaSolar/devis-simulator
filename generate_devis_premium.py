@@ -293,20 +293,25 @@ def _logo_dark_b64():
 
 def logo_p1_dark():
     """Real logo.png on dark navy — white bg removed, dark text converted to white."""
-    # DIFF 1: 45px height, spaced subtitle T A Q A · I N N O V A T I O N · N O R at 9px/3px
-    subtitle = (f'<div style="color:{CA};font-size:9px;letter-spacing:3px;margin-top:3px;">'
+    subtitle = (f'<div style="color:{CA};font-size:6px;letter-spacing:1px;margin-top:4px;">'
                 f'T A Q A &nbsp;&#183;&nbsp; I N N O V A T I O N &nbsp;&#183;&nbsp; N O R</div>')
     b64_str = _logo_dark_b64()
     if b64_str:
-        img_tag = (f'<img src="data:image/png;base64,{b64_str}" height="52" alt="TAQINOR" '
-                   f'style="height:52px;width:auto;object-fit:contain;display:block;">')
+        img_tag = (f'<img src="data:image/png;base64,{b64_str}" height="80" alt="TAQINOR" '
+                   f'style="height:80px;width:auto;object-fit:contain;display:block;">')
+        logo_box = (f'<div style="border:2px solid rgba(255,255,255,0.65);border-radius:4px;'
+                    f'padding:8px;background:rgba(255,255,255,0.07);display:inline-block;">'
+                    f'{img_tag}'
+                    f'</div>')
         return (f'<div style="display:inline-flex;flex-direction:column;align-items:flex-start;">'
-                f'{img_tag}{subtitle}'
+                f'{logo_box}{subtitle}'
                 f'</div>')
     # Fallback: text logo
     return (f'<div style="display:inline-flex;flex-direction:column;align-items:flex-start;">'
+            f'<div style="border:2px solid rgba(255,255,255,0.65);border-radius:4px;padding:8px;">'
             f'<div style="font-size:18px;font-weight:900;color:white;letter-spacing:1px;line-height:1.1;">'
             f'TAQIN<span style="color:{CA};">&#9733;</span>R</div>'
+            f'</div>'
             f'{subtitle}'
             f'</div>')
 
@@ -462,13 +467,14 @@ def equip_rows(items, hi_bat=False):
 
 # ── Global CSS ────────────────────────────────────────────────────────────────
 CSS = f"""
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&family=DM+Serif+Display&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&family=DM+Serif+Display&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap');
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0;}}
 body{{font-family:'DM Sans','Segoe UI',system-ui,sans-serif;font-size:9pt;color:{CG7};
   -webkit-print-color-adjust:exact;print-color-adjust:exact;}}
 @page{{size:A4;margin:0;}}
 .page{{width:210mm;height:297mm;overflow:hidden;break-after:page;display:flex;flex-direction:column;}}
 .serif{{font-family:'DM Serif Display','Palatino Linotype',Georgia,serif;}}
+.hc-serif{{font-family:'Playfair Display','Palatino Linotype','Book Antiqua','DM Serif Display',Georgia,serif;}}
 .eq{{width:100%;border-collapse:collapse;font-size:6.5pt;}}
 .eq th{{background:{CG1};color:{CG4};font-size:5.5pt;font-weight:700;text-transform:uppercase;
   letter-spacing:.5px;padding:4px 5px;border-bottom:1px solid {CG2};text-align:left;}}
@@ -506,8 +512,8 @@ def page1():
     <!-- Row 2: Title+client left / Ref right -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;">
       <div>
-        <div style="font-size:5.5pt;letter-spacing:4px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:6px;">P R O P O S I T I O N &nbsp; C O M M E R C I A L E</div>
-        <div style="font-size:40pt;font-weight:900;color:white;line-height:1.0;letter-spacing:-1px;margin-bottom:10px;">Installation<br>Solaire</div>
+        <div style="font-size:5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">P R O P O S I T I O N &nbsp; C O M M E R C I A L E</div>
+        <div class="hc-serif" style="font-size:36pt;font-weight:700;color:white;line-height:1.0;letter-spacing:-0.5px;margin-bottom:10px;">Installation<br>Solaire</div>
         <div style="font-size:11pt;font-weight:700;color:{CA};margin-bottom:3px;">{CLIENT_NAME}</div>
         <div style="font-size:8pt;color:rgba(255,255,255,0.60);line-height:1.7;">{CLIENT_ADDR}<br>{CLIENT_PHONE}</div>
         <div style="margin-top:6px;display:inline-block;border:1px solid rgba(255,255,255,0.4);border-radius:20px;padding:3px 10px;font-size:10px;color:white;">&#127968; {INST_TYPE}</div>
@@ -516,7 +522,7 @@ def page1():
         <div style="font-size:9px;color:rgba(255,255,255,0.50);margin-bottom:4px;">R&#233;f&#233;rence devis</div>
         <div class="serif" style="font-size:72px;font-weight:700;color:{CA};line-height:1.0;letter-spacing:-2px;">N&#176;&nbsp;{REF}</div>
         <div style="font-size:8pt;color:{CG4};margin-top:6px;">{DATE_STR}</div>
-        <div style="margin-top:6px;display:inline-block;background:transparent;color:white;border:1.5px solid rgba(255,255,255,0.85);border-radius:20px;padding:3px 12px;font-size:7pt;font-weight:600;">Validit&#233;&#160;: 30 jours</div>
+        <div style="margin-top:6px;display:inline-block;background:{CA};color:{CN};border:none;border-radius:20px;padding:3px 12px;font-size:7pt;font-weight:700;">Validit&#233;&#160;: 30 jours</div>
       </div>
     </div>
 
@@ -528,28 +534,28 @@ def page1():
     </div>
   </div>
 
-  <!-- WHITE CONTENT AREA — FIX 5: column flex wrapper, no padding/margin -->
-  <div style="display:flex;flex-direction:column;padding:0;margin:0;">
+  <!-- WHITE CONTENT AREA — fills remaining space, dark strip is compact -->
+  <div style="display:flex;flex-direction:column;padding:0;margin:0;flex:1;">
 
   <!-- KPI CARDS — v5: more air, padding:14px 24px -->
   <div style="padding:14px 24px 12px;flex-shrink:0;">
     <div style="display:flex;gap:10px;">
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:18px 16px;background:white;">
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:22px 18px;background:white;">
         <div style="font-size:5.5pt;letter-spacing:1.5px;color:{CG4};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Puissance Install&#233;e</div>
-        <div style="font-size:24px;font-weight:800;color:{CN};line-height:1.0;">{KWC}&nbsp;kWc</div>
+        <div style="font-size:20px;font-weight:800;color:{CN};line-height:1.0;">{KWC}&nbsp;kWc</div>
         <div style="font-size:7pt;color:{CG4};margin-top:4px;">{NB_PAN} panneaux &#215; {WP}&nbsp;W</div>
       </div>
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:18px 16px;background:white;">
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:22px 18px;background:white;">
         <div style="font-size:5.5pt;letter-spacing:1.5px;color:{CG4};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Production Annuelle</div>
-        <div style="font-size:24px;font-weight:800;color:{CN};line-height:1.0;">{pk}&nbsp;kWh</div>
+        <div style="font-size:20px;font-weight:800;color:{CN};line-height:1.0;">{pk}&nbsp;kWh</div>
         <div style="font-size:7pt;color:{CG4};margin-top:4px;">&#233;nergie propre / an</div>
       </div>
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:18px 16px;background:white;">
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:22px 18px;background:white;">
         <div style="font-size:5.5pt;letter-spacing:1.5px;color:{CG4};font-weight:700;text-transform:uppercase;margin-bottom:5px;">&#201;conomies / an</div>
-        <div style="font-size:16px;font-weight:800;color:{CN};line-height:1.1;"><span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span></div>
+        <div style="font-size:14px;font-weight:800;color:{CN};line-height:1.1;"><span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span></div>
         <div style="font-size:7pt;color:{CA};font-style:italic;margin-top:4px;">selon option choisie</div>
       </div>
 
@@ -557,24 +563,26 @@ def page1():
   </div>
 
   <!-- SECTION TITLE -->
-  <div style="padding:4px 24px 10px;flex-shrink:0;display:flex;align-items:center;gap:8px;">
-    <div style="width:4px;height:16px;background:{CA};border-radius:2px;flex-shrink:0;"></div>
-    <div style="font-size:6.5pt;letter-spacing:3px;color:{CN};font-weight:700;text-transform:uppercase;">Vos Options d&#8217;Installation</div>
+  <div style="padding:4px 24px 10px;flex-shrink:0;">
+    <div style="display:inline-block;">
+      <div style="font-size:6.5pt;letter-spacing:3px;color:{CN};font-weight:700;text-transform:uppercase;">Vos Options d&#8217;Installation</div>
+      <div style="height:2px;background:{CA};border-radius:1px;margin-top:3px;"></div>
+    </div>
   </div>
 
   <!-- OPTION CARDS ROW — cards stretch to equal height, économie boxes at bottom -->
   <div style="display:flex;gap:16px;padding:0 24px 0 24px;align-items:stretch;">
 
     <!-- OPTION 1 -->
-    <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:16px;display:flex;flex-direction:column;background:white;">
+    <div style="flex:1;border:2px solid {CA};border-radius:8px;padding:16px;display:flex;flex-direction:column;background:white;">
       <div style="font-size:5.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Option 1</div>
       <div style="font-size:13pt;font-weight:800;color:{CN};margin-bottom:2px;">Sans batterie</div>
       <div style="font-size:7.5pt;color:{CGR};font-weight:600;margin-bottom:8px;">Autoconsommation directe</div>
-      <div style="font-size:24pt;font-weight:800;color:{CN};line-height:1.0;letter-spacing:-1px;margin-bottom:2px;">
+      <div class="hc-serif" style="font-size:24pt;font-weight:700;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
         <span style="white-space:nowrap;">{ts}</span>
       </div>
       <div style="font-size:7pt;color:{CG4};margin-bottom:6px;">Prix total TTC</div>
-      <div style="background:{CA};color:{CN};border-radius:20px;padding:5px 10px;font-size:7pt;font-weight:700;margin-bottom:8px;text-align:center;">&#128200; Retour en {ROI_S} ans</div>
+      <div style="display:inline-block;background:{CA};color:{CN};border-radius:20px;padding:5px 10px;font-size:7pt;font-weight:700;margin-bottom:8px;">&#128200; Retour en {ROI_S} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:7px;"></div>
       <ul style="list-style:none;padding:0;font-size:7.5pt;line-height:1.9;color:{CG7};">
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> {NB_PAN} panneaux {WP}&nbsp;W</li>
@@ -595,7 +603,7 @@ def page1():
       <div style="background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:20px;text-transform:uppercase;text-align:center;margin-bottom:6px;">&#9733; RECOMMAND&#201;</div>
       <div style="font-size:13pt;font-weight:800;color:{CN};margin-bottom:2px;">Avec batterie</div>
       <div style="font-size:7.5pt;color:{CA};font-weight:600;margin-bottom:8px;">Stockage + autonomie nocturne</div>
-      <div style="font-size:24pt;font-weight:800;color:{CN};line-height:1.0;letter-spacing:-1px;margin-bottom:2px;">
+      <div class="hc-serif" style="font-size:24pt;font-weight:700;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
         <span style="white-space:nowrap;">{ta}</span>
       </div>
       <div style="font-size:7pt;color:{CG4};margin-bottom:6px;">Prix total TTC</div>
@@ -619,8 +627,8 @@ def page1():
 
   </div><!-- end white content area -->
 
-  <!-- BOTTOM DARK STRIP — solid edge-to-edge dark navy, min-height guaranteed -->
-  <div style="background:{CN};flex:1;min-height:44px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 36px;">
+  <!-- BOTTOM DARK STRIP — solid edge-to-edge dark navy, compact height -->
+  <div style="background:{CN};flex-shrink:0;min-height:44px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 36px;">
     <div style="display:flex;gap:8px;">
       <span style="border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:3px 10px;font-size:7pt;color:white;white-space:nowrap;">&#9728; 3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
       <span style="border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:3px 10px;font-size:7pt;color:white;white-space:nowrap;">&#9889; Prix ONEE en hausse</span>

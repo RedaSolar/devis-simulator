@@ -467,6 +467,9 @@ def make_chart_roi():
     return b64(buf)
 
 def make_chart_monthly():
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
+
     # Estimate ONEE monthly bill: proxy = ECO_S_ANN / 0.65 distributed by ECO_S_M seasonality
     _onee_annual = ECO_S_ANN / 0.65
     _eco_s_sum   = sum(ECO_S_M)
@@ -476,12 +479,21 @@ def make_chart_monthly():
     fig.patch.set_facecolor("white"); ax.set_facecolor("white")
     for s in ["top", "right"]: ax.spines[s].set_visible(False)
     ax.spines["left"].set_color("#EAECF0"); ax.spines["bottom"].set_color("#EAECF0")
+    ax.spines["left"].set_linewidth(0.8); ax.spines["bottom"].set_linewidth(0.8)
 
-    x = np.arange(12); w = 0.27
-    c_onee = "#E05A5A"
-    ax.bar(x - w,   _onee_m, w, color=c_onee, alpha=0.82, label="Facture ONEE (estimée)", zorder=3, linewidth=0)
-    ax.bar(x,       ECO_S_M, w, color=CNM,    alpha=0.85, label="Économies Option 1",      zorder=3, linewidth=0)
-    ax.bar(x + w,   ECO_A_M, w, color=CA,     alpha=0.90, label="Économies Option 2",      zorder=3, linewidth=0)
+    x = np.arange(12)
+    c_bar = "#B5C0CE"  # light steel-blue/grey for ONEE bill bars
+
+    # Bars: ONEE bill — full-width, one per month
+    ax.bar(x, _onee_m, 0.60, color=c_bar, alpha=0.60, zorder=2, linewidth=0)
+
+    # Lines: Option 1 (navy) and Option 2 (amber) overlaid on bars
+    ax.plot(x, ECO_S_M, color=CNM, linewidth=2.2, marker="o", markersize=5.5,
+            markerfacecolor="white", markeredgewidth=1.8, markeredgecolor=CNM,
+            zorder=4, solid_capstyle="round")
+    ax.plot(x, ECO_A_M, color=CA,  linewidth=2.2, marker="o", markersize=5.5,
+            markerfacecolor="white", markeredgewidth=1.8, markeredgecolor=CA,
+            zorder=4, solid_capstyle="round")
 
     ax.set_xticks(x)
     ax.set_xticklabels(MONTHS, fontsize=9, color="#374151")
@@ -489,15 +501,28 @@ def make_chart_monthly():
     ax.tick_params(axis="y", colors="#9BA3AE", labelsize=8)
     ax.set_ylabel("MAD / mois", fontsize=9, color="#9BA3AE", labelpad=6)
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{int(v):,}".replace(",", "\u202f")))
-    ax.grid(axis="y", color="#F3F4F6", linewidth=0.7, zorder=0)
-    ax.set_axisbelow(True)
-    ax.set_xlim(-0.6, 11.6)
 
-    leg = ax.legend(fontsize=8.5, frameon=True, loc="upper center",
-                    bbox_to_anchor=(0.5, 1.18), ncol=3,
+    # Soft horizontal gridlines only — no vertical
+    ax.grid(axis="y", color="#F0F2F5", linewidth=0.65, zorder=0)
+    ax.grid(axis="x", visible=False)
+    ax.set_axisbelow(True)
+    ax.set_xlim(-0.55, 11.55)
+
+    # Custom legend handles: patch for bar, line+marker for each line series
+    legend_handles = [
+        Patch(facecolor=c_bar, alpha=0.60, label="Facture sans PV (estim\u00e9e)", linewidth=0),
+        Line2D([0], [0], color=CNM, linewidth=2.2, marker="o", markersize=5.5,
+               markerfacecolor="white", markeredgewidth=1.8, markeredgecolor=CNM,
+               label="\u00c9conomies Option\u00a01 \u2013 Sans batterie"),
+        Line2D([0], [0], color=CA,  linewidth=2.2, marker="o", markersize=5.5,
+               markerfacecolor="white", markeredgewidth=1.8, markeredgecolor=CA,
+               label="\u00c9conomies Option\u00a02 \u2013 Avec batterie"),
+    ]
+    leg = ax.legend(handles=legend_handles, fontsize=8.5, frameon=True,
+                    loc="upper center", bbox_to_anchor=(0.5, 1.20), ncol=3,
                     edgecolor="#E5E7EB", facecolor="white",
-                    handlelength=1.2, handleheight=1.0,
-                    borderpad=0.6, columnspacing=1.2)
+                    handlelength=1.6, handleheight=0.9,
+                    borderpad=0.7, columnspacing=1.6)
     leg.get_frame().set_linewidth(0.8)
 
     plt.tight_layout(pad=0.4); fig.subplots_adjust(top=0.82)

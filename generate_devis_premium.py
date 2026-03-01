@@ -547,20 +547,17 @@ def page1():
     <!-- Row 2: Title+client left / Ref+validity right -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
 
-      <!-- LEFT: PROPOSITION label + serif title + client info -->
+      <!-- LEFT: PROPOSITION label + serif title -->
       <div style="flex:1;min-width:0;">
         <div style="font-size:3.5pt;letter-spacing:2.5px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:12px;">PROPOSITION COMMERCIALE</div>
-        <div class="hc-serif" style="font-size:68pt;font-weight:700;color:white;line-height:1.0;letter-spacing:-0.5px;margin-bottom:8px;">Installation<br>Solaire</div>
-        <div style="font-size:9.5pt;font-weight:700;color:{CA};margin-bottom:2px;">{CLIENT_NAME}</div>
-        <div style="font-size:7pt;color:rgba(255,255,255,0.56);line-height:1.6;">{CLIENT_ADDR}<br>{CLIENT_PHONE}</div>
-        <div style="margin-top:4px;display:inline-block;border:1px solid rgba(255,255,255,0.28);padding:2px 7px;font-size:7.5px;color:rgba(255,255,255,0.68);">&#127968; {INST_TYPE}</div>
+        <div class="serif" style="font-size:44pt;font-weight:400;color:white;line-height:1.0;letter-spacing:-0.5px;margin-bottom:8px;">Installation<br>Solaire</div>
       </div>
 
       <!-- RIGHT: Ref label + N°412 + date + Validité badge -->
       <div style="text-align:right;flex-shrink:0;">
         <div style="font-size:7px;color:{CG4};margin-bottom:1px;">R&#233;f&#233;rence devis</div>
-        <div class="hc-serif" style="font-size:110pt;font-weight:700;color:{CA};line-height:0.90;letter-spacing:-4px;">N&#176;&nbsp;{REF}</div>
-        <div style="font-size:7pt;color:{CG4};margin-top:5px;">{DATE_STR}</div>
+        <div class="serif" style="font-size:50pt;font-weight:400;color:{CA};line-height:0.90;letter-spacing:-2px;">N&#176;&nbsp;{REF}</div>
+        <div style="font-size:8.5pt;color:white;margin-top:5px;">{DATE_STR}</div>
         <div style="margin-top:5px;display:inline-block;background:{CA};color:{CN};border-radius:5px;padding:3px 10px;font-size:6.5pt;font-weight:700;">Validit&#233;&#160;: 30 jours</div>
       </div>
 
@@ -577,25 +574,32 @@ def page1():
   <!-- WHITE CONTENT AREA — fills remaining space, dark strip is compact -->
   <div style="display:flex;flex-direction:column;padding:0;margin:0;flex:1;">
 
-  <!-- KPI CARDS — negative margin-top to overlap the diagonal -->
-  <div style="padding:2px 24px 8px;flex-shrink:0;margin-top:-10px;position:relative;z-index:1;">
+  <!-- CLIENT INFO — white area, overlaps diagonal, gray text on light bg -->
+  <div style="padding:6px 24px 4px;flex-shrink:0;margin-top:-10px;position:relative;z-index:1;">
+    <div style="font-size:13pt;font-weight:700;color:{CA};margin-bottom:2px;">{CLIENT_NAME}</div>
+    <div style="font-size:7pt;color:{CG4};line-height:1.6;">{CLIENT_ADDR}<br>{CLIENT_PHONE}</div>
+    <div style="margin-top:4px;display:inline-block;border:1px solid {CG2};padding:2px 7px;font-size:7.5px;color:{CG4};">&#127968; {INST_TYPE}</div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div style="padding:2px 24px 8px;flex-shrink:0;">
     <div style="display:flex;gap:9px;">
 
       <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
         <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">Puissance Install&#233;e</div>
-        <div style="font-size:16px;font-weight:800;color:{CN};line-height:1.05;">{KWC}&nbsp;kWc</div>
+        <div class="serif" style="font-size:17pt;color:{CN};line-height:1.05;">{KWC}&nbsp;kWc</div>
         <div style="font-size:6.5pt;color:{CG4};margin-top:3px;">{NB_PAN} panneaux &#215; {WP}&nbsp;W</div>
       </div>
 
       <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
         <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">Production Annuelle</div>
-        <div style="font-size:16px;font-weight:800;color:{CN};line-height:1.05;">{pk}&nbsp;kWh</div>
+        <div class="serif" style="font-size:17pt;color:{CN};line-height:1.05;">{pk}&nbsp;kWh</div>
         <div style="font-size:6.5pt;color:{CG4};margin-top:3px;">&#233;nergie propre / an</div>
       </div>
 
       <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
         <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">&#201;conomies / an</div>
-        <div style="font-size:12px;font-weight:800;color:{CN};line-height:1.1;"><span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span></div>
+        <div class="serif" style="font-size:12pt;color:{CN};line-height:1.1;"><span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span></div>
         <div style="font-size:6.5pt;color:{CA};font-style:italic;margin-top:3px;">selon option choisie</div>
       </div>
 
@@ -618,7 +622,7 @@ def page1():
       <div style="font-size:4.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 1</div>
       <div style="font-size:11.5pt;font-weight:800;color:{CN};margin-bottom:2px;">Sans batterie</div>
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Autoconsommation directe</div>
-      <div class="hc-serif" style="font-size:21pt;font-weight:700;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
+      <div class="serif" style="font-size:28pt;font-weight:400;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
         <span style="white-space:nowrap;">{ts}</span>
       </div>
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
@@ -642,8 +646,8 @@ def page1():
       <div style="font-size:4.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 2</div>
       <div style="display:block;background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:4px 9px;border-radius:3px;text-transform:uppercase;text-align:center;margin-bottom:6px;width:100%;box-sizing:border-box;">&#9733; RECOMMAND&#201;</div>
       <div style="font-size:11.5pt;font-weight:800;color:{CN};margin-bottom:2px;">Avec batterie</div>
-      <div style="font-size:7pt;color:{CA};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
-      <div class="hc-serif" style="font-size:21pt;font-weight:700;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
+      <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
+      <div class="serif" style="font-size:28pt;font-weight:400;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
         <span style="white-space:nowrap;">{ta}</span>
       </div>
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>

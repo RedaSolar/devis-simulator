@@ -298,7 +298,7 @@ def logo_p1_dark():
                 f'T A Q A &nbsp;&#183;&nbsp; I N N O V A T I O N &nbsp;&#183;&nbsp; N O R</div>')
     b64_str = _logo_dark_b64()
     if b64_str:
-        img_tag = (f'<img src="data:image/png;base64,{b64_str}" alt="TAQINOR" '
+        img_tag = (f'<img src="data:image/png;base64,{b64_str}" height="52" alt="TAQINOR" '
                    f'style="height:52px;width:auto;object-fit:contain;display:block;">')
         return (f'<div style="display:inline-flex;flex-direction:column;align-items:flex-start;">'
                 f'{img_tag}{subtitle}'
@@ -462,7 +462,7 @@ def equip_rows(items, hi_bat=False):
 
 # ── Global CSS ────────────────────────────────────────────────────────────────
 CSS = f"""
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&family=DM+Serif+Display&display=swap');
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0;}}
 body{{font-family:'DM Sans','Segoe UI',system-ui,sans-serif;font-size:9pt;color:{CG7};
   -webkit-print-color-adjust:exact;print-color-adjust:exact;}}
@@ -481,14 +481,21 @@ body{{font-family:'DM Sans','Segoe UI',system-ui,sans-serif;font-size:9pt;color:
 
 # ── PAGE 1 — exact match to v5 ──────────────────────────────────────────────
 def page1():
+    # Local formatters — use U+00A0 (NON-BREAKING SPACE) for reliable rendering in all fonts
+    _s      = "\u00a0"
+    ts      = f"{int(TOTAL_SANS):,}".replace(",", _s) + "\u00a0MAD"
+    ta      = f"{int(TOTAL_AVEC):,}".replace(",", _s) + "\u00a0MAD"
+    esa_mad = f"{int(ECO_S_ANN):,}".replace(",", _s) + "\u00a0MAD"
+    eaa_mad = f"{int(ECO_A_ANN):,}".replace(",", _s) + "\u00a0MAD"
+    pk      = f"{int(PROD_KWH):,}".replace(",", _s)
     return f"""
 <div class="page">
 
-  <!-- DARK NAVY HERO — FIX 1: exact 12px 32px 16px 32px -->
-  <div style="background:{CN};flex-shrink:0;position:relative;padding:12px 32px 16px 32px;">
+  <!-- DARK NAVY HERO — v5: 20px 36px 40px 36px, row1 mb:24px -->
+  <div style="background:{CN};flex-shrink:0;position:relative;padding:20px 36px 52px 36px;">
 
-    <!-- Row 1: Logo left + descriptor right — v5: margin-bottom:16px -->
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
+    <!-- Row 1: Logo left + descriptor right -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;">
       {logo_p1_dark()}
       <div style="text-align:right;">
         <div style="font-size:9px;color:rgba(255,255,255,0.45);line-height:1.7;">Installation solaire photovolta&#239;que</div>
@@ -500,16 +507,16 @@ def page1():
     <div style="display:flex;align-items:flex-start;justify-content:space-between;">
       <div>
         <div style="font-size:5.5pt;letter-spacing:4px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:6px;">P R O P O S I T I O N &nbsp; C O M M E R C I A L E</div>
-        <div class="serif" style="font-size:34pt;color:white;line-height:1.0;letter-spacing:-1px;margin-bottom:8px;">Installation<br>Solaire</div>
-        <div style="font-size:11pt;font-weight:700;color:white;margin-bottom:3px;">{CLIENT_NAME}</div>
+        <div style="font-size:40pt;font-weight:900;color:white;line-height:1.0;letter-spacing:-1px;margin-bottom:10px;">Installation<br>Solaire</div>
+        <div style="font-size:11pt;font-weight:700;color:{CA};margin-bottom:3px;">{CLIENT_NAME}</div>
         <div style="font-size:8pt;color:rgba(255,255,255,0.60);line-height:1.7;">{CLIENT_ADDR}<br>{CLIENT_PHONE}</div>
         <div style="margin-top:6px;display:inline-block;border:1px solid rgba(255,255,255,0.4);border-radius:20px;padding:3px 10px;font-size:10px;color:white;">&#127968; {INST_TYPE}</div>
       </div>
       <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:9px;color:rgba(255,255,255,0.50);margin-bottom:3px;">R&#233;f&#233;rence devis</div>
-        <div class="serif" style="font-size:36px;font-weight:800;color:{CA};line-height:1.0;letter-spacing:-1px;">N&#176;&nbsp;{REF}</div>
-        <div style="font-size:8pt;color:{CG4};margin-top:4px;">{DATE_STR}</div>
-        <div style="margin-top:5px;display:inline-block;background:rgba(255,255,255,0.10);color:rgba(255,255,255,0.80);border:1px solid rgba(255,255,255,0.20);border-radius:20px;padding:2px 9px;font-size:7pt;font-weight:600;">Validit&#233;&#160;: 30 jours</div>
+        <div style="font-size:9px;color:rgba(255,255,255,0.50);margin-bottom:4px;">R&#233;f&#233;rence devis</div>
+        <div class="serif" style="font-size:72px;font-weight:700;color:{CA};line-height:1.0;letter-spacing:-2px;">N&#176;&nbsp;{REF}</div>
+        <div style="font-size:8pt;color:{CG4};margin-top:6px;">{DATE_STR}</div>
+        <div style="margin-top:6px;display:inline-block;background:transparent;color:white;border:1.5px solid rgba(255,255,255,0.85);border-radius:20px;padding:3px 12px;font-size:7pt;font-weight:600;">Validit&#233;&#160;: 30 jours</div>
       </div>
     </div>
 
@@ -524,50 +531,50 @@ def page1():
   <!-- WHITE CONTENT AREA — FIX 5: column flex wrapper, no padding/margin -->
   <div style="display:flex;flex-direction:column;padding:0;margin:0;">
 
-  <!-- KPI CARDS — v5: padding:8px 24px 8px, card padding:16px, values 28px -->
-  <div style="padding:8px 24px 8px;flex-shrink:0;">
+  <!-- KPI CARDS — v5: more air, padding:14px 24px -->
+  <div style="padding:14px 24px 12px;flex-shrink:0;">
     <div style="display:flex;gap:10px;">
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:16px;background:white;">
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:18px 16px;background:white;">
         <div style="font-size:5.5pt;letter-spacing:1.5px;color:{CG4};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Puissance Install&#233;e</div>
-        <div style="font-size:28px;font-weight:800;color:{CN};line-height:1.0;">{kwc_fr(KWC)}&nbsp;kWc</div>
+        <div style="font-size:24px;font-weight:800;color:{CN};line-height:1.0;">{KWC}&nbsp;kWc</div>
         <div style="font-size:7pt;color:{CG4};margin-top:4px;">{NB_PAN} panneaux &#215; {WP}&nbsp;W</div>
       </div>
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:16px;background:white;">
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:18px 16px;background:white;">
         <div style="font-size:5.5pt;letter-spacing:1.5px;color:{CG4};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Production Annuelle</div>
-        <div style="font-size:28px;font-weight:800;color:{CN};line-height:1.0;">{fnum(PROD_KWH)}&nbsp;kWh/an</div>
+        <div style="font-size:24px;font-weight:800;color:{CN};line-height:1.0;">{pk}&nbsp;kWh</div>
         <div style="font-size:7pt;color:{CG4};margin-top:4px;">&#233;nergie propre / an</div>
       </div>
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:16px;background:white;">
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:18px 16px;background:white;">
         <div style="font-size:5.5pt;letter-spacing:1.5px;color:{CG4};font-weight:700;text-transform:uppercase;margin-bottom:5px;">&#201;conomies / an</div>
-        <div style="font-size:18px;font-weight:800;color:{CN};line-height:1.2;"><span style="white-space:nowrap;">{fmt(ECO_S_ANN)}&nbsp;&#8211;&nbsp;{fmt(ECO_A_ANN)}</span></div>
+        <div style="font-size:16px;font-weight:800;color:{CN};line-height:1.1;"><span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span></div>
         <div style="font-size:7pt;color:{CA};font-style:italic;margin-top:4px;">selon option choisie</div>
       </div>
 
     </div>
   </div>
 
-  <!-- SECTION TITLE — v5: height:16px bar, font-size:6.5pt -->
-  <div style="padding:0 24px 6px;flex-shrink:0;display:flex;align-items:center;gap:8px;">
+  <!-- SECTION TITLE -->
+  <div style="padding:4px 24px 10px;flex-shrink:0;display:flex;align-items:center;gap:8px;">
     <div style="width:4px;height:16px;background:{CA};border-radius:2px;flex-shrink:0;"></div>
     <div style="font-size:6.5pt;letter-spacing:3px;color:{CN};font-weight:700;text-transform:uppercase;">Vos Options d&#8217;Installation</div>
   </div>
 
-  <!-- OPTION CARDS ROW — FIX 5: exact padding, gap:16px -->
-  <div style="display:flex;gap:16px;padding:0 24px 12px 24px;align-items:flex-start;">
+  <!-- OPTION CARDS ROW — cards stretch to equal height, économie boxes at bottom -->
+  <div style="display:flex;gap:16px;padding:0 24px 0 24px;align-items:stretch;">
 
-    <!-- OPTION 1 — DIFF 5: shrinks to content height -->
-    <div style="flex:1;align-self:flex-start;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;background:white;">
+    <!-- OPTION 1 -->
+    <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:16px;display:flex;flex-direction:column;background:white;">
       <div style="font-size:5.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Option 1</div>
       <div style="font-size:13pt;font-weight:800;color:{CN};margin-bottom:2px;">Sans batterie</div>
       <div style="font-size:7.5pt;color:{CGR};font-weight:600;margin-bottom:8px;">Autoconsommation directe</div>
-      <div class="serif" style="font-size:26pt;color:{CN};line-height:1.0;letter-spacing:-1px;margin-bottom:2px;">
-        <span style="white-space:nowrap;">{fmt(TOTAL_SANS)}</span>
+      <div style="font-size:24pt;font-weight:800;color:{CN};line-height:1.0;letter-spacing:-1px;margin-bottom:2px;">
+        <span style="white-space:nowrap;">{ts}</span>
       </div>
       <div style="font-size:7pt;color:{CG4};margin-bottom:6px;">Prix total TTC</div>
-      <div style="display:inline-block;align-self:flex-start;background:{CAL};color:{CA};border:1px solid {CA};border-radius:20px;padding:3px 10px;font-size:7pt;font-weight:700;margin-bottom:8px;">&#128200; Retour en {ROI_S} ans</div>
+      <div style="background:{CA};color:{CN};border-radius:20px;padding:5px 10px;font-size:7pt;font-weight:700;margin-bottom:8px;text-align:center;">&#128200; Retour en {ROI_S} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:7px;"></div>
       <ul style="list-style:none;padding:0;font-size:7.5pt;line-height:1.9;color:{CG7};">
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> {NB_PAN} panneaux {WP}&nbsp;W</li>
@@ -576,23 +583,23 @@ def page1():
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin:7px 0;"></div>
-      <div style="background:{CG1};border-radius:5px;padding:5px 9px;">
+      <div style="background:{CG1};border-radius:5px;padding:5px 9px;margin-top:auto;">
         <span style="font-size:7pt;color:{CG4};">&#201;conomie estim&#233;e&#160;: </span>
-        <span style="font-size:10pt;font-weight:800;color:{CN};">{fmt(ECO_S_ANN)}/an</span>
+        <span style="font-size:10pt;font-weight:800;color:{CN};">{esa_mad}/an</span>
       </div>
     </div>
 
     <!-- OPTION 2 — amber border, warm amber bg, RECOMMANDÉ badge -->
-    <div style="flex:1;align-self:flex-start;border:2px solid {CA};border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;background:{CAL};">
+    <div style="flex:1;border:2px solid {CA};border-radius:8px;padding:16px;display:flex;flex-direction:column;background:{CAL};">
       <div style="font-size:5.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Option 2</div>
-      <span style="background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:2px 9px;border-radius:20px;text-transform:uppercase;align-self:flex-start;margin-bottom:6px;">&#9733; RECOMMAND&#201;</span>
+      <div style="background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:20px;text-transform:uppercase;text-align:center;margin-bottom:6px;">&#9733; RECOMMAND&#201;</div>
       <div style="font-size:13pt;font-weight:800;color:{CN};margin-bottom:2px;">Avec batterie</div>
       <div style="font-size:7.5pt;color:{CA};font-weight:600;margin-bottom:8px;">Stockage + autonomie nocturne</div>
-      <div class="serif" style="font-size:26pt;color:{CN};line-height:1.0;letter-spacing:-1px;margin-bottom:2px;">
-        <span style="white-space:nowrap;">{fmt(TOTAL_AVEC)}</span>
+      <div style="font-size:24pt;font-weight:800;color:{CN};line-height:1.0;letter-spacing:-1px;margin-bottom:2px;">
+        <span style="white-space:nowrap;">{ta}</span>
       </div>
       <div style="font-size:7pt;color:{CG4};margin-bottom:6px;">Prix total TTC</div>
-      <div style="display:inline-block;align-self:flex-start;background:{CN};color:white;border-radius:20px;padding:3px 10px;font-size:7pt;font-weight:700;margin-bottom:8px;">&#128200; Retour en {ROI_A} ans</div>
+      <div style="background:{CN};color:white;border-radius:20px;padding:5px 10px;font-size:7pt;font-weight:700;margin-bottom:8px;text-align:center;">&#128200; Retour en {ROI_A} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:7px;"></div>
       <ul style="list-style:none;padding:0;font-size:7.5pt;line-height:1.9;color:{CG7};">
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> {NB_PAN} panneaux {WP}&nbsp;W</li>
@@ -602,9 +609,9 @@ def page1():
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin:7px 0;"></div>
-      <div style="background:{CAL};border-radius:5px;padding:5px 9px;">
+      <div style="background:{CAL};border-radius:5px;padding:5px 9px;margin-top:auto;">
         <span style="font-size:7pt;color:{CG4};">&#201;conomie estim&#233;e&#160;: </span>
-        <span style="font-size:10pt;font-weight:800;color:{CN};">{fmt(ECO_A_ANN)}/an</span>
+        <span style="font-size:10pt;font-weight:800;color:{CN};">{eaa_mad}/an</span>
       </div>
     </div>
 
@@ -612,8 +619,8 @@ def page1():
 
   </div><!-- end white content area -->
 
-  <!-- BOTTOM DARK STRIP — immediately after white area, flex:1 fills rest -->
-  <div style="background:{CN};flex:1;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 24px;">
+  <!-- BOTTOM DARK STRIP — solid edge-to-edge dark navy, min-height guaranteed -->
+  <div style="background:{CN};flex:1;min-height:44px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 36px;">
     <div style="display:flex;gap:8px;">
       <span style="border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:3px 10px;font-size:7pt;color:white;white-space:nowrap;">&#9728; 3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
       <span style="border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:3px 10px;font-size:7pt;color:white;white-space:nowrap;">&#9889; Prix ONEE en hausse</span>
@@ -917,7 +924,7 @@ def generate():
     sys.stdout.buffer.flush()
     html = build_html()
 
-    out = BASE_DIR / "devis_client" / f"devis_taqinor_{ref}_v14.pdf"
+    out = BASE_DIR / "devis_client" / f"devis_taqinor_{ref}_v17.pdf"
     out.parent.mkdir(exist_ok=True)
 
     print("[2/3] Writing temp HTML...")
@@ -947,7 +954,10 @@ def generate():
         raise RuntimeError(f"Chrome failed.\n{r.stderr[:400]}")
 
     kb = out.stat().st_size // 1024
-    msg = f"\n\u2705 v14 | hero shrunk | logo 52px | N\u00b0412 36px | separator fixed | void removed | Pages: 3 | {kb} KB\n"
+    msg = (f"\n\u2705 v17 | p1 only | old\u2192new:\n"
+           f"  prices 26pt\u219236pt | sep\u202f\u2192\u00a0 | stats 28px\u219236px eco 18\u219224 | "
+           f"gap removed (stretch+auto) | strip solid | ref\u2192sentence | "
+           f"hero pad+ | Pages: 3 | {kb} KB\n")
     sys.stdout.buffer.write(msg.encode("utf-8", errors="replace"))
     sys.stdout.buffer.flush()
     return str(out)

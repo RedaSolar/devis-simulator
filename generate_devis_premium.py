@@ -11,11 +11,47 @@ from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
+
+BASE_DIR = Path(__file__).resolve().parent
+
+def _fetch_playfair(weight=700):
+    """Download Playfair Display woff2 and return base64 string; cache in temp dir."""
+    import urllib.request, re as _re, tempfile as _tmp
+    cache = Path(_tmp.gettempdir()) / f"taqinor_playfair_{weight}.woff2"
+    if cache.exists():
+        return base64.b64encode(cache.read_bytes()).decode()
+    try:
+        _UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+               "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+        css_url = (f"https://fonts.googleapis.com/css2?family=Playfair+Display"
+                   f":wght@{weight}&display=block")
+        req = urllib.request.Request(css_url, headers={"User-Agent": _UA})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            css = r.read().decode()
+        # last match is Latin subset
+        urls = _re.findall(r"url\((https://fonts\.gstatic\.com/[^)]+\.woff2)\)", css)
+        if not urls:
+            return None
+        with urllib.request.urlopen(urls[-1], timeout=10) as r:
+            data = r.read()
+        cache.write_bytes(data)
+        return base64.b64encode(data).decode()
+    except Exception:
+        return None
+
+_PF700 = _fetch_playfair(700)
+_PF400 = _fetch_playfair(400)
+
+def _pf_face(weight, b64):
+    if not b64:
+        return ""
+    return (f'@font-face{{font-family:"Playfair Display";font-style:normal;'
+            f'font-weight:{weight};font-display:block;'
+            f'src:url("data:font/woff2;base64,{b64}") format("woff2");}}')
+
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import numpy as np
-
-BASE_DIR = Path(__file__).resolve().parent
 
 # ── Design tokens ────────────────────────────────────────────────────────────
 CN  = "#0F1E35"
@@ -292,27 +328,18 @@ def _logo_dark_b64():
     return base64.b64encode(buf.getvalue()).decode()
 
 def logo_p1_dark():
-    """Real logo.png on dark navy — white bg removed, dark text converted to white."""
-    subtitle = (f'<div style="color:{CA};font-size:6px;letter-spacing:1px;margin-top:4px;">'
-                f'T A Q A &nbsp;&#183;&nbsp; I N N O V A T I O N &nbsp;&#183;&nbsp; N O R</div>')
+    """Logo for dark header — white filled stamp card. Tagline rendered separately."""
     b64_str = _logo_dark_b64()
     if b64_str:
-        img_tag = (f'<img src="data:image/png;base64,{b64_str}" height="80" alt="TAQINOR" '
-                   f'style="height:80px;width:auto;object-fit:contain;display:block;">')
-        logo_box = (f'<div style="border:2px solid rgba(255,255,255,0.65);border-radius:4px;'
-                    f'padding:8px;background:rgba(255,255,255,0.07);display:inline-block;">'
-                    f'{img_tag}'
-                    f'</div>')
-        return (f'<div style="display:inline-flex;flex-direction:column;align-items:flex-start;">'
-                f'{logo_box}{subtitle}'
+        img_tag = (f'<img src="data:image/png;base64,{b64_str}" alt="TAQINOR" '
+                   f'style="height:58px;width:auto;object-fit:contain;display:block;">')
+        return (f'<div style="background:white;padding:11px;display:inline-block;">'
+                f'{img_tag}'
                 f'</div>')
-    # Fallback: text logo
-    return (f'<div style="display:inline-flex;flex-direction:column;align-items:flex-start;">'
-            f'<div style="border:2px solid rgba(255,255,255,0.65);border-radius:4px;padding:8px;">'
-            f'<div style="font-size:18px;font-weight:900;color:white;letter-spacing:1px;line-height:1.1;">'
+    # Fallback: text logo on white stamp
+    return (f'<div style="background:white;padding:11px 15px;display:inline-block;">'
+            f'<div style="font-size:15px;font-weight:900;color:{CN};letter-spacing:1px;line-height:1.1;">'
             f'TAQIN<span style="color:{CA};">&#9733;</span>R</div>'
-            f'</div>'
-            f'{subtitle}'
             f'</div>')
 
 def footer_p1():
@@ -320,9 +347,9 @@ def footer_p1():
     return (f'<div style="background:white;padding:7px 24px;flex-shrink:0;display:flex;'
             f'align-items:center;justify-content:space-between;border-top:1px solid {CG2};">'
             f'<div style="font-size:9pt;font-weight:800;color:{CA};letter-spacing:1px;">TAQINOR</div>'
-            f'<div style="font-size:7pt;color:{CG4};text-align:center;">'
+            f'<div style="font-size:7pt;color:#6B7280;text-align:center;">'
             f'contact@taqinor.com &nbsp;&#183;&nbsp; +212&#160;6&#160;61&#160;85&#160;04&#160;10 &nbsp;&#183;&nbsp; www.taqinor.ma</div>'
-            f'<div style="font-size:7pt;color:{CG4};">Page 1&nbsp;/&nbsp;3 &nbsp;|&nbsp; R\u00e9f.&nbsp;{REF}</div>'
+            f'<div style="font-size:7pt;color:#6B7280;">Page 1&nbsp;/&nbsp;3 &nbsp;|&nbsp; R\u00e9f.&nbsp;{REF}</div>'
             f'</div>')
 
 def footer(n, total=3):
@@ -468,13 +495,15 @@ def equip_rows(items, hi_bat=False):
 # ── Global CSS ────────────────────────────────────────────────────────────────
 CSS = f"""
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&family=DM+Serif+Display&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap');
+{_pf_face(700, _PF700)}
+{_pf_face(400, _PF400)}
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0;}}
 body{{font-family:'DM Sans','Segoe UI',system-ui,sans-serif;font-size:9pt;color:{CG7};
   -webkit-print-color-adjust:exact;print-color-adjust:exact;}}
 @page{{size:A4;margin:0;}}
 .page{{width:210mm;height:297mm;overflow:hidden;break-after:page;display:flex;flex-direction:column;}}
 .serif{{font-family:'DM Serif Display','Palatino Linotype',Georgia,serif;}}
-.hc-serif{{font-family:'Playfair Display','Palatino Linotype','Book Antiqua','DM Serif Display',Georgia,serif;}}
+.hc-serif{{font-family:'Playfair Display','Palatino Linotype','Book Antiqua',Georgia,serif;}}
 .eq{{width:100%;border-collapse:collapse;font-size:6.5pt;}}
 .eq th{{background:{CG1};color:{CG4};font-size:5.5pt;font-weight:700;text-transform:uppercase;
   letter-spacing:.5px;padding:4px 5px;border-bottom:1px solid {CG2};text-align:left;}}
@@ -497,39 +526,50 @@ def page1():
     return f"""
 <div class="page">
 
-  <!-- DARK NAVY HERO — v5: 20px 36px 40px 36px, row1 mb:24px -->
-  <div style="background:{CN};flex-shrink:0;position:relative;padding:20px 36px 52px 36px;">
+  <!-- ═══ DARK NAVY HERO ═══ -->
+  <div style="background:{CN};flex-shrink:0;position:relative;padding:13px 28px 38px 28px;">
 
-    <!-- Row 1: Logo left + descriptor right -->
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;">
-      {logo_p1_dark()}
-      <div style="text-align:right;">
-        <div style="font-size:9px;color:rgba(255,255,255,0.45);line-height:1.7;">Installation solaire photovolta&#239;que</div>
-        <div style="font-size:9px;color:rgba(255,255,255,0.45);">Proposition commerciale &#8212; Confidentiel</div>
-      </div>
-    </div>
-
-    <!-- Row 2: Title+client left / Ref right -->
+    <!-- Row 1: Logo box (left) + subtitle text (right) -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;">
-      <div>
-        <div style="font-size:5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">P R O P O S I T I O N &nbsp; C O M M E R C I A L E</div>
-        <div class="hc-serif" style="font-size:36pt;font-weight:700;color:white;line-height:1.0;letter-spacing:-0.5px;margin-bottom:10px;">Installation<br>Solaire</div>
-        <div style="font-size:11pt;font-weight:700;color:{CA};margin-bottom:3px;">{CLIENT_NAME}</div>
-        <div style="font-size:8pt;color:rgba(255,255,255,0.60);line-height:1.7;">{CLIENT_ADDR}<br>{CLIENT_PHONE}</div>
-        <div style="margin-top:6px;display:inline-block;border:1px solid rgba(255,255,255,0.4);border-radius:20px;padding:3px 10px;font-size:10px;color:white;">&#127968; {INST_TYPE}</div>
-      </div>
-      <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:9px;color:rgba(255,255,255,0.50);margin-bottom:4px;">R&#233;f&#233;rence devis</div>
-        <div class="serif" style="font-size:72px;font-weight:700;color:{CA};line-height:1.0;letter-spacing:-2px;">N&#176;&nbsp;{REF}</div>
-        <div style="font-size:8pt;color:{CG4};margin-top:6px;">{DATE_STR}</div>
-        <div style="margin-top:6px;display:inline-block;background:{CA};color:{CN};border:none;border-radius:20px;padding:3px 12px;font-size:7pt;font-weight:700;">Validit&#233;&#160;: 30 jours</div>
+      {logo_p1_dark()}
+      <div style="text-align:right;padding-top:2px;">
+        <div style="font-size:7px;color:rgba(255,255,255,0.38);line-height:1.7;">Installation solaire photovolta&#239;que</div>
+        <div style="font-size:7px;color:rgba(255,255,255,0.38);">Proposition commerciale &#8212; Confidentiel</div>
       </div>
     </div>
 
-    <!-- Diagonal cut -->
+    <!-- Tagline BELOW logo box — 20px gap -->
+    <div style="color:{CA};font-size:6px;letter-spacing:1.5px;font-weight:600;margin-top:20px;margin-bottom:8px;white-space:nowrap;">TAQA &nbsp;&#183;&nbsp; INNOVATION &nbsp;&#183;&nbsp; NOR</div>
+
+    <!-- Gold separator — AFTER tagline, BEFORE PROPOSITION -->
+    <div style="height:1px;background:{CA};opacity:0.5;margin-bottom:10px;"></div>
+
+    <!-- Row 2: Title+client left / Ref+validity right -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
+
+      <!-- LEFT: PROPOSITION label + serif title + client info -->
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:3.5pt;letter-spacing:2.5px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:12px;">PROPOSITION COMMERCIALE</div>
+        <div class="hc-serif" style="font-size:68pt;font-weight:700;color:white;line-height:1.0;letter-spacing:-0.5px;margin-bottom:8px;">Installation<br>Solaire</div>
+        <div style="font-size:9.5pt;font-weight:700;color:{CA};margin-bottom:2px;">{CLIENT_NAME}</div>
+        <div style="font-size:7pt;color:rgba(255,255,255,0.56);line-height:1.6;">{CLIENT_ADDR}<br>{CLIENT_PHONE}</div>
+        <div style="margin-top:4px;display:inline-block;border:1px solid rgba(255,255,255,0.28);padding:2px 7px;font-size:7.5px;color:rgba(255,255,255,0.68);">&#127968; {INST_TYPE}</div>
+      </div>
+
+      <!-- RIGHT: Ref label + N°412 + date + Validité badge -->
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:7px;color:{CG4};margin-bottom:1px;">R&#233;f&#233;rence devis</div>
+        <div class="hc-serif" style="font-size:110pt;font-weight:700;color:{CA};line-height:0.90;letter-spacing:-4px;">N&#176;&nbsp;{REF}</div>
+        <div style="font-size:7pt;color:{CG4};margin-top:5px;">{DATE_STR}</div>
+        <div style="margin-top:5px;display:inline-block;background:{CA};color:{CN};border-radius:5px;padding:3px 10px;font-size:6.5pt;font-weight:700;">Validit&#233;&#160;: 30 jours</div>
+      </div>
+
+    </div>
+
+    <!-- Diagonal cut — very gentle slope: left 82% height, right 70% height -->
     <div style="position:absolute;bottom:0;left:0;right:0;line-height:0;overflow:hidden;">
-      <svg viewBox="0 0 100 10" preserveAspectRatio="none" style="display:block;width:100%;height:32px;">
-        <polygon points="0,10 100,0 100,10" fill="white"/>
+      <svg viewBox="0 0 100 10" preserveAspectRatio="none" style="display:block;width:100%;height:20px;">
+        <polygon points="0,10 0,8.2 100,7 100,10" fill="white"/>
       </svg>
     </div>
   </div>
@@ -537,87 +577,87 @@ def page1():
   <!-- WHITE CONTENT AREA — fills remaining space, dark strip is compact -->
   <div style="display:flex;flex-direction:column;padding:0;margin:0;flex:1;">
 
-  <!-- KPI CARDS — v5: more air, padding:14px 24px -->
-  <div style="padding:14px 24px 12px;flex-shrink:0;">
-    <div style="display:flex;gap:10px;">
+  <!-- KPI CARDS — negative margin-top to overlap the diagonal -->
+  <div style="padding:2px 24px 8px;flex-shrink:0;margin-top:-10px;position:relative;z-index:1;">
+    <div style="display:flex;gap:9px;">
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:22px 18px;background:white;">
-        <div style="font-size:5.5pt;letter-spacing:1.5px;color:{CG4};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Puissance Install&#233;e</div>
-        <div style="font-size:20px;font-weight:800;color:{CN};line-height:1.0;">{KWC}&nbsp;kWc</div>
-        <div style="font-size:7pt;color:{CG4};margin-top:4px;">{NB_PAN} panneaux &#215; {WP}&nbsp;W</div>
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
+        <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">Puissance Install&#233;e</div>
+        <div style="font-size:16px;font-weight:800;color:{CN};line-height:1.05;">{KWC}&nbsp;kWc</div>
+        <div style="font-size:6.5pt;color:{CG4};margin-top:3px;">{NB_PAN} panneaux &#215; {WP}&nbsp;W</div>
       </div>
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:22px 18px;background:white;">
-        <div style="font-size:5.5pt;letter-spacing:1.5px;color:{CG4};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Production Annuelle</div>
-        <div style="font-size:20px;font-weight:800;color:{CN};line-height:1.0;">{pk}&nbsp;kWh</div>
-        <div style="font-size:7pt;color:{CG4};margin-top:4px;">&#233;nergie propre / an</div>
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
+        <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">Production Annuelle</div>
+        <div style="font-size:16px;font-weight:800;color:{CN};line-height:1.05;">{pk}&nbsp;kWh</div>
+        <div style="font-size:6.5pt;color:{CG4};margin-top:3px;">&#233;nergie propre / an</div>
       </div>
 
-      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:8px;padding:22px 18px;background:white;">
-        <div style="font-size:5.5pt;letter-spacing:1.5px;color:{CG4};font-weight:700;text-transform:uppercase;margin-bottom:5px;">&#201;conomies / an</div>
-        <div style="font-size:14px;font-weight:800;color:{CN};line-height:1.1;"><span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span></div>
-        <div style="font-size:7pt;color:{CA};font-style:italic;margin-top:4px;">selon option choisie</div>
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.09);">
+        <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">&#201;conomies / an</div>
+        <div style="font-size:12px;font-weight:800;color:{CN};line-height:1.1;"><span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span></div>
+        <div style="font-size:6.5pt;color:{CA};font-style:italic;margin-top:3px;">selon option choisie</div>
       </div>
 
     </div>
   </div>
 
   <!-- SECTION TITLE -->
-  <div style="padding:4px 24px 10px;flex-shrink:0;">
+  <div style="padding:5px 24px 7px;flex-shrink:0;">
     <div style="display:inline-block;">
-      <div style="font-size:6.5pt;letter-spacing:3px;color:{CN};font-weight:700;text-transform:uppercase;">Vos Options d&#8217;Installation</div>
-      <div style="height:2px;background:{CA};border-radius:1px;margin-top:3px;"></div>
+      <div style="font-size:6pt;letter-spacing:3px;color:{CG4};font-weight:500;text-transform:uppercase;">Vos Options d&#8217;Installation</div>
+      <div style="height:2px;background:{CA};border-radius:1px;margin-top:3px;width:40px;"></div>
     </div>
   </div>
 
-  <!-- OPTION CARDS ROW — cards stretch to equal height, économie boxes at bottom -->
-  <div style="display:flex;gap:16px;padding:0 24px 0 24px;align-items:stretch;">
+  <!-- OPTION CARDS ROW — compact height, options as tall as content -->
+  <div style="display:flex;flex-shrink:0;gap:12px;padding:0 24px 10px;align-items:flex-start;">
 
     <!-- OPTION 1 -->
-    <div style="flex:1;border:2px solid {CA};border-radius:8px;padding:16px;display:flex;flex-direction:column;background:white;">
-      <div style="font-size:5.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Option 1</div>
-      <div style="font-size:13pt;font-weight:800;color:{CN};margin-bottom:2px;">Sans batterie</div>
-      <div style="font-size:7.5pt;color:{CGR};font-weight:600;margin-bottom:8px;">Autoconsommation directe</div>
-      <div class="hc-serif" style="font-size:24pt;font-weight:700;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
+    <div style="flex:1;border:1.5px solid {CA};border-top:5px solid {CA};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:white;">
+      <div style="font-size:4.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 1</div>
+      <div style="font-size:11.5pt;font-weight:800;color:{CN};margin-bottom:2px;">Sans batterie</div>
+      <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Autoconsommation directe</div>
+      <div class="hc-serif" style="font-size:21pt;font-weight:700;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
         <span style="white-space:nowrap;">{ts}</span>
       </div>
-      <div style="font-size:7pt;color:{CG4};margin-bottom:6px;">Prix total TTC</div>
-      <div style="display:inline-block;background:{CA};color:{CN};border-radius:20px;padding:5px 10px;font-size:7pt;font-weight:700;margin-bottom:8px;">&#128200; Retour en {ROI_S} ans</div>
-      <div style="height:1px;background:{CG2};margin-bottom:7px;"></div>
-      <ul style="list-style:none;padding:0;font-size:7.5pt;line-height:1.9;color:{CG7};">
+      <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
+      <div style="display:inline-block;width:auto;align-self:flex-start;background:{CA};color:{CN};border-radius:3px;padding:3px 9px;font-size:6.5pt;font-weight:700;margin-bottom:7px;">&#128200; Retour en {ROI_S} ans</div>
+      <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
+      <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> {NB_PAN} panneaux {WP}&nbsp;W</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Onduleur r&#233;seau Huawei</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Smart Meter + Wifi Dongle</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
       </ul>
-      <div style="height:1px;background:{CG2};margin:7px 0;"></div>
-      <div style="background:{CG1};border-radius:5px;padding:5px 9px;margin-top:auto;">
+      <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
+      <div style="background:{CG1};border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
         <span style="font-size:7pt;color:{CG4};">&#201;conomie estim&#233;e&#160;: </span>
         <span style="font-size:10pt;font-weight:800;color:{CN};">{esa_mad}/an</span>
       </div>
     </div>
 
-    <!-- OPTION 2 — amber border, warm amber bg, RECOMMANDÉ badge -->
-    <div style="flex:1;border:2px solid {CA};border-radius:8px;padding:16px;display:flex;flex-direction:column;background:{CAL};">
-      <div style="font-size:5.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:5px;">Option 2</div>
-      <div style="background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:20px;text-transform:uppercase;text-align:center;margin-bottom:6px;">&#9733; RECOMMAND&#201;</div>
-      <div style="font-size:13pt;font-weight:800;color:{CN};margin-bottom:2px;">Avec batterie</div>
-      <div style="font-size:7.5pt;color:{CA};font-weight:600;margin-bottom:8px;">Stockage + autonomie nocturne</div>
-      <div class="hc-serif" style="font-size:24pt;font-weight:700;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
+    <!-- OPTION 2 — amber border, warm amber bg, RECOMMANDÉ badge, DARK NAVY top bar -->
+    <div style="flex:1;border:1.5px solid {CA};border-top:6px solid {CN};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:{CAL};">
+      <div style="font-size:4.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 2</div>
+      <div style="display:block;background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:4px 9px;border-radius:3px;text-transform:uppercase;text-align:center;margin-bottom:6px;width:100%;box-sizing:border-box;">&#9733; RECOMMAND&#201;</div>
+      <div style="font-size:11.5pt;font-weight:800;color:{CN};margin-bottom:2px;">Avec batterie</div>
+      <div style="font-size:7pt;color:{CA};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
+      <div class="hc-serif" style="font-size:21pt;font-weight:700;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
         <span style="white-space:nowrap;">{ta}</span>
       </div>
-      <div style="font-size:7pt;color:{CG4};margin-bottom:6px;">Prix total TTC</div>
-      <div style="background:{CN};color:white;border-radius:20px;padding:5px 10px;font-size:7pt;font-weight:700;margin-bottom:8px;text-align:center;">&#128200; Retour en {ROI_A} ans</div>
-      <div style="height:1px;background:{CG2};margin-bottom:7px;"></div>
-      <ul style="list-style:none;padding:0;font-size:7.5pt;line-height:1.9;color:{CG7};">
+      <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
+      <div style="display:inline-block;width:auto;align-self:flex-start;background:{CN};color:white;border-radius:3px;padding:3px 9px;font-size:6.5pt;font-weight:700;margin-bottom:7px;">&#128200; Retour en {ROI_A} ans</div>
+      <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
+      <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> {NB_PAN} panneaux {WP}&nbsp;W</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Onduleur hybride Deye</li>
         <li style="color:{CN};font-weight:700;"><span style="color:{CA};">&#9889;</span> Batterie de stockage incluse</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Monitoring int&#233;gr&#233; via app Deye</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
       </ul>
-      <div style="height:1px;background:{CG2};margin:7px 0;"></div>
-      <div style="background:{CAL};border-radius:5px;padding:5px 9px;margin-top:auto;">
+      <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
+      <div style="background:white;border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
         <span style="font-size:7pt;color:{CG4};">&#201;conomie estim&#233;e&#160;: </span>
         <span style="font-size:10pt;font-weight:800;color:{CN};">{eaa_mad}/an</span>
       </div>
@@ -628,13 +668,13 @@ def page1():
   </div><!-- end white content area -->
 
   <!-- BOTTOM DARK STRIP — solid edge-to-edge dark navy, compact height -->
-  <div style="background:{CN};flex-shrink:0;min-height:44px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 36px;">
-    <div style="display:flex;gap:8px;">
-      <span style="border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:3px 10px;font-size:7pt;color:white;white-space:nowrap;">&#9728; 3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
-      <span style="border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:3px 10px;font-size:7pt;color:white;white-space:nowrap;">&#9889; Prix ONEE en hausse</span>
-      <span style="border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:3px 10px;font-size:7pt;color:white;white-space:nowrap;">&#127758; &#201;nergie 100&#37; propre</span>
+  <div style="background:{CN};flex-shrink:0;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:8px 30px;">
+    <div style="display:flex;gap:6px;">
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">&#9728; 3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">&#9889; Prix ONEE en hausse</span>
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">&#127758; &#201;nergie 100&#37; propre</span>
     </div>
-    <div style="font-size:7pt;color:rgba(255,255,255,0.70);white-space:nowrap;">
+    <div style="font-size:6.5pt;color:rgba(255,255,255,0.70);white-space:nowrap;">
       <span style="color:{CA};font-weight:700;">&#9312;</span> Devis
       <span style="color:{CA};margin:0 3px;">&#8594;</span>
       <span style="color:{CA};font-weight:700;">&#9313;</span> Visite

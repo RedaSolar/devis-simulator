@@ -593,7 +593,7 @@ def page1():
     eaa_mad = f"{int(ECO_A_ANN):,}".replace(",", _s) + "\u00a0MAD"
     pk      = f"{int(PROD_KWH):,}".replace(",", _s)
     return f"""
-<div class="page">
+<div class="page" style="background:#FFFFFF !important;">
 
   <!-- ═══ DARK NAVY HERO ═══ — min-height 37% of A4 (≈110 mm) -->
   <div style="background:{CN};flex-shrink:0;position:relative;padding:30px 28px 72px 28px;min-height:37%;">
@@ -679,7 +679,7 @@ def page1():
 
   <!-- SECTION TITLE -->
   <div style="padding:5px 24px 7px;flex-shrink:0;background:#FFFFFF !important;">
-    <div style="display:inline-block;background:#FFFFFF !important;">
+    <div style="display:block;background:#FFFFFF !important;">
       <div style="font-size:7pt;letter-spacing:3px;color:{CG4};font-weight:500;text-transform:uppercase;">Vos Options d&#8217;Installation</div>
       <div style="height:2px;background:{CA};border-radius:1px;margin-top:3px;width:40px;"></div>
     </div>

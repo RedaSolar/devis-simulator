@@ -714,8 +714,9 @@ def page1():
       </div>
     </div>
 
-    <!-- OPTION 2 — amber border, warm amber bg, RECOMMANDÉ badge, DARK NAVY top bar -->
-    <div style="flex:1;border:1.5px solid {CA};border-top:6px solid {CN};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:{CAL};box-shadow:0 6px 24px rgba(245,166,35,0.18),0 0 0 1px rgba(245,166,35,0.15),0 1px 4px rgba(0,0,0,0.04);">
+    <!-- OPTION 2 — amber border, RECOMMANDÉ badge, DARK NAVY top bar -->
+    <!-- FIX v40: background changed from {CAL} (#FDF3E3 warm cream) → #FFFFFF (was rendering as beige on mobile PDF viewers) -->
+    <div style="flex:1;border:1.5px solid {CA};border-top:6px solid {CN};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:#FFFFFF;box-shadow:0 6px 24px rgba(245,166,35,0.18),0 0 0 1px rgba(245,166,35,0.15),0 1px 4px rgba(0,0,0,0.04);">
       <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 2</div>
       <div style="display:block;background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:8px;text-transform:uppercase;text-align:center;margin-bottom:6px;width:100%;box-sizing:border-box;">&#9733; RECOMMAND&#201;</div>
       <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Avec batterie</div>

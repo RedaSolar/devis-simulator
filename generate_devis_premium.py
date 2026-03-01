@@ -924,8 +924,16 @@ def generate():
     sys.stdout.buffer.flush()
     html = build_html()
 
-    out = BASE_DIR / "devis_client" / f"devis_taqinor_{ref}_v17.pdf"
-    out.parent.mkdir(exist_ok=True)
+    out_dir = BASE_DIR / "devis_client"
+    out_dir.mkdir(exist_ok=True)
+    import re as _re
+    existing = [
+        int(m.group(1))
+        for f in out_dir.glob(f"devis_taqinor_{ref}_v*.pdf")
+        if (m := _re.search(r"_v(\d+)\.pdf$", f.name))
+    ]
+    next_v = (max(existing) + 1) if existing else 1
+    out = out_dir / f"devis_taqinor_{ref}_v{next_v}.pdf"
 
     print("[2/3] Writing temp HTML...")
     with tempfile.NamedTemporaryFile(suffix=".html", delete=False,
@@ -954,10 +962,7 @@ def generate():
         raise RuntimeError(f"Chrome failed.\n{r.stderr[:400]}")
 
     kb = out.stat().st_size // 1024
-    msg = (f"\n\u2705 v17 | p1 only | old\u2192new:\n"
-           f"  prices 26pt\u219236pt | sep\u202f\u2192\u00a0 | stats 28px\u219236px eco 18\u219224 | "
-           f"gap removed (stretch+auto) | strip solid | ref\u2192sentence | "
-           f"hero pad+ | Pages: 3 | {kb} KB\n")
+    msg = (f"\n\u2705 Saved: {out.name} | Pages: 3 | {kb} KB\n")
     sys.stdout.buffer.write(msg.encode("utf-8", errors="replace"))
     sys.stdout.buffer.flush()
     return str(out)

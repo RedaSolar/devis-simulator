@@ -387,11 +387,14 @@ def _logo_dark_b64():
     return base64.b64encode(buf.getvalue()).decode()
 
 def logo_p1_dark():
-    """Logo for dark header — transparent, no white box."""
-    p = BASE_DIR / "logo.png"
-    if p.exists():
-        return (f'<img src="{b64(p)}" alt="TAQINOR" '
-                f'style="height:82px;width:auto;object-fit:contain;display:block;">')
+    """Logo for dark header — white bg removed, dark pixels → white, rendered on navy."""
+    try:
+        b64_data = _logo_dark_b64()
+    except Exception:
+        b64_data = None
+    if b64_data:
+        return (f'<img src="data:image/png;base64,{b64_data}" alt="TAQINOR" '
+                f'style="height:96px;width:auto;object-fit:contain;display:block;">')
     # Fallback: text on dark background
     return (f'<div style="display:inline-block;">'
             f'<div style="font-size:17px;font-weight:900;color:white;letter-spacing:1px;line-height:1.1;">'
@@ -633,8 +636,8 @@ def page1():
     return f"""
 <div class="page">
 
-  <!-- ═══ DARK NAVY HERO ═══ -->
-  <div style="background:{CN};flex-shrink:0;position:relative;padding:20px 28px 48px 28px;">
+  <!-- ═══ DARK NAVY HERO ═══ — min-height 37% of A4 (≈110 mm) -->
+  <div style="background:{CN};flex-shrink:0;position:relative;padding:30px 28px 72px 28px;min-height:37%;">
     <!-- Amber radial glow — top-right, behind N°412 -->
     <div style="position:absolute;top:0;right:0;width:260px;height:170px;background:radial-gradient(ellipse at 82% 12%, rgba(245,166,35,0.26) 0%, transparent 62%);pointer-events:none;z-index:0;"></div>
 

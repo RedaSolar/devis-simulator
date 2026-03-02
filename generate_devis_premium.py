@@ -9,6 +9,39 @@ Usage : python generate_devis_premium.py
 import base64, io, json, subprocess, sys, tempfile
 from pathlib import Path
 
+
+def _find_browser():
+    """Find Chrome/Chromium - checks system paths and Playwright's Chromium."""
+    candidates = [
+        "/usr/bin/google-chrome",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/chromium-browser",
+        "/usr/bin/chromium",
+        "/snap/bin/chromium",
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    ]
+    # Check Playwright's Chromium
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            return p.chromium.executable_path
+    except Exception:
+        pass
+    # Fallback: glob for playwright chromium in home dir
+    import glob
+    pw_paths = glob.glob(os.path.expanduser("~/.cache/ms-playwright/chromium-*/chrome-linux/chrome"))
+    if pw_paths:
+        return pw_paths[0]
+    br = next((b for b in candidates if Path(b).exists()), None)
+    if not br:
+        raise RuntimeError("Chrome or Edge not found.")
+    return br
+
+
+import os
+
 import matplotlib
 matplotlib.use("Agg")
 
@@ -1123,21 +1156,7 @@ def generate():
         tmp = tf.name
 
     print("[3/3] Rendering with Chrome headless...")
-    browsers = [
-        # Linux (cPanel / VPS)
-        "/usr/bin/google-chrome",
-        "/usr/bin/google-chrome-stable",
-        "/usr/bin/chromium-browser",
-        "/usr/bin/chromium",
-        "/snap/bin/chromium",
-        # Windows
-        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-    ]
-    br = next((b for b in browsers if Path(b).exists()), None)
-    if not br:
-        raise RuntimeError("Chrome or Edge not found.")
+    br = _find_browser()
 
     import platform
     file_url = f"file://{tmp}" if platform.system() != "Windows" else f"file:///{tmp.replace(chr(92), '/')}"
@@ -1210,21 +1229,7 @@ def generate_premium_pdf(data: dict, out_path) -> str:
         tf.write(html)
         tmp = tf.name
 
-    browsers = [
-        # Linux (cPanel / VPS)
-        "/usr/bin/google-chrome",
-        "/usr/bin/google-chrome-stable",
-        "/usr/bin/chromium-browser",
-        "/usr/bin/chromium",
-        "/snap/bin/chromium",
-        # Windows
-        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-    ]
-    br = next((b for b in browsers if Path(b).exists()), None)
-    if not br:
-        raise RuntimeError("Chrome or Edge not found.")
+    br = _find_browser()
 
     import platform
     file_url = f"file://{tmp}" if platform.system() != "Windows" else f"file:///{tmp.replace(chr(92), '/')}"

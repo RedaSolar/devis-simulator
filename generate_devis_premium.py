@@ -772,8 +772,33 @@ def page1():
 def page2(sans_items, img_roi, img_mon):
     sr = equip_rows(sans_items, hi_bat=False)
     ar = equip_rows(AVEC_ITEMS, hi_bat=True)
+
+    # ── Dynamic table row scaling ─────────────────────────────────────────────
+    # When one side has many rows the table section grows and squeezes the charts.
+    # Scale row height/font proportionally so everything still fits on one page.
+    max_rows = max(len(sans_items), len(AVEC_ITEMS))
+    scale = 1.0 if max_rows <= 11 else max(0.62, 11.0 / max_rows)
+    if scale < 1.0:
+        tbl_font = f"{6.5 * scale:.2f}pt"
+        th_font  = f"{5.5 * scale:.2f}pt"
+        td_pady  = f"{max(1.5, 3.0 * scale):.1f}px"
+        td_padx  = f"{max(2.0, 4.0 * scale):.1f}px"
+        icon_sz  = f"{max(22, int(36 * scale))}px"
+        icon_col = f"{max(28, int(44 * scale))}px"
+        tbl_css = (
+            f'<style>.eq{{font-size:{tbl_font};}}'
+            f'.eq th{{font-size:{th_font};padding:{td_pady} {td_padx};}}'
+            f'.eq td{{padding:{td_pady} {td_padx};}}'
+            f'.eq .ti{{width:{icon_col};padding:2px 2px;}}'
+            f'.eq .ti img{{width:{icon_sz} !important;height:{icon_sz} !important;}}'
+            f'</style>'
+        )
+    else:
+        tbl_css = ""
+
     return f"""
 <div class="page">
+  {tbl_css}
   <div style="background:{CN};padding:9px 24px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
     <div>
       <div style="color:white;font-size:10pt;font-weight:700;">D\u00e9tail des \u00e9quipements &amp; Analyse financi\u00e8re</div>
@@ -814,19 +839,22 @@ def page2(sans_items, img_roi, img_mon):
     </div>
   </div>
 
-  <div style="padding:4px 24px 6px;flex-grow:1;display:flex;flex-direction:column;gap:10px;">
-    <div style="background:{CG1};border-radius:7px;padding:8px 11px;border:1px solid {CG2};">
-      <div style="font-size:7pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">
+  <!-- Charts section: flex:1 so it always fills the remaining space;
+       each card also flex:1 so both charts share equally;
+       images use flex:1;min-height:0 so they scale to whatever height is available -->
+  <div style="padding:4px 24px 6px;flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;">
+    <div style="flex:1;min-height:0;background:{CG1};border-radius:7px;padding:8px 11px;border:1px solid {CG2};display:flex;flex-direction:column;">
+      <div style="font-size:7pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;flex-shrink:0;">
         &#128200; Gain cumul\u00e9 sur 25 ans \u2014 Point de retour sur investissement
       </div>
-      <img src="{img_roi}" style="width:100%;max-height:200px;object-fit:contain;display:block;">
+      <img src="{img_roi}" style="flex:1;min-height:0;width:100%;object-fit:contain;display:block;">
     </div>
-    <div style="background:{CG1};border-radius:7px;padding:8px 11px;border:1px solid {CG2};">
-      <div style="font-size:7pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px;">
+    <div style="flex:1;min-height:0;background:{CG1};border-radius:7px;padding:8px 11px;border:1px solid {CG2};display:flex;flex-direction:column;">
+      <div style="font-size:7pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px;flex-shrink:0;">
         &#128197; \u00c9conomies mensuelles estim\u00e9es (MAD / mois)
       </div>
-      <div style="font-size:6pt;color:{CG4};font-style:italic;margin-bottom:4px;">Facture ONEE vs \u00e9conomies solaires par mois</div>
-      <img src="{img_mon}" style="width:100%;max-height:185px;object-fit:contain;display:block;">
+      <div style="font-size:6pt;color:{CG4};font-style:italic;margin-bottom:4px;flex-shrink:0;">Facture ONEE vs \u00e9conomies solaires par mois</div>
+      <img src="{img_mon}" style="flex:1;min-height:0;width:100%;object-fit:contain;display:block;">
     </div>
   </div>
 

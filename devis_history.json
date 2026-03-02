@@ -49701,9 +49701,9 @@
     "created_at": "2026-02-28"
   },
   "410": {
-    "client_name": "Reda kasri",
-    "client_address": "5 Rue Ennoussour RDC",
-    "client_phone": "0661850410",
+    "client_name": "Reda Kasri",
+    "client_address": "6 bourne road",
+    "client_phone": "07376408977",
     "doc_number": 410,
     "df": [
       {
@@ -49711,7 +49711,7 @@
         "Marque": "Huawei",
         "Quantité": 1.0,
         "Prix Achat TTC": 9500.0,
-        "Prix Unit. TTC": 12000.0,
+        "Prix Unit. TTC": 14000.0,
         "TVA (%)": 20.0
       },
       {
@@ -49719,14 +49719,14 @@
         "Marque": "Deye",
         "Quantité": 1.0,
         "Prix Achat TTC": 12000.0,
-        "Prix Unit. TTC": 17000.0,
+        "Prix Unit. TTC": 16000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Smart Meter",
         "Marque": "",
         "Quantité": 1.0,
-        "Prix Achat TTC": 2000.0,
+        "Prix Achat TTC": 1200.0,
         "Prix Unit. TTC": 1800.0,
         "TVA (%)": 20.0
       },
@@ -49742,13 +49742,13 @@
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
         "Quantité": 8.0,
-        "Prix Achat TTC": 900.0,
-        "Prix Unit. TTC": 1100.0,
+        "Prix Achat TTC": 750.0,
+        "Prix Unit. TTC": 950.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Batterie",
-        "Marque": "Deyness 5Kwh",
+        "Marque": "Deyness 5kWh",
         "Quantité": 1.0,
         "Prix Achat TTC": 12000.0,
         "Prix Unit. TTC": 16000.0,
@@ -49756,8 +49756,8 @@
       },
       {
         "Désignation": "Batterie",
-        "Marque": "Deyness 10Kwh",
-        "Quantité": 1.0,
+        "Marque": "Deyness 10kWh",
+        "Quantité": 0.0,
         "Prix Achat TTC": 22000.0,
         "Prix Unit. TTC": 27000.0,
         "TVA (%)": 20.0
@@ -49767,7 +49767,7 @@
         "Marque": "",
         "Quantité": 8.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -49775,7 +49775,7 @@
         "Marque": "",
         "Quantité": 0.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -49791,7 +49791,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1000.0,
         "TVA (%)": 20.0
       },
       {
@@ -49799,7 +49799,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 1500.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1500.0,
         "TVA (%)": 20.0
       },
       {
@@ -49807,7 +49807,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 4000.0,
-        "Prix Unit. TTC": 4000.0,
+        "Prix Unit. TTC": 4800.0,
         "TVA (%)": 20.0
       },
       {
@@ -49822,7 +49822,7 @@
         "Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
         "Marque": "",
         "Quantité": 0.0,
-        "Prix Achat TTC": 1000.0,
+        "Prix Achat TTC": 4000.0,
         "Prix Unit. TTC": 5000.0,
         "TVA (%)": 20.0
       }
@@ -49833,14 +49833,14 @@
         "Marque": "Huawei",
         "Quantité": 1.0,
         "Prix Achat TTC": 9500.0,
-        "Prix Unit. TTC": 12000.0,
+        "Prix Unit. TTC": 14000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Smart Meter",
         "Marque": "",
         "Quantité": 1.0,
-        "Prix Achat TTC": 2000.0,
+        "Prix Achat TTC": 1200.0,
         "Prix Unit. TTC": 1800.0,
         "TVA (%)": 20.0
       },
@@ -49856,8 +49856,8 @@
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
         "Quantité": 8.0,
-        "Prix Achat TTC": 900.0,
-        "Prix Unit. TTC": 1100.0,
+        "Prix Achat TTC": 750.0,
+        "Prix Unit. TTC": 950.0,
         "TVA (%)": 20.0
       },
       {
@@ -49865,7 +49865,7 @@
         "Marque": "",
         "Quantité": 8.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -49873,7 +49873,7 @@
         "Marque": "",
         "Quantité": 0.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -49889,7 +49889,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1000.0,
         "TVA (%)": 20.0
       },
       {
@@ -49897,7 +49897,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 1500.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1500.0,
         "TVA (%)": 20.0
       },
       {
@@ -49905,7 +49905,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 4000.0,
-        "Prix Unit. TTC": 4000.0,
+        "Prix Unit. TTC": 4800.0,
         "TVA (%)": 20.0
       },
       {
@@ -49920,7 +49920,7 @@
         "Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
         "Marque": "",
         "Quantité": 0.0,
-        "Prix Achat TTC": 1000.0,
+        "Prix Achat TTC": 4000.0,
         "Prix Unit. TTC": 5000.0,
         "TVA (%)": 20.0
       }
@@ -49931,36 +49931,20 @@
         "Marque": "Deye",
         "Quantité": 1.0,
         "Prix Achat TTC": 12000.0,
-        "Prix Unit. TTC": 17000.0,
-        "TVA (%)": 20.0
-      },
-      {
-        "Désignation": "Smart Meter",
-        "Marque": "",
-        "Quantité": 1.0,
-        "Prix Achat TTC": 2000.0,
-        "Prix Unit. TTC": 1800.0,
-        "TVA (%)": 20.0
-      },
-      {
-        "Désignation": "Wifi Dongle",
-        "Marque": "",
-        "Quantité": 1.0,
-        "Prix Achat TTC": 700.0,
-        "Prix Unit. TTC": 1200.0,
+        "Prix Unit. TTC": 16000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
         "Quantité": 8.0,
-        "Prix Achat TTC": 900.0,
-        "Prix Unit. TTC": 1100.0,
+        "Prix Achat TTC": 750.0,
+        "Prix Unit. TTC": 950.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Batterie",
-        "Marque": "Deyness 5Kwh",
+        "Marque": "Deyness 5kWh",
         "Quantité": 1.0,
         "Prix Achat TTC": 12000.0,
         "Prix Unit. TTC": 16000.0,
@@ -49968,8 +49952,8 @@
       },
       {
         "Désignation": "Batterie",
-        "Marque": "Deyness 10Kwh",
-        "Quantité": 1.0,
+        "Marque": "Deyness 10kWh",
+        "Quantité": 0.0,
         "Prix Achat TTC": 22000.0,
         "Prix Unit. TTC": 27000.0,
         "TVA (%)": 20.0
@@ -49979,7 +49963,7 @@
         "Marque": "",
         "Quantité": 8.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -49987,7 +49971,7 @@
         "Marque": "",
         "Quantité": 0.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50003,7 +49987,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1000.0,
         "TVA (%)": 20.0
       },
       {
@@ -50011,7 +49995,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 1500.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50019,7 +50003,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 4000.0,
-        "Prix Unit. TTC": 4000.0,
+        "Prix Unit. TTC": 4800.0,
         "TVA (%)": 20.0
       },
       {
@@ -50034,22 +50018,22 @@
         "Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
         "Marque": "",
         "Quantité": 0.0,
-        "Prix Achat TTC": 1000.0,
+        "Prix Achat TTC": 4000.0,
         "Prix Unit. TTC": 5000.0,
         "TVA (%)": 20.0
       }
     ],
-    "total_ttc": 85680.0,
-    "total_sans": 37680.0,
-    "total_avec": 85680.0,
+    "total_ttc": 53180.0,
+    "total_sans": 38180.0,
+    "total_avec": 53180.0,
     "notes_sans": [],
     "notes_avec": [],
     "scenario_choice": "Les deux (Sans + Avec)",
     "installation_type": "Résidentielle",
-    "recommended_option": "Aucune recommandation",
-    "puissance_kwp": 6.0,
-    "pdf_filename": "Devis_Reda_kasri_410.pdf",
-    "created_at": "2026-02-28"
+    "recommended_option": "Sans batterie",
+    "puissance_kwp": 5.68,
+    "pdf_filename": "Devis_Reda_Kasri_410.pdf",
+    "created_at": "2026-03-02"
   },
   "9999": {
     "client_name": "Test Images",
@@ -50139,9 +50123,9 @@
     "created_at": "2026-02-28"
   },
   "411": {
-    "client_name": "Reda kasri",
-    "client_address": "5 Rue Ennoussour RDC",
-    "client_phone": "0661850410",
+    "client_name": "Reda Kasri",
+    "client_address": "6 bourne road",
+    "client_phone": "07376408977",
     "doc_number": 411,
     "df": [
       {
@@ -50149,7 +50133,7 @@
         "Marque": "Huawei",
         "Quantité": 1.0,
         "Prix Achat TTC": 9500.0,
-        "Prix Unit. TTC": 12000.0,
+        "Prix Unit. TTC": 14000.0,
         "TVA (%)": 20.0
       },
       {
@@ -50157,14 +50141,14 @@
         "Marque": "Deye",
         "Quantité": 1.0,
         "Prix Achat TTC": 12000.0,
-        "Prix Unit. TTC": 17000.0,
+        "Prix Unit. TTC": 16000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Smart Meter",
         "Marque": "",
         "Quantité": 1.0,
-        "Prix Achat TTC": 2000.0,
+        "Prix Achat TTC": 1200.0,
         "Prix Unit. TTC": 1800.0,
         "TVA (%)": 20.0
       },
@@ -50180,13 +50164,13 @@
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
         "Quantité": 8.0,
-        "Prix Achat TTC": 900.0,
-        "Prix Unit. TTC": 1100.0,
+        "Prix Achat TTC": 750.0,
+        "Prix Unit. TTC": 950.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Batterie",
-        "Marque": "Deyness 5Kwh",
+        "Marque": "Deyness 5kWh",
         "Quantité": 1.0,
         "Prix Achat TTC": 12000.0,
         "Prix Unit. TTC": 16000.0,
@@ -50194,8 +50178,8 @@
       },
       {
         "Désignation": "Batterie",
-        "Marque": "Deyness 10Kwh",
-        "Quantité": 1.0,
+        "Marque": "Deyness 10kWh",
+        "Quantité": 0.0,
         "Prix Achat TTC": 22000.0,
         "Prix Unit. TTC": 27000.0,
         "TVA (%)": 20.0
@@ -50205,7 +50189,7 @@
         "Marque": "",
         "Quantité": 8.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50213,7 +50197,7 @@
         "Marque": "",
         "Quantité": 0.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50229,7 +50213,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1000.0,
         "TVA (%)": 20.0
       },
       {
@@ -50237,7 +50221,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 1500.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50245,7 +50229,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 4000.0,
-        "Prix Unit. TTC": 4000.0,
+        "Prix Unit. TTC": 4800.0,
         "TVA (%)": 20.0
       },
       {
@@ -50260,7 +50244,7 @@
         "Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
         "Marque": "",
         "Quantité": 0.0,
-        "Prix Achat TTC": 1000.0,
+        "Prix Achat TTC": 4000.0,
         "Prix Unit. TTC": 5000.0,
         "TVA (%)": 20.0
       }
@@ -50271,14 +50255,14 @@
         "Marque": "Huawei",
         "Quantité": 1.0,
         "Prix Achat TTC": 9500.0,
-        "Prix Unit. TTC": 12000.0,
+        "Prix Unit. TTC": 14000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Smart Meter",
         "Marque": "",
         "Quantité": 1.0,
-        "Prix Achat TTC": 2000.0,
+        "Prix Achat TTC": 1200.0,
         "Prix Unit. TTC": 1800.0,
         "TVA (%)": 20.0
       },
@@ -50294,8 +50278,8 @@
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
         "Quantité": 8.0,
-        "Prix Achat TTC": 900.0,
-        "Prix Unit. TTC": 1100.0,
+        "Prix Achat TTC": 750.0,
+        "Prix Unit. TTC": 950.0,
         "TVA (%)": 20.0
       },
       {
@@ -50303,7 +50287,7 @@
         "Marque": "",
         "Quantité": 8.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50311,7 +50295,7 @@
         "Marque": "",
         "Quantité": 0.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50327,7 +50311,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1000.0,
         "TVA (%)": 20.0
       },
       {
@@ -50335,7 +50319,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 1500.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50343,7 +50327,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 4000.0,
-        "Prix Unit. TTC": 4000.0,
+        "Prix Unit. TTC": 4800.0,
         "TVA (%)": 20.0
       },
       {
@@ -50358,7 +50342,7 @@
         "Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
         "Marque": "",
         "Quantité": 0.0,
-        "Prix Achat TTC": 1000.0,
+        "Prix Achat TTC": 4000.0,
         "Prix Unit. TTC": 5000.0,
         "TVA (%)": 20.0
       }
@@ -50369,36 +50353,20 @@
         "Marque": "Deye",
         "Quantité": 1.0,
         "Prix Achat TTC": 12000.0,
-        "Prix Unit. TTC": 17000.0,
-        "TVA (%)": 20.0
-      },
-      {
-        "Désignation": "Smart Meter",
-        "Marque": "",
-        "Quantité": 1.0,
-        "Prix Achat TTC": 2000.0,
-        "Prix Unit. TTC": 1800.0,
-        "TVA (%)": 20.0
-      },
-      {
-        "Désignation": "Wifi Dongle",
-        "Marque": "",
-        "Quantité": 1.0,
-        "Prix Achat TTC": 700.0,
-        "Prix Unit. TTC": 1200.0,
+        "Prix Unit. TTC": 16000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
         "Quantité": 8.0,
-        "Prix Achat TTC": 900.0,
-        "Prix Unit. TTC": 1100.0,
+        "Prix Achat TTC": 750.0,
+        "Prix Unit. TTC": 950.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Batterie",
-        "Marque": "Deyness 5Kwh",
+        "Marque": "Deyness 5kWh",
         "Quantité": 1.0,
         "Prix Achat TTC": 12000.0,
         "Prix Unit. TTC": 16000.0,
@@ -50406,8 +50374,8 @@
       },
       {
         "Désignation": "Batterie",
-        "Marque": "Deyness 10Kwh",
-        "Quantité": 1.0,
+        "Marque": "Deyness 10kWh",
+        "Quantité": 0.0,
         "Prix Achat TTC": 22000.0,
         "Prix Unit. TTC": 27000.0,
         "TVA (%)": 20.0
@@ -50417,7 +50385,7 @@
         "Marque": "",
         "Quantité": 8.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50425,7 +50393,7 @@
         "Marque": "",
         "Quantité": 0.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50441,7 +50409,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1000.0,
         "TVA (%)": 20.0
       },
       {
@@ -50449,7 +50417,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 1500.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50457,7 +50425,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 4000.0,
-        "Prix Unit. TTC": 4000.0,
+        "Prix Unit. TTC": 4800.0,
         "TVA (%)": 20.0
       },
       {
@@ -50472,22 +50440,22 @@
         "Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
         "Marque": "",
         "Quantité": 0.0,
-        "Prix Achat TTC": 1000.0,
+        "Prix Achat TTC": 4000.0,
         "Prix Unit. TTC": 5000.0,
         "TVA (%)": 20.0
       }
     ],
-    "total_ttc": 85680.0,
-    "total_sans": 37680.0,
-    "total_avec": 85680.0,
+    "total_ttc": 38180.0,
+    "total_sans": 38180.0,
+    "total_avec": 53180.0,
     "notes_sans": [],
     "notes_avec": [],
-    "scenario_choice": "Les deux (Sans + Avec)",
+    "scenario_choice": "Sans batterie",
     "installation_type": "Résidentielle",
-    "recommended_option": "Aucune recommandation",
-    "puissance_kwp": 6.0,
-    "pdf_filename": "Devis_Reda_kasri_411.pdf",
-    "created_at": "2026-03-01"
+    "recommended_option": "Sans batterie",
+    "puissance_kwp": 5.68,
+    "pdf_filename": "Devis_Reda_Kasri_411.pdf",
+    "created_at": "2026-03-02"
   },
   "8888": {
     "client_name": "Test Client",
@@ -50751,38 +50719,38 @@
     "created_at": "2026-02-28"
   },
   "412": {
-    "client_name": "Reda kasri",
-    "client_address": "5 Rue Ennoussour RDC",
-    "client_phone": "0661850410",
+    "client_name": "Reda Kasri",
+    "client_address": "6 bourne road",
+    "client_phone": "07376408977",
     "doc_number": 412,
     "df": [
       {
         "Désignation": "Onduleur réseau",
         "Marque": "Huawei",
         "Quantité": 1.0,
-        "Prix Achat TTC": 11000.0,
-        "Prix Unit. TTC": 15000.0,
+        "Prix Achat TTC": 9500.0,
+        "Prix Unit. TTC": 14000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Onduleur hybride",
         "Marque": "Deye",
         "Quantité": 1.0,
-        "Prix Achat TTC": 24000.0,
-        "Prix Unit. TTC": 29000.0,
+        "Prix Achat TTC": 12000.0,
+        "Prix Unit. TTC": 16000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Smart Meter",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
-        "Prix Achat TTC": 2000.0,
+        "Prix Achat TTC": 1200.0,
         "Prix Unit. TTC": 1800.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Wifi Dongle",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 700.0,
         "Prix Unit. TTC": 1200.0,
@@ -50791,14 +50759,14 @@
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
-        "Quantité": 15.0,
-        "Prix Achat TTC": 900.0,
-        "Prix Unit. TTC": 1100.0,
+        "Quantité": 8.0,
+        "Prix Achat TTC": 750.0,
+        "Prix Unit. TTC": 950.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Batterie",
-        "Marque": "Deyness 5Kwh",
+        "Marque": "Deyness 5kWh",
         "Quantité": 1.0,
         "Prix Achat TTC": 12000.0,
         "Prix Unit. TTC": 16000.0,
@@ -50806,8 +50774,8 @@
       },
       {
         "Désignation": "Batterie",
-        "Marque": "Deyness 10Kwh",
-        "Quantité": 1.0,
+        "Marque": "Deyness 10kWh",
+        "Quantité": 0.0,
         "Prix Achat TTC": 22000.0,
         "Prix Unit. TTC": 27000.0,
         "TVA (%)": 20.0
@@ -50815,9 +50783,9 @@
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 15.0,
+        "Quantité": 8.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50825,13 +50793,13 @@
         "Marque": "",
         "Quantité": 0.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Socles",
         "Marque": "",
-        "Quantité": 30.0,
+        "Quantité": 16.0,
         "Prix Achat TTC": 50.0,
         "Prix Unit. TTC": 80.0,
         "TVA (%)": 20.0
@@ -50841,7 +50809,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1000.0,
         "TVA (%)": 20.0
       },
       {
@@ -50849,7 +50817,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 1500.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50857,7 +50825,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 4000.0,
-        "Prix Unit. TTC": 4000.0,
+        "Prix Unit. TTC": 4800.0,
         "TVA (%)": 20.0
       },
       {
@@ -50872,7 +50840,7 @@
         "Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
         "Marque": "",
         "Quantité": 0.0,
-        "Prix Achat TTC": 1000.0,
+        "Prix Achat TTC": 4000.0,
         "Prix Unit. TTC": 5000.0,
         "TVA (%)": 20.0
       }
@@ -50882,21 +50850,21 @@
         "Désignation": "Onduleur réseau",
         "Marque": "Huawei",
         "Quantité": 1.0,
-        "Prix Achat TTC": 11000.0,
-        "Prix Unit. TTC": 15000.0,
+        "Prix Achat TTC": 9500.0,
+        "Prix Unit. TTC": 14000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Smart Meter",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
-        "Prix Achat TTC": 2000.0,
+        "Prix Achat TTC": 1200.0,
         "Prix Unit. TTC": 1800.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Wifi Dongle",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 700.0,
         "Prix Unit. TTC": 1200.0,
@@ -50905,17 +50873,17 @@
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
-        "Quantité": 15.0,
-        "Prix Achat TTC": 900.0,
-        "Prix Unit. TTC": 1100.0,
+        "Quantité": 8.0,
+        "Prix Achat TTC": 750.0,
+        "Prix Unit. TTC": 950.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 15.0,
+        "Quantité": 8.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50923,13 +50891,13 @@
         "Marque": "",
         "Quantité": 0.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Socles",
         "Marque": "",
-        "Quantité": 30.0,
+        "Quantité": 16.0,
         "Prix Achat TTC": 50.0,
         "Prix Unit. TTC": 80.0,
         "TVA (%)": 20.0
@@ -50939,7 +50907,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1000.0,
         "TVA (%)": 20.0
       },
       {
@@ -50947,7 +50915,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 1500.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1500.0,
         "TVA (%)": 20.0
       },
       {
@@ -50955,7 +50923,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 4000.0,
-        "Prix Unit. TTC": 4000.0,
+        "Prix Unit. TTC": 4800.0,
         "TVA (%)": 20.0
       },
       {
@@ -50970,7 +50938,7 @@
         "Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
         "Marque": "",
         "Quantité": 0.0,
-        "Prix Achat TTC": 1000.0,
+        "Prix Achat TTC": 4000.0,
         "Prix Unit. TTC": 5000.0,
         "TVA (%)": 20.0
       }
@@ -50980,37 +50948,21 @@
         "Désignation": "Onduleur hybride",
         "Marque": "Deye",
         "Quantité": 1.0,
-        "Prix Achat TTC": 24000.0,
-        "Prix Unit. TTC": 29000.0,
-        "TVA (%)": 20.0
-      },
-      {
-        "Désignation": "Smart Meter",
-        "Marque": "Huawei",
-        "Quantité": 1.0,
-        "Prix Achat TTC": 2000.0,
-        "Prix Unit. TTC": 1800.0,
-        "TVA (%)": 20.0
-      },
-      {
-        "Désignation": "Wifi Dongle",
-        "Marque": "Huawei",
-        "Quantité": 1.0,
-        "Prix Achat TTC": 700.0,
-        "Prix Unit. TTC": 1200.0,
+        "Prix Achat TTC": 12000.0,
+        "Prix Unit. TTC": 16000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
-        "Quantité": 15.0,
-        "Prix Achat TTC": 900.0,
-        "Prix Unit. TTC": 1100.0,
+        "Quantité": 8.0,
+        "Prix Achat TTC": 750.0,
+        "Prix Unit. TTC": 950.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Batterie",
-        "Marque": "Deyness 5Kwh",
+        "Marque": "Deyness 5kWh",
         "Quantité": 1.0,
         "Prix Achat TTC": 12000.0,
         "Prix Unit. TTC": 16000.0,
@@ -51018,8 +50970,8 @@
       },
       {
         "Désignation": "Batterie",
-        "Marque": "Deyness 10Kwh",
-        "Quantité": 1.0,
+        "Marque": "Deyness 10kWh",
+        "Quantité": 0.0,
         "Prix Achat TTC": 22000.0,
         "Prix Unit. TTC": 27000.0,
         "TVA (%)": 20.0
@@ -51027,9 +50979,9 @@
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 15.0,
+        "Quantité": 8.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
@@ -51037,13 +50989,13 @@
         "Marque": "",
         "Quantité": 0.0,
         "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 450.0,
+        "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Socles",
         "Marque": "",
-        "Quantité": 30.0,
+        "Quantité": 16.0,
         "Prix Achat TTC": 50.0,
         "Prix Unit. TTC": 80.0,
         "TVA (%)": 20.0
@@ -51053,7 +51005,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1000.0,
         "TVA (%)": 20.0
       },
       {
@@ -51061,7 +51013,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 1500.0,
-        "Prix Unit. TTC": 2000.0,
+        "Prix Unit. TTC": 1500.0,
         "TVA (%)": 20.0
       },
       {
@@ -51069,7 +51021,7 @@
         "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 4000.0,
-        "Prix Unit. TTC": 4000.0,
+        "Prix Unit. TTC": 4800.0,
         "TVA (%)": 20.0
       },
       {
@@ -51084,48 +51036,48 @@
         "Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
         "Marque": "",
         "Quantité": 0.0,
-        "Prix Achat TTC": 1000.0,
+        "Prix Achat TTC": 4000.0,
         "Prix Unit. TTC": 5000.0,
         "TVA (%)": 20.0
       }
     ],
-    "total_ttc": 109650.0,
-    "total_sans": 52650.0,
-    "total_avec": 109650.0,
+    "total_ttc": 53180.0,
+    "total_sans": 38180.0,
+    "total_avec": 53180.0,
     "notes_sans": [],
     "notes_avec": [],
-    "scenario_choice": "Les deux (Sans + Avec)",
+    "scenario_choice": "Avec batterie",
     "installation_type": "Résidentielle",
-    "recommended_option": "Aucune recommandation",
-    "puissance_kwp": 10.5,
-    "pdf_filename": "Devis_Reda_kasri_412.pdf",
-    "created_at": "2026-02-28"
+    "recommended_option": "Avec batterie",
+    "puissance_kwp": 5.68,
+    "pdf_filename": "Devis_Reda_Kasri_412.pdf",
+    "created_at": "2026-03-02"
   },
   "413": {
-    "client_name": "Reda kasri",
-    "client_address": "5 Rue Ennoussour RDC",
-    "client_phone": "0661850410",
+    "client_name": "Reda Kasri",
+    "client_address": "6 bourne road",
+    "client_phone": "07376408977",
     "doc_number": 413,
     "df": [
       {
         "Désignation": "Onduleur réseau",
         "Marque": "Huawei",
         "Quantité": 1.0,
-        "Prix Achat TTC": 11000.0,
-        "Prix Unit. TTC": 15000.0,
+        "Prix Achat TTC": 16000.0,
+        "Prix Unit. TTC": 23000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Onduleur hybride",
         "Marque": "Deye",
         "Quantité": 1.0,
-        "Prix Achat TTC": 24000.0,
-        "Prix Unit. TTC": 29000.0,
+        "Prix Achat TTC": 4200.0,
+        "Prix Unit. TTC": 47000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Smart Meter",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
         "Prix Unit. TTC": 1800.0,
@@ -51133,7 +51085,7 @@
       },
       {
         "Désignation": "Wifi Dongle",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 700.0,
         "Prix Unit. TTC": 1200.0,
@@ -51142,7 +51094,7 @@
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
-        "Quantité": 15.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 900.0,
         "Prix Unit. TTC": 1100.0,
         "TVA (%)": 20.0
@@ -51166,7 +51118,7 @@
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 15.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 350.0,
         "Prix Unit. TTC": 450.0,
         "TVA (%)": 20.0
@@ -51182,7 +51134,7 @@
       {
         "Désignation": "Socles",
         "Marque": "",
-        "Quantité": 30.0,
+        "Quantité": 56.0,
         "Prix Achat TTC": 50.0,
         "Prix Unit. TTC": 80.0,
         "TVA (%)": 20.0
@@ -51233,13 +51185,13 @@
         "Désignation": "Onduleur réseau",
         "Marque": "Huawei",
         "Quantité": 1.0,
-        "Prix Achat TTC": 11000.0,
-        "Prix Unit. TTC": 15000.0,
+        "Prix Achat TTC": 16000.0,
+        "Prix Unit. TTC": 23000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Smart Meter",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
         "Prix Unit. TTC": 1800.0,
@@ -51247,7 +51199,7 @@
       },
       {
         "Désignation": "Wifi Dongle",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 700.0,
         "Prix Unit. TTC": 1200.0,
@@ -51256,7 +51208,7 @@
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
-        "Quantité": 15.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 900.0,
         "Prix Unit. TTC": 1100.0,
         "TVA (%)": 20.0
@@ -51264,7 +51216,7 @@
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 15.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 350.0,
         "Prix Unit. TTC": 450.0,
         "TVA (%)": 20.0
@@ -51280,7 +51232,7 @@
       {
         "Désignation": "Socles",
         "Marque": "",
-        "Quantité": 30.0,
+        "Quantité": 56.0,
         "Prix Achat TTC": 50.0,
         "Prix Unit. TTC": 80.0,
         "TVA (%)": 20.0
@@ -51331,13 +51283,13 @@
         "Désignation": "Onduleur hybride",
         "Marque": "Deye",
         "Quantité": 1.0,
-        "Prix Achat TTC": 24000.0,
-        "Prix Unit. TTC": 29000.0,
+        "Prix Achat TTC": 4200.0,
+        "Prix Unit. TTC": 47000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Smart Meter",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
         "Prix Unit. TTC": 1800.0,
@@ -51345,7 +51297,7 @@
       },
       {
         "Désignation": "Wifi Dongle",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 700.0,
         "Prix Unit. TTC": 1200.0,
@@ -51354,7 +51306,7 @@
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
-        "Quantité": 15.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 900.0,
         "Prix Unit. TTC": 1100.0,
         "TVA (%)": 20.0
@@ -51378,7 +51330,7 @@
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 15.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 350.0,
         "Prix Unit. TTC": 450.0,
         "TVA (%)": 20.0
@@ -51394,7 +51346,7 @@
       {
         "Désignation": "Socles",
         "Marque": "",
-        "Quantité": 30.0,
+        "Quantité": 56.0,
         "Prix Achat TTC": 50.0,
         "Prix Unit. TTC": 80.0,
         "TVA (%)": 20.0
@@ -51440,43 +51392,43 @@
         "TVA (%)": 20.0
       }
     ],
-    "total_ttc": 109650.0,
-    "total_sans": 52650.0,
-    "total_avec": 109650.0,
+    "total_ttc": 149880.0,
+    "total_sans": 82880.0,
+    "total_avec": 149880.0,
     "notes_sans": [],
     "notes_avec": [],
     "scenario_choice": "Les deux (Sans + Avec)",
     "installation_type": "Résidentielle",
     "recommended_option": "Aucune recommandation",
-    "puissance_kwp": 10.5,
-    "pdf_filename": "Devis_Reda_kasri_413.pdf",
-    "created_at": "2026-02-28"
+    "puissance_kwp": 20.0,
+    "pdf_filename": "Devis_Reda_Kasri_413.pdf",
+    "created_at": "2026-03-02"
   },
   "414": {
-    "client_name": "Reda kasri",
-    "client_address": "5 Rue Ennoussour RDC",
-    "client_phone": "0661850410",
+    "client_name": "Reda Kasri",
+    "client_address": "6 bourne road",
+    "client_phone": "07376408977",
     "doc_number": 414,
     "df": [
       {
         "Désignation": "Onduleur réseau",
         "Marque": "Huawei",
         "Quantité": 1.0,
-        "Prix Achat TTC": 11000.0,
-        "Prix Unit. TTC": 15000.0,
+        "Prix Achat TTC": 16000.0,
+        "Prix Unit. TTC": 23000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Onduleur hybride",
         "Marque": "Deye",
         "Quantité": 1.0,
-        "Prix Achat TTC": 24000.0,
-        "Prix Unit. TTC": 29000.0,
+        "Prix Achat TTC": 4200.0,
+        "Prix Unit. TTC": 47000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Smart Meter",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
         "Prix Unit. TTC": 1800.0,
@@ -51484,7 +51436,7 @@
       },
       {
         "Désignation": "Wifi Dongle",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 700.0,
         "Prix Unit. TTC": 1200.0,
@@ -51493,7 +51445,7 @@
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
-        "Quantité": 15.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 900.0,
         "Prix Unit. TTC": 1100.0,
         "TVA (%)": 20.0
@@ -51517,7 +51469,7 @@
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 15.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 350.0,
         "Prix Unit. TTC": 450.0,
         "TVA (%)": 20.0
@@ -51533,7 +51485,7 @@
       {
         "Désignation": "Socles",
         "Marque": "",
-        "Quantité": 30.0,
+        "Quantité": 56.0,
         "Prix Achat TTC": 50.0,
         "Prix Unit. TTC": 80.0,
         "TVA (%)": 20.0
@@ -51584,13 +51536,13 @@
         "Désignation": "Onduleur réseau",
         "Marque": "Huawei",
         "Quantité": 1.0,
-        "Prix Achat TTC": 11000.0,
-        "Prix Unit. TTC": 15000.0,
+        "Prix Achat TTC": 16000.0,
+        "Prix Unit. TTC": 23000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Smart Meter",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
         "Prix Unit. TTC": 1800.0,
@@ -51598,7 +51550,7 @@
       },
       {
         "Désignation": "Wifi Dongle",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 700.0,
         "Prix Unit. TTC": 1200.0,
@@ -51607,7 +51559,7 @@
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
-        "Quantité": 15.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 900.0,
         "Prix Unit. TTC": 1100.0,
         "TVA (%)": 20.0
@@ -51615,7 +51567,7 @@
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 15.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 350.0,
         "Prix Unit. TTC": 450.0,
         "TVA (%)": 20.0
@@ -51631,7 +51583,7 @@
       {
         "Désignation": "Socles",
         "Marque": "",
-        "Quantité": 30.0,
+        "Quantité": 56.0,
         "Prix Achat TTC": 50.0,
         "Prix Unit. TTC": 80.0,
         "TVA (%)": 20.0
@@ -51682,13 +51634,13 @@
         "Désignation": "Onduleur hybride",
         "Marque": "Deye",
         "Quantité": 1.0,
-        "Prix Achat TTC": 24000.0,
-        "Prix Unit. TTC": 29000.0,
+        "Prix Achat TTC": 4200.0,
+        "Prix Unit. TTC": 47000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Smart Meter",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
         "Prix Unit. TTC": 1800.0,
@@ -51696,7 +51648,7 @@
       },
       {
         "Désignation": "Wifi Dongle",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 700.0,
         "Prix Unit. TTC": 1200.0,
@@ -51705,7 +51657,7 @@
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
-        "Quantité": 15.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 900.0,
         "Prix Unit. TTC": 1100.0,
         "TVA (%)": 20.0
@@ -51729,7 +51681,7 @@
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 15.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 350.0,
         "Prix Unit. TTC": 450.0,
         "TVA (%)": 20.0
@@ -51745,7 +51697,7 @@
       {
         "Désignation": "Socles",
         "Marque": "",
-        "Quantité": 30.0,
+        "Quantité": 56.0,
         "Prix Achat TTC": 50.0,
         "Prix Unit. TTC": 80.0,
         "TVA (%)": 20.0
@@ -51791,22 +51743,22 @@
         "TVA (%)": 20.0
       }
     ],
-    "total_ttc": 109650.0,
-    "total_sans": 52650.0,
-    "total_avec": 109650.0,
+    "total_ttc": 149880.0,
+    "total_sans": 82880.0,
+    "total_avec": 149880.0,
     "notes_sans": [],
     "notes_avec": [],
     "scenario_choice": "Les deux (Sans + Avec)",
     "installation_type": "Résidentielle",
     "recommended_option": "Aucune recommandation",
-    "puissance_kwp": 10.5,
-    "pdf_filename": "Devis_Reda_kasri_414.pdf",
-    "created_at": "2026-02-28"
+    "puissance_kwp": 20.0,
+    "pdf_filename": "Devis_Reda_Kasri_414.pdf",
+    "created_at": "2026-03-02"
   },
   "415": {
-    "client_name": "Reda kasri",
-    "client_address": "5 Rue Ennoussour RDC",
-    "client_phone": "0661850410",
+    "client_name": "Reda Kasri",
+    "client_address": "6 bourne road",
+    "client_phone": "07376408977",
     "doc_number": 415,
     "df": [
       {
@@ -51827,7 +51779,7 @@
       },
       {
         "Désignation": "Smart Meter",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
         "Prix Unit. TTC": 1800.0,
@@ -51835,7 +51787,7 @@
       },
       {
         "Désignation": "Wifi Dongle",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 700.0,
         "Prix Unit. TTC": 1200.0,
@@ -51844,7 +51796,7 @@
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
-        "Quantité": 15.0,
+        "Quantité": 14.0,
         "Prix Achat TTC": 900.0,
         "Prix Unit. TTC": 1100.0,
         "TVA (%)": 20.0
@@ -51868,7 +51820,7 @@
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 15.0,
+        "Quantité": 14.0,
         "Prix Achat TTC": 350.0,
         "Prix Unit. TTC": 450.0,
         "TVA (%)": 20.0
@@ -51884,7 +51836,7 @@
       {
         "Désignation": "Socles",
         "Marque": "",
-        "Quantité": 30.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 50.0,
         "Prix Unit. TTC": 80.0,
         "TVA (%)": 20.0
@@ -51941,7 +51893,7 @@
       },
       {
         "Désignation": "Smart Meter",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
         "Prix Unit. TTC": 1800.0,
@@ -51949,7 +51901,7 @@
       },
       {
         "Désignation": "Wifi Dongle",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 700.0,
         "Prix Unit. TTC": 1200.0,
@@ -51958,7 +51910,7 @@
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
-        "Quantité": 15.0,
+        "Quantité": 14.0,
         "Prix Achat TTC": 900.0,
         "Prix Unit. TTC": 1100.0,
         "TVA (%)": 20.0
@@ -51966,7 +51918,7 @@
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 15.0,
+        "Quantité": 14.0,
         "Prix Achat TTC": 350.0,
         "Prix Unit. TTC": 450.0,
         "TVA (%)": 20.0
@@ -51982,7 +51934,7 @@
       {
         "Désignation": "Socles",
         "Marque": "",
-        "Quantité": 30.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 50.0,
         "Prix Unit. TTC": 80.0,
         "TVA (%)": 20.0
@@ -52039,7 +51991,7 @@
       },
       {
         "Désignation": "Smart Meter",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 2000.0,
         "Prix Unit. TTC": 1800.0,
@@ -52047,7 +51999,7 @@
       },
       {
         "Désignation": "Wifi Dongle",
-        "Marque": "Huawei",
+        "Marque": "",
         "Quantité": 1.0,
         "Prix Achat TTC": 700.0,
         "Prix Unit. TTC": 1200.0,
@@ -52056,7 +52008,7 @@
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
-        "Quantité": 15.0,
+        "Quantité": 14.0,
         "Prix Achat TTC": 900.0,
         "Prix Unit. TTC": 1100.0,
         "TVA (%)": 20.0
@@ -52080,7 +52032,7 @@
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 15.0,
+        "Quantité": 14.0,
         "Prix Achat TTC": 350.0,
         "Prix Unit. TTC": 450.0,
         "TVA (%)": 20.0
@@ -52096,7 +52048,7 @@
       {
         "Désignation": "Socles",
         "Marque": "",
-        "Quantité": 30.0,
+        "Quantité": 28.0,
         "Prix Achat TTC": 50.0,
         "Prix Unit. TTC": 80.0,
         "TVA (%)": 20.0
@@ -52142,16 +52094,367 @@
         "TVA (%)": 20.0
       }
     ],
-    "total_ttc": 109650.0,
-    "total_sans": 52650.0,
-    "total_avec": 109650.0,
+    "total_ttc": 107940.0,
+    "total_sans": 50940.0,
+    "total_avec": 107940.0,
     "notes_sans": [],
     "notes_avec": [],
     "scenario_choice": "Les deux (Sans + Avec)",
     "installation_type": "Résidentielle",
     "recommended_option": "Aucune recommandation",
-    "puissance_kwp": 10.5,
-    "pdf_filename": "Devis_Reda_kasri_415.pdf",
-    "created_at": "2026-02-28"
+    "puissance_kwp": 10.0,
+    "pdf_filename": "Devis_Reda_Kasri_415.pdf",
+    "created_at": "2026-03-02"
+  },
+  "416": {
+    "client_name": "Reda Kasri",
+    "client_address": "6 bourne road",
+    "client_phone": "07376408977",
+    "doc_number": 416,
+    "df": [
+      {
+        "Désignation": "Onduleur réseau",
+        "Marque": "Huawei",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 9500.0,
+        "Prix Unit. TTC": 12000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Onduleur hybride",
+        "Marque": "Deye",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 12000.0,
+        "Prix Unit. TTC": 17000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Smart Meter",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 2000.0,
+        "Prix Unit. TTC": 1800.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Wifi Dongle",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 700.0,
+        "Prix Unit. TTC": 1200.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Panneaux",
+        "Marque": "Canadien Solar",
+        "Quantité": 8.0,
+        "Prix Achat TTC": 900.0,
+        "Prix Unit. TTC": 1100.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Batterie",
+        "Marque": "Deyness 5Kwh",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 12000.0,
+        "Prix Unit. TTC": 16000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Batterie",
+        "Marque": "Deyness 10Kwh",
+        "Quantité": 0.0,
+        "Prix Achat TTC": 22000.0,
+        "Prix Unit. TTC": 27000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Structures acier",
+        "Marque": "",
+        "Quantité": 8.0,
+        "Prix Achat TTC": 350.0,
+        "Prix Unit. TTC": 450.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Structures aluminium",
+        "Marque": "",
+        "Quantité": 0.0,
+        "Prix Achat TTC": 350.0,
+        "Prix Unit. TTC": 450.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Socles",
+        "Marque": "",
+        "Quantité": 16.0,
+        "Prix Achat TTC": 50.0,
+        "Prix Unit. TTC": 80.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Accessoires",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 2000.0,
+        "Prix Unit. TTC": 2000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Tableau De Protection AC/DC",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 1500.0,
+        "Prix Unit. TTC": 2000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Installation",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 4000.0,
+        "Prix Unit. TTC": 4000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Transport",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 800.0,
+        "Prix Unit. TTC": 1000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
+        "Marque": "",
+        "Quantité": 0.0,
+        "Prix Achat TTC": 1000.0,
+        "Prix Unit. TTC": 5000.0,
+        "TVA (%)": 20.0
+      }
+    ],
+    "df_sans": [
+      {
+        "Désignation": "Onduleur réseau",
+        "Marque": "Huawei",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 9500.0,
+        "Prix Unit. TTC": 12000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Smart Meter",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 2000.0,
+        "Prix Unit. TTC": 1800.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Wifi Dongle",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 700.0,
+        "Prix Unit. TTC": 1200.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Panneaux",
+        "Marque": "Canadien Solar",
+        "Quantité": 8.0,
+        "Prix Achat TTC": 900.0,
+        "Prix Unit. TTC": 1100.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Structures acier",
+        "Marque": "",
+        "Quantité": 8.0,
+        "Prix Achat TTC": 350.0,
+        "Prix Unit. TTC": 450.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Structures aluminium",
+        "Marque": "",
+        "Quantité": 0.0,
+        "Prix Achat TTC": 350.0,
+        "Prix Unit. TTC": 450.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Socles",
+        "Marque": "",
+        "Quantité": 16.0,
+        "Prix Achat TTC": 50.0,
+        "Prix Unit. TTC": 80.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Accessoires",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 2000.0,
+        "Prix Unit. TTC": 2000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Tableau De Protection AC/DC",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 1500.0,
+        "Prix Unit. TTC": 2000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Installation",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 4000.0,
+        "Prix Unit. TTC": 4000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Transport",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 800.0,
+        "Prix Unit. TTC": 1000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
+        "Marque": "",
+        "Quantité": 0.0,
+        "Prix Achat TTC": 1000.0,
+        "Prix Unit. TTC": 5000.0,
+        "TVA (%)": 20.0
+      }
+    ],
+    "df_avec": [
+      {
+        "Désignation": "Onduleur hybride",
+        "Marque": "Deye",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 12000.0,
+        "Prix Unit. TTC": 17000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Smart Meter",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 2000.0,
+        "Prix Unit. TTC": 1800.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Wifi Dongle",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 700.0,
+        "Prix Unit. TTC": 1200.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Panneaux",
+        "Marque": "Canadien Solar",
+        "Quantité": 8.0,
+        "Prix Achat TTC": 900.0,
+        "Prix Unit. TTC": 1100.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Batterie",
+        "Marque": "Deyness 5Kwh",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 12000.0,
+        "Prix Unit. TTC": 16000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Batterie",
+        "Marque": "Deyness 10Kwh",
+        "Quantité": 0.0,
+        "Prix Achat TTC": 22000.0,
+        "Prix Unit. TTC": 27000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Structures acier",
+        "Marque": "",
+        "Quantité": 8.0,
+        "Prix Achat TTC": 350.0,
+        "Prix Unit. TTC": 450.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Structures aluminium",
+        "Marque": "",
+        "Quantité": 0.0,
+        "Prix Achat TTC": 350.0,
+        "Prix Unit. TTC": 450.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Socles",
+        "Marque": "",
+        "Quantité": 16.0,
+        "Prix Achat TTC": 50.0,
+        "Prix Unit. TTC": 80.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Accessoires",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 2000.0,
+        "Prix Unit. TTC": 2000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Tableau De Protection AC/DC",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 1500.0,
+        "Prix Unit. TTC": 2000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Installation",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 4000.0,
+        "Prix Unit. TTC": 4000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Transport",
+        "Marque": "",
+        "Quantité": 1.0,
+        "Prix Achat TTC": 800.0,
+        "Prix Unit. TTC": 1000.0,
+        "TVA (%)": 20.0
+      },
+      {
+        "Désignation": "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
+        "Marque": "",
+        "Quantité": 0.0,
+        "Prix Achat TTC": 1000.0,
+        "Prix Unit. TTC": 5000.0,
+        "TVA (%)": 20.0
+      }
+    ],
+    "total_ttc": 58680.0,
+    "total_sans": 37680.0,
+    "total_avec": 58680.0,
+    "notes_sans": [],
+    "notes_avec": [],
+    "scenario_choice": "Les deux (Sans + Avec)",
+    "installation_type": "Résidentielle",
+    "recommended_option": "Aucune recommandation",
+    "puissance_kwp": 5.68,
+    "pdf_filename": "Devis_Reda_Kasri_416.pdf",
+    "created_at": "2026-03-02"
   }
 }

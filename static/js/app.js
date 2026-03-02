@@ -462,6 +462,7 @@ function onProductLineChange(e) {
     if (totalEl) totalEl.textContent = formatMoney(total);
 
     updateTotals();
+    scheduleROI();
 }
 
 function addProductLine() {

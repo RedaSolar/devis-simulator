@@ -82,6 +82,9 @@ async function initApp() {
     // Show first tab
     showTab('devis');
 
+    // Compute kWp from nb-panneaux × puissance-panneau on load
+    updateKwp();
+
     // Slider display
     const slider = document.getElementById('day-usage');
     if (slider) {
@@ -187,12 +190,23 @@ function syncBillEstimator() {
     renderMonthlyInputs(interpolerFactures(fHiver, fEte > 0 ? fEte : fHiver));
 }
 
+// ---- Computed kWp ----
+function updateKwp() {
+    const nb  = parseInt(document.getElementById('nb-panneaux')?.value) || 0;
+    const w   = parseFloat(document.getElementById('puissance-panneau')?.value) || 0;
+    const kwp = nb * w / 1000;
+    const hidden = document.getElementById('puissance-kwp');
+    if (hidden) hidden.value = kwp > 0 ? kwp.toFixed(3) : '';
+    const disp = document.getElementById('kwp-display');
+    if (disp) disp.textContent = kwp > 0 ? kwp.toFixed(2) + ' kWp' : '—';
+}
+
 // ---- Auto-fill ----
 async function autoFill() {
     const kwp = parseFloat(document.getElementById('puissance-kwp')?.value) || 0;
     const panW = parseInt(document.getElementById('puissance-panneau')?.value) || 710;
     if (kwp <= 0) {
-        showToast('Entrez la puissance PV (kWp)', 'warning');
+        showToast('Entrez le nombre de panneaux', 'warning');
         return;
     }
     const btn = document.getElementById('btn-autofill');
@@ -397,7 +411,7 @@ function getNotes(scenario) {
 // ---- Calculate ROI ----
 async function calculateROI() {
     const kwp = parseFloat(document.getElementById('puissance-kwp')?.value) || 0;
-    if (kwp <= 0) { showToast('Entrez la puissance PV (kWp)', 'warning'); return; }
+    if (kwp <= 0) { showToast('Entrez le nombre de panneaux', 'warning'); return; }
 
     const factures = getMonthlyValues();
     const dayPct = parseInt(document.getElementById('day-usage')?.value) || 60;
@@ -589,7 +603,7 @@ function collectFormData() {
 async function generatePDF() {
     const data = collectFormData();
     if (!data.client_name) { showToast('Entrez le nom du client', 'warning'); return; }
-    if (data.puissance_kwp <= 0) { showToast('Entrez la puissance PV (kWp)', 'warning'); return; }
+    if (data.puissance_kwp <= 0) { showToast('Entrez le nombre de panneaux', 'warning'); return; }
     if (!data.product_lines.length) { showToast('Ajoutez au moins une ligne produit', 'warning'); return; }
 
     const btn = document.getElementById('btn-generate-pdf');

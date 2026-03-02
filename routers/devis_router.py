@@ -167,7 +167,8 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     eco_sans_monthly, _ = _calc_roi(factures, kwp, day_pct, 0)
 
     # eco_avec: eco_sans + flat battery bonus (270 MAD/month per 5 kWh = 54 MAD/kWh/month)
-    # Parse every battery row in df_avec, extract kWh from designation name
+    # Search designation AND marque for the kWh value — autofill keeps designation as
+    # plain "Batterie" and puts the capacity (e.g. "Deyness 5kWh") in Marque.
     _bat_total_kwh = 0.0
     if not df_avec.empty and "Désignation" in df_avec.columns:
         for _, _row in df_avec.iterrows():
@@ -175,7 +176,8 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
             if "batterie" not in _des:
                 continue
             _qty = float(_row.get("Quantité", 1) or 1)
-            _m = re.search(r'(\d+(?:\.\d+)?)\s*kwh', _des)
+            _search_str = _des + " " + str(_row.get("Marque", "")).lower()
+            _m = re.search(r'(\d+(?:\.\d+)?)\s*kwh', _search_str)
             _bat_total_kwh += _qty * (float(_m.group(1)) if _m else 5.0)
     _bat_monthly_bonus = round(_bat_total_kwh * 54)  # 270 / 5 kWh = 54 MAD/kWh/month
 

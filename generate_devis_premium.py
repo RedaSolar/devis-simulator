@@ -1124,6 +1124,13 @@ def generate():
 
     print("[3/3] Rendering with Chrome headless...")
     browsers = [
+        # Linux (cPanel / VPS)
+        "/usr/bin/google-chrome",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/chromium-browser",
+        "/usr/bin/chromium",
+        "/snap/bin/chromium",
+        # Windows
         r"C:\Program Files\Google\Chrome\Application\chrome.exe",
         r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
         r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
@@ -1132,10 +1139,12 @@ def generate():
     if not br:
         raise RuntimeError("Chrome or Edge not found.")
 
+    import platform
+    file_url = f"file://{tmp}" if platform.system() != "Windows" else f"file:///{tmp.replace(chr(92), '/')}"
     cmd = [br, "--headless=new", "--disable-gpu", "--no-sandbox",
            "--disable-dev-shm-usage",
            f"--print-to-pdf={out}", "--print-to-pdf-no-header",
-           f"file:///{tmp.replace(chr(92), '/')}"]
+           file_url]
     r = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
     Path(tmp).unlink(missing_ok=True)
 
@@ -1202,6 +1211,13 @@ def generate_premium_pdf(data: dict, out_path) -> str:
         tmp = tf.name
 
     browsers = [
+        # Linux (cPanel / VPS)
+        "/usr/bin/google-chrome",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/chromium-browser",
+        "/usr/bin/chromium",
+        "/snap/bin/chromium",
+        # Windows
         r"C:\Program Files\Google\Chrome\Application\chrome.exe",
         r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
         r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
@@ -1210,10 +1226,12 @@ def generate_premium_pdf(data: dict, out_path) -> str:
     if not br:
         raise RuntimeError("Chrome or Edge not found.")
 
+    import platform
+    file_url = f"file://{tmp}" if platform.system() != "Windows" else f"file:///{tmp.replace(chr(92), '/')}"
     cmd = [br, "--headless=new", "--disable-gpu", "--no-sandbox",
            "--disable-dev-shm-usage",
            f"--print-to-pdf={out_path}", "--print-to-pdf-no-header",
-           f"file:///{tmp.replace(chr(92), '/')}"]
+           file_url]
     r = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
     Path(tmp).unlink(missing_ok=True)
 

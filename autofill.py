@@ -380,7 +380,7 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
     _power_prices = {
         "Accessoires":                    _nb_blocks * 1000,
         "Tableau De Protection AC/DC":    _nb_blocks * 1500,
-        "Installation":                   _nb_blocks * 2400,
+        "Installation":                   (_nb_blocks + 1) * 2400,
     }
     for _des, _prix in _power_prices.items():
         _mask = df["Désignation"] == _des

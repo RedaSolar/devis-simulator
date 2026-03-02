@@ -400,13 +400,23 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
         dey_5_info = None
         dey_10_info = None
         for marque, vals in bat_dict.items():
-            if marque == "__default__":
+            if marque == "__default__" or not isinstance(vals, dict):
                 continue
-            if "deyness" in marque.lower():
-                if "10" in marque and not dey_10_info:
-                    dey_10_info = (marque, vals.get("sell_ttc"), vals.get("buy_ttc"))
-                elif "5" in marque and not dey_5_info:
-                    dey_5_info = (marque, vals.get("sell_ttc"), vals.get("buy_ttc"))
+            if "deyness" not in marque.lower():
+                continue
+            # Nested structure: {capacity_str: {sell_ttc, buy_ttc}}
+            for cap_str, cap_info in vals.items():
+                if not isinstance(cap_info, dict):
+                    continue
+                try:
+                    cap = float(cap_str)
+                except (ValueError, TypeError):
+                    continue
+                label = f"{marque} {int(cap)}kWh"
+                if cap == 10.0 and not dey_10_info:
+                    dey_10_info = (label, cap_info.get("sell_ttc"), cap_info.get("buy_ttc"))
+                elif cap == 5.0 and not dey_5_info:
+                    dey_5_info = (label, cap_info.get("sell_ttc"), cap_info.get("buy_ttc"))
 
         # Compute target battery kWh: round PV power to nearest 5 kWh, minimum 5 kWh
         # e.g. 5.68 kWc → 5 kWh, 14 kWc → 15 kWh (1×10 + 1×5)

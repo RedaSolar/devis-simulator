@@ -1000,32 +1000,121 @@ async function loadCatalog() {
     }
 }
 
+window._catPriceRows = [];
+
 function renderCatalogDisplay(catalog, container) {
+    window._catPriceRows = [];
+    const ONDULEUR = ['Onduleur Injection', 'Onduleur Hybride'];
+    const PANEL_BAT = ['Panneaux', 'Batterie'];
     const sections = [];
+
     for (const [category, items] of Object.entries(catalog)) {
         if (typeof items !== 'object' || !items) continue;
-        const itemsHtml = Object.entries(items)
-            .filter(([k]) => k !== '__default__')
-            .map(([brand, info]) => {
-                const sell = typeof info === 'object' && info.sell_ttc ? formatMoney(info.sell_ttc) : '—';
-                const buy = typeof info === 'object' && info.buy_ttc ? formatMoney(info.buy_ttc) : '—';
-                return `<tr><td>${escHtml(brand)}</td><td>${sell}</td><td>${buy}</td></tr>`;
-            }).join('');
+        let rows = '';
+        let thead = '';
 
-        if (!itemsHtml) continue;
-        sections.push(`
-            <div class="card" style="margin-bottom:1rem;">
-                <div class="card-header"><h3>${escHtml(category)}</h3></div>
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>Marque / Référence</th><th>Prix Vente TTC</th><th>Prix Achat TTC</th></tr></thead>
-                        <tbody>${itemsHtml}</tbody>
-                    </table>
-                </div>
+        if (ONDULEUR.includes(category)) {
+            thead = '<tr><th>Marque</th><th>Puissance</th><th>Phase</th><th>Prix Vente TTC</th><th>Prix Achat TTC</th><th></th></tr>';
+            let hasRow = false;
+            for (const [brand, bd] of Object.entries(items)) {
+                if (brand === '__default__' || typeof bd !== 'object') continue;
+                const powers = Object.keys(bd).filter(k => !isNaN(parseFloat(k))).sort((a, b) => parseFloat(a) - parseFloat(b));
+                for (const power of powers) {
+                    const pd = bd[power];
+                    if (typeof pd !== 'object' || !pd.variants) continue;
+                    const phases = Object.keys(pd.variants).sort();
+                    for (const phase of phases) {
+                        const vd = pd.variants[phase];
+                        if (typeof vd !== 'object') continue;
+                        const i = window._catPriceRows.length;
+                        window._catPriceRows.push({ category, brand, power, phase });
+                        rows += `<tr>
+                            <td>${escHtml(brand)}</td>
+                            <td>${power} kW</td>
+                            <td>${escHtml(phase)}</td>
+                            <td><input type="number" class="form-control form-control-sm" id="cps${i}" value="${vd.sell_ttc || 0}" style="width:110px"></td>
+                            <td><input type="number" class="form-control form-control-sm" id="cpb${i}" value="${vd.buy_ttc || 0}" style="width:110px"></td>
+                            <td><button class="btn btn-primary btn-sm" onclick="saveCatalogPrice(${i})">💾</button></td>
+                        </tr>`;
+                        hasRow = true;
+                    }
+                }
+            }
+            if (!hasRow) continue;
+
+        } else if (PANEL_BAT.includes(category)) {
+            const unit = category === 'Panneaux' ? 'W' : 'kWh';
+            thead = `<tr><th>Marque</th><th>Capacité (${unit})</th><th>Prix Vente TTC</th><th>Prix Achat TTC</th><th></th></tr>`;
+            let hasRow = false;
+            for (const [brand, bd] of Object.entries(items)) {
+                if (brand === '__default__' || typeof bd !== 'object') continue;
+                const powers = Object.keys(bd).filter(k => !isNaN(parseFloat(k))).sort((a, b) => parseFloat(a) - parseFloat(b));
+                for (const power of powers) {
+                    const pd = bd[power];
+                    if (typeof pd !== 'object') continue;
+                    const i = window._catPriceRows.length;
+                    window._catPriceRows.push({ category, brand, power, phase: '' });
+                    rows += `<tr>
+                        <td>${escHtml(brand)}</td>
+                        <td>${power} ${unit}</td>
+                        <td><input type="number" class="form-control form-control-sm" id="cps${i}" value="${pd.sell_ttc || 0}" style="width:110px"></td>
+                        <td><input type="number" class="form-control form-control-sm" id="cpb${i}" value="${pd.buy_ttc || 0}" style="width:110px"></td>
+                        <td><button class="btn btn-primary btn-sm" onclick="saveCatalogPrice(${i})">💾</button></td>
+                    </tr>`;
+                    hasRow = true;
+                }
+            }
+            if (!hasRow) continue;
+
+        } else {
+            // Simple category: just __default__ row
+            const def = items['__default__'];
+            if (!def || typeof def !== 'object') continue;
+            thead = '<tr><th>Prix Vente TTC</th><th>Prix Achat TTC</th><th></th></tr>';
+            const i = window._catPriceRows.length;
+            window._catPriceRows.push({ category, brand: '__default__', power: '', phase: '' });
+            rows = `<tr>
+                <td><input type="number" class="form-control form-control-sm" id="cps${i}" value="${def.sell_ttc || 0}" style="width:110px"></td>
+                <td><input type="number" class="form-control form-control-sm" id="cpb${i}" value="${def.buy_ttc || 0}" style="width:110px"></td>
+                <td><button class="btn btn-primary btn-sm" onclick="saveCatalogPrice(${i})">💾</button></td>
+            </tr>`;
+        }
+
+        sections.push(`<div class="card" style="margin-bottom:1rem;">
+            <div class="card-header"><h3>${escHtml(category)}</h3></div>
+            <div class="table-wrapper">
+                <table><thead>${thead}</thead><tbody>${rows}</tbody></table>
             </div>
-        `);
+        </div>`);
     }
     container.innerHTML = sections.join('') || '<p class="alert alert-info">Catalogue vide</p>';
+}
+
+async function saveCatalogPrice(i) {
+    const row = window._catPriceRows[i];
+    if (!row) return;
+    const sell = parseFloat(document.getElementById(`cps${i}`)?.value) || 0;
+    const buy  = parseFloat(document.getElementById(`cpb${i}`)?.value) || 0;
+    try {
+        const res = await authFetch('/api/catalog/price', {
+            method: 'PATCH',
+            body: JSON.stringify({
+                category: row.category,
+                brand:    row.brand,
+                power:    row.power,
+                phase:    row.phase,
+                sell_ttc: sell,
+                buy_ttc:  buy,
+            }),
+        });
+        if (!res) return;
+        const data = await res.json();
+        showToast(data.message || 'Prix mis à jour', 'success');
+        // Clear onduleur options cache so updated prices appear on next autofill
+        onduleurOptionsCache = {};
+    } catch (e) {
+        showToast('Erreur: ' + e.message, 'danger');
+    }
 }
 
 async function addCatalogInverter() {

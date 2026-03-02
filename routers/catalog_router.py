@@ -43,6 +43,15 @@ class TemplatesPayload(BaseModel):
     templates: List[Any]
 
 
+class PriceUpdate(BaseModel):
+    category: str
+    brand: str = "__default__"
+    power: str = ""
+    phase: str = ""
+    sell_ttc: float = 0.0
+    buy_ttc: float = 0.0
+
+
 # ---------- Endpoints ----------
 @router.get("")
 async def get_catalog(current_user: dict = Depends(get_current_user)):
@@ -80,13 +89,8 @@ async def add_inverter(entry: InverterEntry, current_user: dict = Depends(get_cu
 @router.post("/panel")
 async def add_panel(entry: PanelEntry, current_user: dict = Depends(get_current_user)):
     catalog = load_catalog()
-    panels = catalog.setdefault("Panneaux", {})
-    brand_key = f"{entry.brand} {entry.power_w}W"
-    panels[brand_key] = {
-        str(entry.power_w): {
-            "sell_ttc": entry.sell_ttc,
-            "buy_ttc": entry.buy_ttc,
-        },
+    brand_entry = catalog.setdefault("Panneaux", {}).setdefault(entry.brand, {})
+    brand_entry[str(entry.power_w)] = {
         "sell_ttc": entry.sell_ttc,
         "buy_ttc": entry.buy_ttc,
     }
@@ -97,15 +101,49 @@ async def add_panel(entry: PanelEntry, current_user: dict = Depends(get_current_
 @router.post("/battery")
 async def add_battery(entry: BatteryEntry, current_user: dict = Depends(get_current_user)):
     catalog = load_catalog()
-    batteries = catalog.setdefault("Batterie", {})
-    brand_key = f"{entry.brand} {entry.capacity_kwh}kWh"
-    batteries[brand_key] = {
+    brand_entry = catalog.setdefault("Batterie", {}).setdefault(entry.brand, {})
+    cap = entry.capacity_kwh
+    cap_str = str(int(cap)) if cap == int(cap) else str(cap)
+    brand_entry[cap_str] = {
         "sell_ttc": entry.sell_ttc,
         "buy_ttc": entry.buy_ttc,
-        "capacity_kwh": entry.capacity_kwh,
     }
     save_catalog(catalog)
     return {"status": "ok", "message": f"Battery {entry.brand} {entry.capacity_kwh}kWh saved"}
+
+
+@router.patch("/price")
+async def update_price(entry: PriceUpdate, current_user: dict = Depends(get_current_user)):
+    catalog = load_catalog()
+    cat = catalog.get(entry.category)
+    if cat is None:
+        raise HTTPException(status_code=404, detail=f"Catégorie introuvable: {entry.category}")
+
+    brand = entry.brand if entry.brand else "__default__"
+
+    if entry.power and entry.phase:
+        # Onduleur: category → brand → power → variants → phase
+        target = (cat.get(brand, {})
+                     .get(entry.power, {})
+                     .get("variants", {})
+                     .get(entry.phase))
+        if target is None:
+            raise HTTPException(status_code=404, detail="Variante onduleur introuvable")
+    elif entry.power:
+        # Panneaux / Batterie: category → brand → power
+        target = cat.get(brand, {}).get(entry.power)
+        if target is None:
+            raise HTTPException(status_code=404, detail="Entrée introuvable")
+    else:
+        # Simple __default__ or brand-level entry
+        target = cat.get(brand)
+        if target is None:
+            raise HTTPException(status_code=404, detail="Entrée introuvable")
+
+    target["sell_ttc"] = entry.sell_ttc
+    target["buy_ttc"] = entry.buy_ttc
+    save_catalog(catalog)
+    return {"status": "ok", "message": "Prix mis à jour"}
 
 
 @router.get("/templates")

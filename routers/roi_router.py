@@ -56,12 +56,9 @@ async def calculate_roi(body: ROICalculateRequest, current_user: dict = Depends(
         # Savings SANS battery: self-consumed * price
         eco_sans = self_consumed * KWH_PRICE
 
-        # Savings AVEC battery: add battery storage savings
-        # Battery can store (capacity_kwh * days_in_month) additional kWh
-        days = DAYS_IN_MONTH[i]
-        remaining_prod = prod_kwh - self_consumed
-        battery_stored = min(battery_kwh * days, remaining_prod)
-        eco_avec = (self_consumed + battery_stored) * KWH_PRICE
+        # Savings AVEC battery: flat bonus of 270 MAD/month per 5 kWh = 54 MAD/kWh/month
+        bat_bonus = battery_kwh * 54
+        eco_avec = eco_sans + bat_bonus
 
         eco_sans_monthly.append(eco_sans)
         eco_avec_monthly.append(eco_avec)

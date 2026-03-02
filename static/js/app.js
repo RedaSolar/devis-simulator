@@ -580,6 +580,17 @@ async function calculateROI(silent = false) {
     const dayPct = parseInt(document.getElementById('day-usage')?.value) || 50;
     const { totalSans, totalAvec } = updateTotals();
 
+    // Compute total battery kWh from product table (same logic as devis_router.py)
+    let batteryKwh = 0;
+    getCurrentProductLines().forEach(line => {
+        const des = (line.designation || '').toLowerCase();
+        if (!des.includes('batterie')) return;
+        const qty = line.quantite || 1;
+        const searchStr = des + ' ' + (line.marque || '').toLowerCase();
+        const m = searchStr.match(/(\d+(?:\.\d+)?)\s*kwh/);
+        batteryKwh += qty * (m ? parseFloat(m[1]) : 5.0);
+    });
+
     const btn = document.getElementById('btn-calc-roi');
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Calcul...'; }
 
@@ -592,7 +603,7 @@ async function calculateROI(silent = false) {
                 day_usage_percent: dayPct,
                 total_cost_sans: totalSans,
                 total_cost_avec: totalAvec,
-                battery_capacity_kwh: 10.0,
+                battery_capacity_kwh: batteryKwh,
             }),
         });
         if (!res) return;

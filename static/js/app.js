@@ -8,6 +8,7 @@ let roiChart = null;
 let monthlyChart = null;
 let currentProductLines = [];
 let currentRoiResult = null;
+let currentTotals = { sans: 0, avec: 0 };
 let _roiDebounce = null;
 let onduleurOptionsCache = {};  // cache: "{type}_{brand}" → [{power, phase, sell_ttc, buy_ttc}]
 
@@ -135,11 +136,30 @@ async function initApp() {
     // Update autoconsumption default when installation type changes
     document.getElementById('install-type')?.addEventListener('change', updateDayUsageForType);
 
+    // Re-render simulation when scenario/recommended changes (no new API call needed)
+    ['scenario-choice', 'recommended-option'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', () => {
+            updateTotals();
+            if (currentRoiResult) {
+                renderROISummary(currentRoiResult, currentTotals.sans, currentTotals.avec);
+                renderMonthlyChart(currentRoiResult);
+            }
+        });
+    });
+
     // Default product lines table
     renderProductLines(getDefaultProductLines());
 }
 
 function isAdmin() { return getUser()?.role === 'admin'; }
+
+function getScenario() {
+    const v = document.getElementById('scenario-choice')?.value || 'Les deux (Sans + Avec)';
+    return { v, showSans: v !== 'Avec batterie', showAvec: v !== 'Sans batterie' };
+}
+function getRecommended() {
+    return document.getElementById('recommended-option')?.value || 'Aucune recommandation';
+}
 
 function applyRoleVisibility(user) {
     const admin = user?.role === 'admin';
@@ -502,6 +522,9 @@ function removeProductLine(idx) {
 
 function updateTotals() {
     const lines = getCurrentProductLines();
+    const { showSans, showAvec } = getScenario();
+    const recommended = getRecommended();
+
     // SANS: exclude Batterie and Onduleur hybride
     const sanLines = lines.filter(l => !['Batterie', 'Onduleur hybride'].includes(l.designation));
     // AVEC: exclude Onduleur réseau
@@ -514,6 +537,20 @@ function updateTotals() {
     const elAvec = document.getElementById('total-avec');
     if (elSans) elSans.textContent = formatMoney(totalSans);
     if (elAvec) elAvec.textContent = formatMoney(totalAvec);
+
+    // Show/hide total rows and mark recommended
+    const tiSans = document.getElementById('total-item-sans');
+    const tiAvec = document.getElementById('total-item-avec');
+    if (tiSans) {
+        tiSans.style.display = showSans ? '' : 'none';
+        tiSans.querySelector('.total-label').textContent =
+            'Total SANS batterie' + (recommended === 'Sans batterie' ? ' ⭐' : '');
+    }
+    if (tiAvec) {
+        tiAvec.style.display = showAvec ? '' : 'none';
+        tiAvec.querySelector('.total-label').textContent =
+            'Total AVEC batterie' + (recommended === 'Avec batterie' ? ' ⭐' : '');
+    }
 
     return { totalSans, totalAvec };
 }
@@ -648,6 +685,7 @@ async function calculateROI(silent = false) {
         }
         const data = await res.json();
         currentRoiResult = data;
+        currentTotals = { sans: totalSans, avec: totalAvec };
         renderROISummary(data, totalSans, totalAvec);
         renderMonthlyChart(data);
         if (!silent) showToast('Simulation actualisée', 'success', 2000);
@@ -664,44 +702,52 @@ function renderMonthlyChart(data) {
     if (!ctx) return;
     if (monthlyChart) { monthlyChart.destroy(); }
     const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+    const { showSans, showAvec } = getScenario();
+    const recommended = getRecommended();
+    const sansRec = recommended === 'Sans batterie';
+    const avecRec = recommended === 'Avec batterie';
+
+    const datasets = [
+        {
+            label: 'Facture ONEE (MAD)',
+            data: data.monthly_detail.map(d => d.facture),
+            backgroundColor: 'rgba(181,192,206,0.55)',
+            borderColor: 'rgba(181,192,206,0.8)',
+            borderWidth: 1,
+            borderRadius: 3,
+            order: 2,
+        },
+    ];
+    if (showSans) {
+        datasets.push({
+            label: 'Option 1 – Sans batterie' + (sansRec ? ' ⭐' : ''),
+            data: data.eco_sans_monthly,
+            type: 'line',
+            borderColor: '#1A2B4A',
+            backgroundColor: 'transparent',
+            borderWidth: sansRec ? 3.5 : 2.2,
+            pointRadius: sansRec ? 5 : 4,
+            tension: 0.3,
+            order: 1,
+        });
+    }
+    if (showAvec) {
+        datasets.push({
+            label: 'Option 2 – Avec batterie' + (avecRec ? ' ⭐' : ''),
+            data: data.eco_avec_monthly,
+            type: 'line',
+            borderColor: '#F5A623',
+            backgroundColor: 'transparent',
+            borderWidth: avecRec ? 3.5 : 2.2,
+            pointRadius: avecRec ? 5 : 4,
+            tension: 0.3,
+            order: 0,
+        });
+    }
+
     monthlyChart = new Chart(ctx, {
         type: 'bar',
-        data: {
-            labels: months,
-            datasets: [
-                {
-                    label: 'Facture ONEE (MAD)',
-                    data: data.monthly_detail.map(d => d.facture),
-                    backgroundColor: 'rgba(181,192,206,0.55)',
-                    borderColor: 'rgba(181,192,206,0.8)',
-                    borderWidth: 1,
-                    borderRadius: 3,
-                    order: 2,
-                },
-                {
-                    label: 'Éco. Option 1 – Sans batterie',
-                    data: data.eco_sans_monthly,
-                    type: 'line',
-                    borderColor: '#1A2B4A',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2.2,
-                    pointRadius: 4,
-                    tension: 0.3,
-                    order: 1,
-                },
-                {
-                    label: 'Éco. Option 2 – Avec batterie',
-                    data: data.eco_avec_monthly,
-                    type: 'line',
-                    borderColor: '#F5A623',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2.2,
-                    pointRadius: 4,
-                    tension: 0.3,
-                    order: 0,
-                },
-            ],
-        },
+        data: { labels: months, datasets },
         options: {
             responsive: true,
             maintainAspectRatio: true,
@@ -732,44 +778,33 @@ function scheduleROI() {
 function renderROISummary(data, totalSans, totalAvec) {
     const el = document.getElementById('roi-metrics');
     if (!el) return;
+    const { showSans, showAvec } = getScenario();
+    const recommended = getRecommended();
     const fmtNum = v => v !== null && v !== undefined ? v.toLocaleString('fr-MA') : 'N/A';
-    el.innerHTML = `
-        <div class="metric-card highlight">
-            <div class="metric-label">Production annuelle</div>
-            <div class="metric-value">${fmtNum(Math.round(data.production_annuelle_kwh))}</div>
-            <div class="metric-unit">kWh / an</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">Éco. SANS batterie</div>
-            <div class="metric-value">${fmtNum(Math.round(data.eco_annuelle_sans))}</div>
-            <div class="metric-unit">MAD / an</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">Éco. AVEC batterie</div>
-            <div class="metric-value">${fmtNum(Math.round(data.eco_annuelle_avec))}</div>
-            <div class="metric-unit">MAD / an</div>
-        </div>
-        <div class="metric-card highlight-orange">
-            <div class="metric-label">ROI SANS batterie</div>
-            <div class="metric-value">${data.payback_sans !== null ? data.payback_sans + ' ans' : 'N/A'}</div>
-            <div class="metric-unit">retour sur invest.</div>
-        </div>
-        <div class="metric-card highlight-orange">
-            <div class="metric-label">ROI AVEC batterie</div>
-            <div class="metric-value">${data.payback_avec !== null ? data.payback_avec + ' ans' : 'N/A'}</div>
-            <div class="metric-unit">retour sur invest.</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">Coût SANS batterie</div>
-            <div class="metric-value">${fmtNum(Math.round(totalSans))}</div>
-            <div class="metric-unit">MAD TTC</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">Coût AVEC batterie</div>
-            <div class="metric-value">${fmtNum(Math.round(totalAvec))}</div>
-            <div class="metric-unit">MAD TTC</div>
-        </div>
-    `;
+
+    const recBadge = '<span style="font-size:0.6rem;background:#F5A623;color:#0F1E35;border-radius:3px;padding:1px 5px;font-weight:700;margin-left:5px;vertical-align:middle;">★ Recommandé</span>';
+
+    function card(label, value, unit, show, isRec, baseClass = '') {
+        if (!show) return '';
+        const border = isRec ? 'box-shadow:0 0 0 2px #F5A623;' : '';
+        return `<div class="metric-card ${baseClass}" style="${border}">
+            <div class="metric-label">${label}${isRec ? recBadge : ''}</div>
+            <div class="metric-value">${value}</div>
+            <div class="metric-unit">${unit}</div>
+        </div>`;
+    }
+
+    const sansRec = recommended === 'Sans batterie';
+    const avecRec = recommended === 'Avec batterie';
+
+    el.innerHTML =
+        card('Production annuelle', fmtNum(Math.round(data.production_annuelle_kwh)), 'kWh / an', true, false, 'highlight') +
+        card('Éco. Option 1 – Sans batterie', fmtNum(Math.round(data.eco_annuelle_sans)), 'MAD / an', showSans, sansRec) +
+        card('Éco. Option 2 – Avec batterie', fmtNum(Math.round(data.eco_annuelle_avec)), 'MAD / an', showAvec, avecRec) +
+        card('ROI Sans batterie', data.payback_sans !== null ? data.payback_sans + ' ans' : 'N/A', 'retour sur invest.', showSans, sansRec, 'highlight-orange') +
+        card('ROI Avec batterie', data.payback_avec !== null ? data.payback_avec + ' ans' : 'N/A', 'retour sur invest.', showAvec, avecRec, 'highlight-orange') +
+        card('Coût Option 1 – Sans', fmtNum(Math.round(totalSans)), 'MAD TTC', showSans, sansRec) +
+        card('Coût Option 2 – Avec', fmtNum(Math.round(totalAvec)), 'MAD TTC', showAvec, avecRec);
 }
 
 function renderROIChart(data) {

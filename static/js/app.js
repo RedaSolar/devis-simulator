@@ -150,6 +150,8 @@ function renderMonthlyInputs(values) {
                    value="${Math.round(val)}" min="0" step="10" placeholder="0">
         `;
         grid.appendChild(wrapper);
+        // Auto-refresh simulation when user edits a bill directly
+        wrapper.querySelector('input').addEventListener('change', scheduleROI);
     });
 }
 
@@ -183,6 +185,7 @@ async function estimateMonths() {
         }
         const data = await res.json();
         renderMonthlyInputs(data.monthly);
+        scheduleROI();
         showToast('Factures mensuelles estimées!', 'success');
     } catch (e) {
         showToast('Erreur réseau: ' + e.message, 'danger');
@@ -204,6 +207,7 @@ function syncBillEstimator() {
     const fEte   = parseFloat(document.getElementById('f-ete')?.value)   || 0;
     if (fHiver <= 0) return;
     renderMonthlyInputs(interpolerFactures(fHiver, fEte > 0 ? fEte : fHiver));
+    scheduleROI();
 }
 
 // ---- Computed kWp ----
@@ -246,6 +250,7 @@ async function autoFill() {
         _syncOnduleurSection3(onduleurMeta);
         renderProductLines(lines, onduleurMeta);
         updateTotals();
+        scheduleROI();
         showToast('Produits auto-remplis depuis le catalogue!', 'success');
     } catch (e) {
         showToast('Erreur réseau: ' + e.message, 'danger');

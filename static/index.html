@@ -130,7 +130,40 @@
         </div>
     </div>
 
-    <!-- Section 3: Technical Parameters -->
+    <!-- Section 3: Factures Électriques -->
+    <div class="card" style="margin-bottom:1.25rem;">
+        <div class="card-header">
+            <h2>💡 Factures Électriques</h2>
+        </div>
+        <div class="card-body">
+            <p style="font-size:0.82rem;color:#666;margin-bottom:0.75rem;">
+                Renseignez vos factures mensuelles (MAD) ou estimez-les via les montants hiver/été.
+                Ces valeurs servent au calcul ROI dans le devis.
+            </p>
+            <div class="form-grid" style="margin-bottom:1rem;">
+                <div class="form-group">
+                    <label for="f-hiver">Facture Hiver moy. (MAD/mois)</label>
+                    <input type="number" id="f-hiver" class="form-control"
+                           placeholder="ex: 600" min="0" step="10"
+                           oninput="syncBillEstimator()">
+                </div>
+                <div class="form-group">
+                    <label for="f-ete">Facture Été moy. (MAD/mois)</label>
+                    <input type="number" id="f-ete" class="form-control"
+                           placeholder="ex: 400" min="0" step="10"
+                           oninput="syncBillEstimator()">
+                </div>
+                <div class="form-group" style="align-self:flex-end;">
+                    <button class="btn btn-secondary" id="btn-estimate-months" onclick="estimateMonths()">
+                        📊 Estimer 12 mois
+                    </button>
+                </div>
+            </div>
+            <div id="monthly-grid" class="monthly-grid"></div>
+        </div>
+    </div>
+
+    <!-- Section 4: Technical Parameters -->
     <div class="card" style="margin-bottom:1.25rem;">
         <div class="card-header">
             <h2>⚡ Paramètres Techniques</h2>
@@ -214,39 +247,6 @@
                     ⚡ Auto-remplir depuis catalogue
                 </button>
             </div>
-        </div>
-    </div>
-
-    <!-- Section 4: Factures Électriques -->
-    <div class="card" style="margin-bottom:1.25rem;">
-        <div class="card-header">
-            <h2>💡 Factures Électriques</h2>
-        </div>
-        <div class="card-body">
-            <p style="font-size:0.82rem;color:#666;margin-bottom:0.75rem;">
-                Renseignez vos factures mensuelles (MAD) ou estimez-les via les montants hiver/été.
-                Ces valeurs servent au calcul ROI dans le devis.
-            </p>
-            <div class="form-grid" style="margin-bottom:1rem;">
-                <div class="form-group">
-                    <label for="f-hiver">Facture Hiver moy. (MAD/mois)</label>
-                    <input type="number" id="f-hiver" class="form-control"
-                           placeholder="ex: 600" min="0" step="10"
-                           oninput="syncBillEstimator()">
-                </div>
-                <div class="form-group">
-                    <label for="f-ete">Facture Été moy. (MAD/mois)</label>
-                    <input type="number" id="f-ete" class="form-control"
-                           placeholder="ex: 400" min="0" step="10"
-                           oninput="syncBillEstimator()">
-                </div>
-                <div class="form-group" style="align-self:flex-end;">
-                    <button class="btn btn-secondary" id="btn-estimate-months" onclick="estimateMonths()">
-                        📊 Estimer 12 mois
-                    </button>
-                </div>
-            </div>
-            <div id="monthly-grid" class="monthly-grid"></div>
         </div>
     </div>
 

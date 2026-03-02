@@ -227,6 +227,14 @@ function syncBillEstimator() {
     const fHiver = parseFloat(document.getElementById('f-hiver')?.value) || 0;
     const fEte   = parseFloat(document.getElementById('f-ete')?.value)   || 0;
     if (fHiver <= 0) return;
+
+    // Estimate panel count: 8 panels per 900 MAD of winter bill
+    const suggested = Math.floor(fHiver / 900) * 8;
+    if (suggested > 0) {
+        const nbEl = document.getElementById('nb-panneaux');
+        if (nbEl) { nbEl.value = suggested; updateKwp(); }
+    }
+
     renderMonthlyInputs(interpolerFactures(fHiver, fEte > 0 ? fEte : fHiver));
     scheduleROI();
 }

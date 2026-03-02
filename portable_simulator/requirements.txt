@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-multipart
+python-jose[cryptography]
+bcrypt
+pandas
+numpy
+matplotlib
+reportlab
+playwright

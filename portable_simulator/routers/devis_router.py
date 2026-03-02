@@ -300,14 +300,10 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     }
 
     out_path = DEVIS_DIR / pdf_filename
-   try:
+    try:
         generate_premium_pdf(premium_data, out_path)
     except Exception as e:
-        import traceback
-        error_detail = traceback.format_exc()
-        print(f"PDF ERROR:\n{error_detail}")
-        raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}\n{error_detail}")
-    
+        raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
 
     # Save to history
     devis_id = str(doc_number)

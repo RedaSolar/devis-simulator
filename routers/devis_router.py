@@ -175,7 +175,7 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
             _des = str(_row.get("Désignation", "")).lower()
             if "batterie" not in _des:
                 continue
-            _qty = float(_row.get("Quantité", 1) or 1)
+            _qty = float(_row.get("Quantité", 0) or 0)
             _search_str = _des + " " + str(_row.get("Marque", "")).lower()
             _m = re.search(r'(\d+(?:\.\d+)?)\s*kwh', _search_str)
             _bat_total_kwh += _qty * (float(_m.group(1)) if _m else 5.0)

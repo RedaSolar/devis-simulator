@@ -494,15 +494,24 @@ function updateTotals() {
 }
 
 function getCurrentProductLines() {
-    // Read from DOM to ensure freshness
+    // Read directly from DOM inputs so changes are always fresh
     const tbody = document.getElementById('product-lines-tbody');
     if (!tbody) return currentProductLines;
     const result = [];
     tbody.querySelectorAll('tr[data-idx]').forEach(tr => {
         const idx = parseInt(tr.dataset.idx);
-        if (idx >= 0 && idx < currentProductLines.length) {
-            result.push({ ...currentProductLines[idx] });
-        }
+        if (isNaN(idx) || idx < 0 || idx >= currentProductLines.length) return;
+        const base = currentProductLines[idx];
+        const g = (field) => tr.querySelector(`[data-field="${field}"]`);
+        result.push({
+            ...base,
+            designation:   g('designation')?.value   ?? base.designation,
+            marque:        g('marque')?.value         ?? base.marque,
+            quantite:      parseFloat(g('quantite')?.value   ?? base.quantite)   || 0,
+            prix_unit_ttc: parseFloat(g('prix_unit_ttc')?.value ?? base.prix_unit_ttc) || 0,
+            prix_achat_ttc:parseFloat(g('prix_achat_ttc')?.value ?? base.prix_achat_ttc) || 0,
+            tva:           parseFloat(g('tva')?.value ?? base.tva) || 20,
+        });
     });
     return result.length ? result : currentProductLines;
 }
@@ -586,7 +595,7 @@ async function calculateROI(silent = false) {
     getCurrentProductLines().forEach(line => {
         const des = (line.designation || '').toLowerCase();
         if (!des.includes('batterie')) return;
-        const qty = line.quantite || 1;
+        const qty = line.quantite ?? 0;
         const searchStr = des + ' ' + (line.marque || '').toLowerCase();
         const m = searchStr.match(/(\d+(?:\.\d+)?)\s*kwh/);
         batteryKwh += qty * (m ? parseFloat(m[1]) : 5.0);

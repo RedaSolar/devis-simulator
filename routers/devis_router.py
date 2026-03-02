@@ -127,10 +127,10 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         return df[mask].reset_index(drop=True)
 
     def _filter_avec(df):
-        """AVEC scenario: remove Onduleur réseau"""
+        """AVEC scenario: remove Onduleur réseau, Smart Meter, Wifi Dongle (Huawei-only items)"""
         if df.empty:
             return df
-        mask = ~df["Désignation"].isin(["Onduleur réseau"])
+        mask = ~df["Désignation"].isin(["Onduleur réseau", "Smart Meter", "Wifi Dongle"])
         return df[mask].reset_index(drop=True)
 
     df_sans = _filter_sans(df_all.copy())

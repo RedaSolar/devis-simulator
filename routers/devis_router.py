@@ -163,15 +163,23 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     day_pct = request.roi_data.day_usage_percent / 100.0
     kwp = request.puissance_kwp
 
-    # Estimate battery capacity from AVEC df
-    battery_kwh = 10.0
-    if not df_avec.empty and "Désignation" in df_avec.columns:
-        bat_rows = df_avec[df_avec["Désignation"] == "Batterie"]
-        if not bat_rows.empty:
-            qty = float(bat_rows.iloc[0].get("Quantité", 1) or 1)
-            battery_kwh = qty * 5.0  # assume 5kWh per battery unit as default
+    # eco_sans: solar self-consumption savings only
+    eco_sans_monthly, _ = _calc_roi(factures, kwp, day_pct, 0)
 
-    eco_sans_monthly, eco_avec_monthly = _calc_roi(factures, kwp, day_pct, battery_kwh)
+    # eco_avec: eco_sans + flat battery bonus (270 MAD/month per 5 kWh = 54 MAD/kWh/month)
+    # Parse every battery row in df_avec, extract kWh from designation name
+    _bat_total_kwh = 0.0
+    if not df_avec.empty and "Désignation" in df_avec.columns:
+        for _, _row in df_avec.iterrows():
+            _des = str(_row.get("Désignation", "")).lower()
+            if "batterie" not in _des:
+                continue
+            _qty = float(_row.get("Quantité", 1) or 1)
+            _m = re.search(r'(\d+(?:\.\d+)?)\s*kwh', _des)
+            _bat_total_kwh += _qty * (float(_m.group(1)) if _m else 5.0)
+    _bat_monthly_bonus = round(_bat_total_kwh * 54)  # 270 / 5 kWh = 54 MAD/kWh/month
+
+    eco_avec_monthly = [s + _bat_monthly_bonus for s in eco_sans_monthly]
     eco_sans_annual = sum(eco_sans_monthly)
     eco_avec_annual = sum(eco_avec_monthly)
 

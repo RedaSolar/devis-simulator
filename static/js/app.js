@@ -44,6 +44,24 @@ function showTab(tabName) {
     if (tabName === 'admin') loadUsers();
 }
 
+// ---- Autoconsumption default by installation type ----
+const DAY_USAGE_DEFAULTS = {
+    'Résidentielle': 50,
+    'Commerciale':   80,
+    'Industrielle':  80,
+    'Agricole':      100,
+};
+
+function updateDayUsageForType() {
+    const type = document.getElementById('install-type')?.value || 'Résidentielle';
+    const pct  = DAY_USAGE_DEFAULTS[type] ?? 50;
+    const slider   = document.getElementById('day-usage');
+    const sliderVal = document.getElementById('day-usage-val');
+    if (slider)    { slider.value = pct; }
+    if (sliderVal) { sliderVal.textContent = pct + '%'; }
+    scheduleROI();
+}
+
 // ---- Initialize App ----
 async function initApp() {
     if (!requireAuth()) return;
@@ -110,6 +128,9 @@ async function initApp() {
             if (sliderVal) sliderVal.textContent = slider.value + '%';
         });
     }
+
+    // Update autoconsumption default when installation type changes
+    document.getElementById('install-type')?.addEventListener('change', updateDayUsageForType);
 
     // Default product lines table
     renderProductLines(getDefaultProductLines());

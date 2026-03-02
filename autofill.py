@@ -470,8 +470,8 @@ def calculate_savings_roi(puissance_kwc: float, total_sans: float, total_avec: f
     production_annuelle = round(puissance_kwc * 1240)
 
     # Taux d'autoconsommation × prix kWh ONEE de référence
-    economie_opt1 = round(production_annuelle * 0.60 * 1.20)
-    economie_opt2 = round(production_annuelle * 0.85 * 1.20)
+    economie_opt1 = round(production_annuelle * 0.60 * 1.75)
+    economie_opt2 = round(production_annuelle * 0.85 * 1.75)
 
     # Retour sur investissement (années)
     roi_opt1 = round(total_sans  / economie_opt1, 1) if economie_opt1 > 0 else 0.0

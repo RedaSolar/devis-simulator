@@ -374,6 +374,20 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
                 if df.at[idx, "Prix Achat TTC"] == 0 and buy is not None:
                     df.at[idx, "Prix Achat TTC"] = buy
 
+    # Accessoires, Tableau De Protection, Installation — prix basés sur la puissance
+    # Arrondir la puissance au multiple de 5 kWc le plus proche (min 1 bloc de 5 kWc)
+    _nb_blocks = max(1, round(puissance_kwp / 5))
+    _power_prices = {
+        "Accessoires":                    _nb_blocks * 1000,
+        "Tableau De Protection AC/DC":    _nb_blocks * 1500,
+        "Installation":                   _nb_blocks * 2400,
+    }
+    for _des, _prix in _power_prices.items():
+        _mask = df["Désignation"] == _des
+        if _mask.any():
+            _idx = _mask.idxmax()
+            df.at[_idx, "Prix Unit. TTC"] = _prix
+
     # Batterie : ligne 1 = Deyness 5kWh (qté 1), ligne 2 = Deyness 10kWh (qté 1)
     mask_bat = df["Désignation"] == "Batterie"
     if mask_bat.any():

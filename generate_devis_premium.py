@@ -453,14 +453,18 @@ def make_chart_roi():
     _style_ax(fig, ax)
     x = np.array(YEARS); ys = np.array(CUMUL_S); ya = np.array(CUMUL_A)
     ax.axhline(0, color="#D1D5DB", linewidth=1.0, linestyle="--", zorder=1)
-    ax.fill_between(x, ys, 0, where=(ys >= 0), alpha=0.08, color=CNM, zorder=2)
-    ax.fill_between(x, ya, 0, where=(ya >= 0), alpha=0.08, color=CA,  zorder=2)
-    ax.plot(x, ys, color=CNM, linewidth=2.5, label="Sans batterie", zorder=4, solid_capstyle="round")
-    ax.plot(x, ya, color=CA,  linewidth=2.5, label="Avec batterie",  zorder=4, solid_capstyle="round")
-    for roi, cumul, color, lbl in [
-        (ROI_S, CUMUL_S, CNM, f"ROI ~{ROI_S} ans"),
-        (ROI_A, CUMUL_A, CA,  f"ROI ~{ROI_A} ans"),
-    ]:
+    _show_s = SCENARIO != 'Avec batterie'
+    _show_a = SCENARIO != 'Sans batterie'
+    if _show_s:
+        ax.fill_between(x, ys, 0, where=(ys >= 0), alpha=0.08, color=CNM, zorder=2)
+        ax.plot(x, ys, color=CNM, linewidth=2.5, label="Sans batterie", zorder=4, solid_capstyle="round")
+    if _show_a:
+        ax.fill_between(x, ya, 0, where=(ya >= 0), alpha=0.08, color=CA,  zorder=2)
+        ax.plot(x, ya, color=CA,  linewidth=2.5, label="Avec batterie",  zorder=4, solid_capstyle="round")
+    _roi_pts = []
+    if _show_s: _roi_pts.append((ROI_S, CUMUL_S, CNM, f"ROI ~{ROI_S} ans"))
+    if _show_a: _roi_pts.append((ROI_A, CUMUL_A, CA,  f"ROI ~{ROI_A} ans"))
+    for roi, cumul, color, lbl in _roi_pts:
         yr = int(roi); fr = roi - yr
         yv = cumul[yr] + fr * (cumul[yr+1] - cumul[yr]) if yr < 25 else cumul[25]
         ax.scatter([roi], [yv], color=color, s=120, zorder=6, marker="*")
@@ -496,13 +500,17 @@ def make_chart_monthly():
     # Bars: ONEE bill — full-width, one per month
     ax.bar(x, _onee_m, 0.60, color=c_bar, alpha=0.60, zorder=2, linewidth=0)
 
-    # Lines: Option 1 (navy) and Option 2 (amber) overlaid on bars
-    ax.plot(x, ECO_S_M, color=CNM, linewidth=2.2, marker="o", markersize=5.5,
-            markerfacecolor="white", markeredgewidth=1.8, markeredgecolor=CNM,
-            zorder=4, solid_capstyle="round")
-    ax.plot(x, ECO_A_M, color=CA,  linewidth=2.2, marker="o", markersize=5.5,
-            markerfacecolor="white", markeredgewidth=1.8, markeredgecolor=CA,
-            zorder=4, solid_capstyle="round")
+    # Lines: Option 1 (navy) and/or Option 2 (amber) based on scenario
+    _show_s = SCENARIO != 'Avec batterie'
+    _show_a = SCENARIO != 'Sans batterie'
+    if _show_s:
+        ax.plot(x, ECO_S_M, color=CNM, linewidth=2.2, marker="o", markersize=5.5,
+                markerfacecolor="white", markeredgewidth=1.8, markeredgecolor=CNM,
+                zorder=4, solid_capstyle="round")
+    if _show_a:
+        ax.plot(x, ECO_A_M, color=CA,  linewidth=2.2, marker="o", markersize=5.5,
+                markerfacecolor="white", markeredgewidth=1.8, markeredgecolor=CA,
+                zorder=4, solid_capstyle="round")
 
     ax.set_xticks(x)
     ax.set_xticklabels(MONTHS, fontsize=9, color="#374151")
@@ -518,15 +526,15 @@ def make_chart_monthly():
     ax.set_xlim(-0.55, 11.55)
 
     # Custom legend handles: patch for bar, line+marker for each line series
-    legend_handles = [
-        Patch(facecolor=c_bar, alpha=0.60, label="Facture ONEE sans PV", linewidth=0),
-        Line2D([0], [0], color=CNM, linewidth=2.2, marker="o", markersize=5.5,
+    legend_handles = [Patch(facecolor=c_bar, alpha=0.60, label="Facture ONEE sans PV", linewidth=0)]
+    if _show_s:
+        legend_handles.append(Line2D([0], [0], color=CNM, linewidth=2.2, marker="o", markersize=5.5,
                markerfacecolor="white", markeredgewidth=1.8, markeredgecolor=CNM,
-               label="\u00c9conomies Option\u00a01 \u2013 Sans batterie"),
-        Line2D([0], [0], color=CA,  linewidth=2.2, marker="o", markersize=5.5,
+               label="\u00c9conomies Option\u00a01 \u2013 Sans batterie"))
+    if _show_a:
+        legend_handles.append(Line2D([0], [0], color=CA,  linewidth=2.2, marker="o", markersize=5.5,
                markerfacecolor="white", markeredgewidth=1.8, markeredgecolor=CA,
-               label="\u00c9conomies Option\u00a02 \u2013 Avec batterie"),
-    ]
+               label="\u00c9conomies Option\u00a02 \u2013 Avec batterie"))
     leg = ax.legend(handles=legend_handles, fontsize=8.5, frameon=True,
                     loc="upper center", bbox_to_anchor=(0.5, 1.20), ncol=3,
                     edgecolor="#E5E7EB", facecolor="white",

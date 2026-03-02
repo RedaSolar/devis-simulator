@@ -1084,6 +1084,76 @@ def generate():
     sys.stdout.buffer.flush()
     return str(out)
 
+# ── Public API for web app ────────────────────────────────────────────────────
+def generate_premium_pdf(data: dict, out_path) -> str:
+    """Generate premium PDF from a dynamic data dict; returns str(out_path).
+
+    Required keys in data: ref, date, client_name, client_addr, client_phone,
+    inst_type, puissance_kwc, nb_panneaux, watt_par_panneau, prod_kwh,
+    total_sans, total_avec, eco_s_ann, eco_a_ann, eco_a_cumul,
+    roi_s, roi_a, eco_s_monthly, eco_a_monthly, sans_items, avec_items.
+
+    Items dicts must have: designation, quantite, prix_unit_ttc, marque.
+    """
+    global CLIENT_NAME, CLIENT_ADDR, CLIENT_PHONE, REF, DATE_STR
+    global KWC, NB_PAN, WP, PROD_KWH, TOTAL_SANS, TOTAL_AVEC
+    global ECO_S_ANN, ECO_A_ANN, ROI_S, ROI_A, INST_TYPE
+    global SANS_ITEMS, AVEC_ITEMS, ECO_S_M, ECO_A_M, CUMUL_S, CUMUL_A
+
+    CLIENT_NAME  = data["client_name"]
+    CLIENT_ADDR  = data["client_addr"]
+    CLIENT_PHONE = data["client_phone"]
+    REF          = str(data["ref"])
+    DATE_STR     = data["date"]
+    KWC          = float(data["puissance_kwc"])
+    NB_PAN       = int(data["nb_panneaux"])
+    WP           = int(data["watt_par_panneau"])
+    PROD_KWH     = int(data["prod_kwh"])
+    TOTAL_SANS   = float(data["total_sans"])
+    TOTAL_AVEC   = float(data["total_avec"])
+    ECO_S_ANN    = int(data["eco_s_ann"])
+    ECO_A_ANN    = int(data["eco_a_ann"])
+    ROI_S        = float(data["roi_s"])
+    ROI_A        = float(data["roi_a"])
+    INST_TYPE    = data["inst_type"]
+    SANS_ITEMS   = data["sans_items"]
+    AVEC_ITEMS   = data["avec_items"]
+    ECO_S_M      = data["eco_s_monthly"]
+    ECO_A_M      = data["eco_a_monthly"]
+    eco_a_cumul  = int(data["eco_a_cumul"])
+    CUMUL_S      = [-TOTAL_SANS + ECO_S_ANN * y for y in YEARS]
+    CUMUL_A      = [-TOTAL_AVEC + eco_a_cumul  * y for y in YEARS]
+
+    out_path = Path(out_path)
+    html = build_html()
+
+    with tempfile.NamedTemporaryFile(suffix=".html", delete=False,
+                                     mode="w", encoding="utf-8") as tf:
+        tf.write(html)
+        tmp = tf.name
+
+    browsers = [
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    ]
+    br = next((b for b in browsers if Path(b).exists()), None)
+    if not br:
+        raise RuntimeError("Chrome or Edge not found.")
+
+    cmd = [br, "--headless=new", "--disable-gpu", "--no-sandbox",
+           "--disable-dev-shm-usage",
+           f"--print-to-pdf={out_path}", "--print-to-pdf-no-header",
+           f"file:///{tmp.replace(chr(92), '/')}"]
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+    Path(tmp).unlink(missing_ok=True)
+
+    if not out_path.exists():
+        raise RuntimeError(f"Chrome failed.\n{r.stderr[:400]}")
+
+    return str(out_path)
+
+
 if __name__ == "__main__":
     try:
         generate()

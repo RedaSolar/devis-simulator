@@ -12,6 +12,7 @@ from constants import GHI, MOIS, DAYS_IN_MONTH, EFFICIENCY, KWH_PRICE
 from roi import roi_figure_buffer, roi_cumulative_buffer
 from pdf_generator import generate_double_devis_pdf
 import pdf_generator
+from generate_devis_premium import generate_premium_pdf
 
 router = APIRouter()
 
@@ -230,35 +231,51 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     # Generate PDF
     doc_number = request.doc_number
     doc_type = "Devis"
-    try:
-        generate_double_devis_pdf(
-            df_sans,
-            df_avec,
-            request.notes_sans,
-            request.notes_avec,
-            request.client_name,
-            request.client_address,
-            request.client_phone,
-            doc_type,
-            doc_number,
-            roi_summary_sans,
-            roi_summary_avec,
-            roi_fig_buf,
-            roi_cumul_buf,
-            scenario,
-            recommended_option=request.recommended_option,
-            installation_type=install_type,
-            type_label=type_label,
-            type_phrase=type_phrase,
-            puissance_kwp=kwp,
-            puissance_panneau_w=request.puissance_panneau_w,
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
-
-    # Build expected filename
     safe_client = re.sub(r"[^A-Za-z0-9]", "_", request.client_name or "Client")
     pdf_filename = f"{doc_type}_{safe_client}_{int(doc_number)}.pdf"
+
+    def _df_to_items(df):
+        return [
+            {
+                "designation":   row.get("Désignation", ""),
+                "marque":        row.get("Marque", ""),
+                "quantite":      row.get("Quantité", 1),
+                "prix_unit_ttc": float(row.get("Prix Unit. TTC", 0)),
+            }
+            for _, row in df.iterrows()
+        ]
+
+    nb_pan = round(kwp * 1000 / request.puissance_panneau_w) if request.puissance_panneau_w > 0 else 0
+
+    premium_data = {
+        "ref":              str(doc_number),
+        "date":             datetime.utcnow().strftime("%d/%m/%Y"),
+        "client_name":      request.client_name,
+        "client_addr":      request.client_address,
+        "client_phone":     request.client_phone,
+        "inst_type":        install_type,
+        "puissance_kwc":    kwp,
+        "nb_panneaux":      nb_pan,
+        "watt_par_panneau": request.puissance_panneau_w,
+        "prod_kwh":         round(prod_annuelle),
+        "total_sans":       total_sans,
+        "total_avec":       total_avec,
+        "eco_s_ann":        round(eco_sans_annual),
+        "eco_a_ann":        round(eco_avec_annual),
+        "eco_a_cumul":      round(eco_avec_annual),
+        "roi_s":            round(payback_sans, 1) if payback_sans else 0,
+        "roi_a":            round(payback_avec, 1) if payback_avec else 0,
+        "eco_s_monthly":    [round(v) for v in eco_sans_monthly],
+        "eco_a_monthly":    [round(v) for v in eco_avec_monthly],
+        "sans_items":       _df_to_items(df_sans),
+        "avec_items":       _df_to_items(df_avec),
+    }
+
+    out_path = DEVIS_DIR / pdf_filename
+    try:
+        generate_premium_pdf(premium_data, out_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
 
     # Save to history
     devis_id = str(doc_number)

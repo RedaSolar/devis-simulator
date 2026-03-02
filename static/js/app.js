@@ -175,6 +175,7 @@ async function initApp() {
 }
 
 function isAdmin() { return getUser()?.role === 'admin'; }
+function isCommercial() { return getUser()?.role === 'commercial'; }
 
 function getScenario() {
     const v = document.getElementById('scenario-choice')?.value || 'Les deux (Sans + Avec)';
@@ -201,6 +202,7 @@ function getRecommended() {
 
 function applyRoleVisibility(user) {
     const admin = user?.role === 'admin';
+    const commercial = user?.role === 'commercial';
     // Hide .admin-only elements (buy-price inputs in catalog add-forms)
     document.querySelectorAll('.admin-only').forEach(el => {
         el.style.display = admin ? '' : 'none';
@@ -208,6 +210,25 @@ function applyRoleVisibility(user) {
     // Hide buy-price column header in product lines table
     const thAchat = document.getElementById('th-prix-achat');
     if (thAchat) thAchat.style.display = admin ? '' : 'none';
+
+    // Commercial role: simplified devis view
+    const navCatalog = document.getElementById('nav-catalog');
+    if (navCatalog) navCatalog.style.display = commercial ? 'none' : '';
+
+    const hiddenForCommercial = ['section-product-lines', 'section-custom-lines', 'section-notes', 'tech-params-advanced', 'tech-struct-group'];
+    hiddenForCommercial.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = commercial ? 'none' : '';
+    });
+
+    const btnAutofill = document.getElementById('btn-autofill');
+    if (btnAutofill) btnAutofill.style.display = commercial ? 'none' : '';
+
+    const btnPrepare = document.getElementById('btn-prepare-devis');
+    if (btnPrepare) btnPrepare.style.display = commercial ? '' : 'none';
+
+    const btnCalcRoi = document.getElementById('btn-calc-roi');
+    if (btnCalcRoi) btnCalcRoi.style.display = commercial ? 'none' : '';
 }
 
 function getDefaultProductLines() {
@@ -361,6 +382,24 @@ async function autoFill() {
         if (btn) { btn.disabled = false; btn.innerHTML = '⚡ Auto-remplir'; }
     }
 }
+
+// ---- Préparer le devis (commercial shortcut: autofill + ROI) ----
+async function prepareDevis() {
+    const kwp = parseFloat(document.getElementById('puissance-kwp')?.value) || 0;
+    if (kwp <= 0) {
+        showToast('Entrez le nombre de panneaux', 'warning');
+        return;
+    }
+    const btn = document.getElementById('btn-prepare-devis');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Préparation...'; }
+    try {
+        await autoFill();
+        await calculateROI();
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '⚡ Préparer le devis'; }
+    }
+}
+
 
 // ---- Onduleur catalog helpers ----
 async function fetchOnduleurOptions(type, brand) {

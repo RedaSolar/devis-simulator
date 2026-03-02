@@ -38,7 +38,7 @@
                 </button>
             </li>
             <li>
-                <button class="nav-link" data-tab="catalog" onclick="showTab('catalog')">
+                <button class="nav-link" data-tab="catalog" id="nav-catalog" onclick="showTab('catalog')">
                     🗂️ Catalogue
                 </button>
             </li>
@@ -165,7 +165,7 @@
     </div>
 
     <!-- Section 4: Technical Parameters -->
-    <div class="card" style="margin-bottom:1.25rem;">
+    <div class="card" id="section-tech-params" style="margin-bottom:1.25rem;">
         <div class="card-header">
             <h2>⚡ Paramètres Techniques</h2>
         </div>
@@ -188,7 +188,7 @@
                     </div>
                     <input type="hidden" id="puissance-kwp">
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="tech-struct-group">
                     <label>Type de Structure</label>
                     <div class="radio-group" style="margin-top:0.35rem;">
                         <label class="radio-option selected" id="struct-acier-label">
@@ -207,45 +207,51 @@
                 </div>
             </div>
 
-            <!-- Onduleur kW + Phase -->
-            <div class="form-grid" style="margin-top:0.75rem;">
-                <div class="form-group">
-                    <label for="onduleur-kw">Puissance Onduleur (kW)</label>
-                    <input type="number" id="onduleur-kw" class="form-control"
-                           placeholder="ex: 10" min="0.5" max="200" step="0.5">
-                </div>
-                <div class="form-group">
-                    <label>Phase onduleur</label>
-                    <div class="radio-group" style="margin-top:0.35rem;">
-                        <label class="radio-option selected" id="phase-mono-label">
-                            <input type="radio" name="onduleur-phase" value="Monophasé" checked
-                                   onchange="document.getElementById('phase-mono-label').classList.add('selected');document.getElementById('phase-tri-label').classList.remove('selected');">
-                            Monophasé
-                        </label>
-                        <label class="radio-option" id="phase-tri-label">
-                            <input type="radio" name="onduleur-phase" value="Triphasé"
-                                   onchange="document.getElementById('phase-tri-label').classList.add('selected');document.getElementById('phase-mono-label').classList.remove('selected');">
-                            Triphasé
-                        </label>
+            <!-- Advanced fields (hidden for commercial) -->
+            <div id="tech-params-advanced">
+                <!-- Onduleur kW + Phase -->
+                <div class="form-grid" style="margin-top:0.75rem;">
+                    <div class="form-group">
+                        <label for="onduleur-kw">Puissance Onduleur (kW)</label>
+                        <input type="number" id="onduleur-kw" class="form-control"
+                               placeholder="ex: 10" min="0.5" max="200" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Phase onduleur</label>
+                        <div class="radio-group" style="margin-top:0.35rem;">
+                            <label class="radio-option selected" id="phase-mono-label">
+                                <input type="radio" name="onduleur-phase" value="Monophasé" checked
+                                       onchange="document.getElementById('phase-mono-label').classList.add('selected');document.getElementById('phase-tri-label').classList.remove('selected');">
+                                Monophasé
+                            </label>
+                            <label class="radio-option" id="phase-tri-label">
+                                <input type="radio" name="onduleur-phase" value="Triphasé"
+                                       onchange="document.getElementById('phase-tri-label').classList.add('selected');document.getElementById('phase-mono-label').classList.remove('selected');">
+                                Triphasé
+                            </label>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div style="margin-top:1rem;">
-                <label class="form-group" style="flex-direction:row; align-items:center; gap:1rem; margin-bottom:0;">
-                    <span style="font-size:0.82rem;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;">
-                        Consommation diurne (%)
-                    </span>
-                    <div class="slider-wrapper" style="flex:1;">
-                        <input type="range" id="day-usage" min="10" max="100" step="5" value="50">
-                        <span class="slider-value" id="day-usage-val">50%</span>
-                    </div>
-                </label>
-            </div>
+                <div style="margin-top:1rem;">
+                    <label class="form-group" style="flex-direction:row; align-items:center; gap:1rem; margin-bottom:0;">
+                        <span style="font-size:0.82rem;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;">
+                            Consommation diurne (%)
+                        </span>
+                        <div class="slider-wrapper" style="flex:1;">
+                            <input type="range" id="day-usage" min="10" max="100" step="5" value="50">
+                            <span class="slider-value" id="day-usage-val">50%</span>
+                        </div>
+                    </label>
+                </div>
+            </div><!-- /tech-params-advanced -->
 
             <div style="margin-top:1.25rem; text-align:right;">
                 <button class="btn btn-orange" id="btn-autofill" onclick="autoFill()">
                     ⚡ Auto-remplir depuis catalogue
+                </button>
+                <button class="btn btn-orange btn-lg" id="btn-prepare-devis" onclick="prepareDevis()" style="display:none;">
+                    ⚡ Préparer le devis
                 </button>
             </div>
         </div>
@@ -273,7 +279,7 @@
     </div>
 
     <!-- Section 5: Product Lines Table -->
-    <div class="card" style="margin-bottom:1.25rem;">
+    <div class="card" id="section-product-lines" style="margin-bottom:1.25rem;">
         <div class="card-header">
             <h2>🛒 Lignes de Produits</h2>
             <button class="btn btn-secondary btn-sm" onclick="addProductLine()">+ Ajouter ligne</button>
@@ -335,7 +341,7 @@
     </div>
 
     <!-- Section 6: Custom Lines -->
-    <div class="card" style="margin-bottom:1.25rem;">
+    <div class="card" id="section-custom-lines" style="margin-bottom:1.25rem;">
         <div class="card-header">
             <h2>➕ Lignes Personnalisées</h2>
         </div>
@@ -378,7 +384,7 @@
     </div>
 
     <!-- Section 7: Notes -->
-    <div class="card" style="margin-bottom:1.25rem;">
+    <div class="card" id="section-notes" style="margin-bottom:1.25rem;">
         <div class="card-header">
             <h2>📝 Notes</h2>
         </div>
@@ -595,6 +601,7 @@
                     <select id="new-role" class="form-control">
                         <option value="user">Utilisateur</option>
                         <option value="admin">Administrateur</option>
+                        <option value="commercial">Commercial</option>
                     </select>
                 </div>
             </div>

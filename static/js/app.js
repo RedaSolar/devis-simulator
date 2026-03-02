@@ -137,14 +137,37 @@ async function initApp() {
     document.getElementById('install-type')?.addEventListener('change', updateDayUsageForType);
 
     // Re-render simulation when scenario/recommended changes (no new API call needed)
-    ['scenario-choice', 'recommended-option'].forEach(id => {
-        document.getElementById(id)?.addEventListener('change', () => {
-            updateTotals();
-            if (currentRoiResult) {
-                renderROISummary(currentRoiResult, currentTotals.sans, currentTotals.avec);
-                renderMonthlyChart(currentRoiResult);
+    document.getElementById('scenario-choice')?.addEventListener('change', () => {
+        const { v } = getScenario();
+        const recEl = document.getElementById('recommended-option');
+        const recVal = recEl?.value;
+        // Auto-reset incompatible manual selections
+        if (recVal !== 'Auto' && recVal !== 'Aucune recommandation') {
+            if ((v === 'Sans batterie' && recVal === 'Avec batterie') ||
+                (v === 'Avec batterie' && recVal === 'Sans batterie')) {
+                if (recEl) recEl.value = 'Auto';
+                showToast('Option recommandée réinitialisée en Auto (incompatible avec le scénario)', 'warning', 3000);
             }
-        });
+        }
+        updateTotals();
+        if (currentRoiResult) {
+            renderROISummary(currentRoiResult, currentTotals.sans, currentTotals.avec);
+            renderMonthlyChart(currentRoiResult);
+        }
+    });
+
+    document.getElementById('recommended-option')?.addEventListener('change', () => {
+        const { v } = getScenario();
+        const rec = document.getElementById('recommended-option')?.value;
+        if ((v === 'Sans batterie' && rec === 'Avec batterie') ||
+            (v === 'Avec batterie' && rec === 'Sans batterie')) {
+            showToast('Attention : option recommandée incompatible avec le scénario sélectionné', 'warning', 4000);
+        }
+        updateTotals();
+        if (currentRoiResult) {
+            renderROISummary(currentRoiResult, currentTotals.sans, currentTotals.avec);
+            renderMonthlyChart(currentRoiResult);
+        }
     });
 
     // Default product lines table
@@ -158,7 +181,22 @@ function getScenario() {
     return { v, showSans: v !== 'Avec batterie', showAvec: v !== 'Sans batterie' };
 }
 function getRecommended() {
-    return document.getElementById('recommended-option')?.value || 'Aucune recommandation';
+    const val = document.getElementById('recommended-option')?.value || 'Auto';
+    if (val !== 'Auto') return val;
+    // Auto: resolve based on scenario and ROI data
+    const { v } = getScenario();
+    if (v === 'Sans batterie') return 'Sans batterie';
+    if (v === 'Avec batterie') return 'Avec batterie';
+    // Both options: pick the one with lower payback (shorter ROI = better)
+    if (currentRoiResult) {
+        const ps = currentRoiResult.payback_sans ?? 0;
+        const pa = currentRoiResult.payback_avec ?? 0;
+        if (ps <= 0 && pa <= 0) return 'Aucune recommandation';
+        if (ps <= 0) return 'Avec batterie';
+        if (pa <= 0) return 'Sans batterie';
+        return ps <= pa ? 'Sans batterie' : 'Avec batterie';
+    }
+    return 'Aucune recommandation';
 }
 
 function applyRoleVisibility(user) {
@@ -520,6 +558,11 @@ function removeProductLine(idx) {
     renderProductLines(currentProductLines);
 }
 
+function applyDiscount() {
+    updateTotals();
+    scheduleROI();
+}
+
 function updateTotals() {
     const lines = getCurrentProductLines();
     const { showSans, showAvec } = getScenario();
@@ -533,10 +576,25 @@ function updateTotals() {
     const totalSans = sanLines.reduce((s, l) => s + (l.prix_unit_ttc * l.quantite), 0);
     const totalAvec = avecLines.reduce((s, l) => s + (l.prix_unit_ttc * l.quantite), 0);
 
+    // Apply discount
+    const pct = parseFloat(document.getElementById('discount-pct')?.value) || 0;
+    const discSans = pct > 0 ? Math.round(totalSans * (1 - pct / 100)) : totalSans;
+    const discAvec = pct > 0 ? Math.round(totalAvec * (1 - pct / 100)) : totalAvec;
+
     const elSans = document.getElementById('total-sans');
     const elAvec = document.getElementById('total-avec');
     if (elSans) elSans.textContent = formatMoney(totalSans);
     if (elAvec) elAvec.textContent = formatMoney(totalAvec);
+
+    // Show/hide discount final totals
+    const elSansFinal = document.getElementById('total-sans-final');
+    const elAvecFinal = document.getElementById('total-avec-final');
+    const tiSansFinal = document.getElementById('total-item-sans-final');
+    const tiAvecFinal = document.getElementById('total-item-avec-final');
+    if (elSansFinal) elSansFinal.textContent = formatMoney(discSans);
+    if (elAvecFinal) elAvecFinal.textContent = formatMoney(discAvec);
+    if (tiSansFinal) tiSansFinal.style.display = (pct > 0 && showSans) ? '' : 'none';
+    if (tiAvecFinal) tiAvecFinal.style.display = (pct > 0 && showAvec) ? '' : 'none';
 
     // Show/hide total rows and mark recommended
     const tiSans = document.getElementById('total-item-sans');
@@ -552,7 +610,7 @@ function updateTotals() {
             'Total AVEC batterie' + (recommended === 'Avec batterie' ? ' ⭐' : '');
     }
 
-    return { totalSans, totalAvec };
+    return { totalSans: discSans, totalAvec: discAvec };
 }
 
 function getCurrentProductLines() {
@@ -686,6 +744,7 @@ async function calculateROI(silent = false) {
         const data = await res.json();
         currentRoiResult = data;
         currentTotals = { sans: totalSans, avec: totalAvec };
+        updateTotals();  // refresh ⭐ labels now that Auto recommendation is resolved
         renderROISummary(data, totalSans, totalAvec);
         renderMonthlyChart(data);
         if (!silent) showToast('Simulation actualisée', 'success', 2000);
@@ -876,7 +935,7 @@ function collectFormData() {
     const clientAddress = document.getElementById('client-address')?.value || '';
     const clientPhone = document.getElementById('client-phone')?.value || '';
     const scenario = document.getElementById('scenario-choice')?.value || 'Les deux (Sans + Avec)';
-    const recommended = document.getElementById('recommended-option')?.value || 'Aucune recommandation';
+    const recommended = getRecommended();  // resolves "Auto" to actual value
     const kwp = parseFloat(document.getElementById('puissance-kwp')?.value) || 0;
     const panW = parseInt(document.getElementById('puissance-panneau')?.value) || 710;
     const dayUsage = parseInt(document.getElementById('day-usage')?.value) || 50;
@@ -890,6 +949,7 @@ function collectFormData() {
     const customAvec = getCustomLines('avec');
     const notesSans = getNotes('sans');
     const notesAvec = getNotes('avec');
+    const discountPct = parseFloat(document.getElementById('discount-pct')?.value) || 0;
 
     return {
         doc_number: docNumber,
@@ -899,6 +959,7 @@ function collectFormData() {
         client_phone: clientPhone,
         scenario_choice: scenario,
         recommended_option: recommended,
+        discount_percent: discountPct,
         puissance_kwp: kwp,
         puissance_panneau_w: panW,
         roi_data: {

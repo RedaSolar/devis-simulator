@@ -36,3 +36,4 @@ class DevisRequest(BaseModel):
     structure_type: str = "acier"
     onduleur_kw: Optional[float] = None
     onduleur_phase: str = "Monophasé"
+    discount_percent: float = 0.0

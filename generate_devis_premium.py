@@ -219,6 +219,9 @@ YEARS   = list(range(26))
 CUMUL_S = [-TOTAL_SANS + ECO_S_ANN * y for y in YEARS]
 CUMUL_A = [-TOTAL_AVEC + QUOTE_INPUT["eco_a_cumul"] * y for y in YEARS]
 
+SCENARIO    = "Les deux (Sans + Avec)"
+RECOMMENDED = "Avec batterie"
+
 # ── SVG equipment icons ──────────────────────────────────────────────────────
 _SVG = {
 "onduleur":     '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="#1A2B4A"/><rect x="6" y="8" width="28" height="20" rx="3" fill="none" stroke="#F5A623" stroke-width="2"/><circle cx="14" cy="18" r="4" fill="none" stroke="#F5A623" stroke-width="1.5"/><path d="M22 14 L28 18 L22 22" fill="none" stroke="#F5A623" stroke-width="1.5" stroke-linejoin="round"/><rect x="10" y="30" width="20" height="3" rx="1.5" fill="#F5A623" opacity="0.6"/></svg>',
@@ -595,6 +598,20 @@ def page1():
     esa_mad = f"{int(ECO_S_ANN):,}".replace(",", _s) + "\u00a0MAD"
     eaa_mad = f"{int(ECO_A_ANN):,}".replace(",", _s) + "\u00a0MAD"
     pk      = f"{int(PROD_KWH):,}".replace(",", _s)
+    # Scenario-aware option card visibility
+    _s1   = 'display:none;' if SCENARIO == 'Avec batterie' else ''
+    _s2   = 'display:none;' if SCENARIO == 'Sans batterie' else ''
+    _both = not _s1 and not _s2
+    _r1   = (f'<div style="display:block;background:{CA};color:{CN};font-size:7pt;'
+             f'font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:8px;'
+             f'text-transform:uppercase;text-align:center;margin-bottom:6px;'
+             f'width:100%;box-sizing:border-box;">&#9733; RECOMMAND\u00c9</div>'
+             if _both and RECOMMENDED == 'Sans batterie' else '')
+    _r2   = (f'<div style="display:block;background:{CA};color:{CN};font-size:7pt;'
+             f'font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:8px;'
+             f'text-transform:uppercase;text-align:center;margin-bottom:6px;'
+             f'width:100%;box-sizing:border-box;">&#9733; RECOMMAND\u00c9</div>'
+             if not _s2 and (_both and RECOMMENDED == 'Avec batterie') else '')
     return f"""
 <div class="page" style="background:#FFFFFF !important;">
 
@@ -694,9 +711,9 @@ def page1():
   <div style="flex:1;min-height:0;display:flex;gap:12px;padding:0 24px 10px;align-items:stretch;background:#FFFFFF !important;">
 
     <!-- OPTION 1 -->
-    <!-- FIX v42: border-top:5px+box-shadow removed (grey on mobile); uniform 1.5px solid #E8A020 border applied -->
-    <div style="flex:1;border:1.5px solid #E8A020;border-radius:6px;padding:12px;display:flex;flex-direction:column;background:#FFFFFF;">
+    <div style="flex:1;border:1.5px solid #E8A020;border-radius:6px;padding:12px;display:flex;flex-direction:column;background:#FFFFFF;{_s1}">
       <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 1</div>
+      {_r1}
       <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Sans batterie</div>
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Autoconsommation directe</div>
       <div class="serif" style="font-size:30pt;font-weight:400;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
@@ -718,11 +735,10 @@ def page1():
       </div>
     </div>
 
-    <!-- OPTION 2 — amber border, RECOMMANDÉ badge, DARK NAVY top bar -->
-    <!-- FIX v42: background restored to #FFF3E0 (warm light amber-cream, opaque — no transparency issue); border updated to 1.5px solid #E8A020 -->
-    <div style="flex:1;border:1.5px solid #E8A020;border-top:6px solid {CN};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:#FFF3E0;">
+    <!-- OPTION 2 -->
+    <div style="flex:1;border:1.5px solid #E8A020;border-top:6px solid {CN};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:#FFF3E0;{_s2}">
       <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 2</div>
-      <div style="display:block;background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:8px;text-transform:uppercase;text-align:center;margin-bottom:6px;width:100%;box-sizing:border-box;">&#9733; RECOMMAND&#201;</div>
+      {_r2}
       <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Avec batterie</div>
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
       <div class="serif" style="font-size:30pt;font-weight:400;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
@@ -776,10 +792,19 @@ def page2(sans_items, img_roi, img_mon):
     sr = equip_rows(sans_items, hi_bat=False)
     ar = equip_rows(AVEC_ITEMS, hi_bat=True)
 
+    # Scenario visibility
+    _p2_s1 = 'display:none;' if SCENARIO == 'Avec batterie' else ''
+    _p2_s2 = 'display:none;' if SCENARIO == 'Sans batterie' else ''
+
     # ── Dynamic table row scaling ─────────────────────────────────────────────
     # When one side has many rows the table section grows and squeezes the charts.
     # Scale row height/font proportionally so everything still fits on one page.
-    max_rows = max(len(sans_items), len(AVEC_ITEMS))
+    if SCENARIO == 'Avec batterie':
+        max_rows = len(AVEC_ITEMS)
+    elif SCENARIO == 'Sans batterie':
+        max_rows = len(sans_items)
+    else:
+        max_rows = max(len(sans_items), len(AVEC_ITEMS))
     scale = 1.0 if max_rows <= 11 else max(0.62, 11.0 / max_rows)
     if scale < 1.0:
         tbl_font = f"{6.5 * scale:.2f}pt"
@@ -814,7 +839,7 @@ def page2(sans_items, img_roi, img_mon):
   <div style="padding:9px 24px 4px;flex-shrink:0;">
     <div style="display:flex;gap:10px;">
 
-      <div style="flex:1;min-width:0;">
+      <div style="flex:1;min-width:0;{_p2_s1}">
         <div style="background:{CN};color:white;font-size:7pt;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:5px 9px;border-radius:5px 5px 0 0;">Option 1 \u2014 Sans batterie</div>
         <table class="eq">
           <thead><tr>
@@ -825,7 +850,7 @@ def page2(sans_items, img_roi, img_mon):
         </table>
       </div>
 
-      <div style="flex:1;min-width:0;">
+      <div style="flex:1;min-width:0;{_p2_s2}">
         <div style="background:{CA};color:{CN};font-size:7pt;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:5px 9px;border-radius:5px 5px 0 0;">Option 2 \u2014 Avec batterie</div>
         <table class="eq">
           <thead><tr>
@@ -1131,6 +1156,7 @@ def generate_premium_pdf(data: dict, out_path) -> str:
     global ECO_S_ANN, ECO_A_ANN, ROI_S, ROI_A, INST_TYPE
     global SANS_ITEMS, AVEC_ITEMS, ECO_S_M, ECO_A_M, CUMUL_S, CUMUL_A
     global FACTURES_M
+    global SCENARIO, RECOMMENDED
 
     CLIENT_NAME  = data["client_name"]
     CLIENT_ADDR  = data["client_addr"]
@@ -1148,6 +1174,8 @@ def generate_premium_pdf(data: dict, out_path) -> str:
     ROI_S        = float(data["roi_s"])
     ROI_A        = float(data["roi_a"])
     INST_TYPE    = data["inst_type"]
+    SCENARIO     = data.get("scenario", "Les deux (Sans + Avec)")
+    RECOMMENDED  = data.get("recommended", "Avec batterie")
     SANS_ITEMS   = data["sans_items"]
     AVEC_ITEMS   = data["avec_items"]
     ECO_S_M      = data["eco_s_monthly"]

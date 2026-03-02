@@ -153,6 +153,12 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     total_sans = _total_ttc(df_sans)
     total_avec = _total_ttc(df_avec)
 
+    # Apply discount
+    if request.discount_percent and request.discount_percent > 0:
+        _factor = 1 - request.discount_percent / 100
+        total_sans = round(total_sans * _factor, 2)
+        total_avec = round(total_avec * _factor, 2)
+
     # ROI calculations
     factures = request.roi_data.factures_mensuelles
     if len(factures) < 12:
@@ -289,6 +295,8 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         "factures_mensuelles": [round(v) for v in factures],
         "sans_items":       _df_to_items(df_sans),
         "avec_items":       _df_to_items(df_avec),
+        "scenario":         scenario,
+        "recommended":      request.recommended_option,
     }
 
     out_path = DEVIS_DIR / pdf_filename

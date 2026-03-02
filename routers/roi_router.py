@@ -16,7 +16,7 @@ class EstimateMonthsRequest(BaseModel):
 class ROICalculateRequest(BaseModel):
     puissance_kwp: float
     factures_mensuelles: List[float]  # 12 values
-    day_usage_percent: int = 60
+    day_usage_percent: int = 50
     total_cost_sans: float = 0.0
     total_cost_avec: float = 0.0
     battery_capacity_kwh: float = 10.0

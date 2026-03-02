@@ -14,7 +14,7 @@ class ProductLine(BaseModel):
 
 class RoiData(BaseModel):
     factures_mensuelles: List[float]  # 12 values
-    day_usage_percent: int = 60
+    day_usage_percent: int = 50
 
 
 class DevisRequest(BaseModel):

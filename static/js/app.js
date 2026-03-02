@@ -556,7 +556,7 @@ async function calculateROI(silent = false) {
     const factures = getMonthlyValues();
     if (!factures.some(v => v > 0)) { if (!silent) showToast('Entrez vos factures mensuelles', 'warning'); return; }
 
-    const dayPct = parseInt(document.getElementById('day-usage')?.value) || 60;
+    const dayPct = parseInt(document.getElementById('day-usage')?.value) || 50;
     const { totalSans, totalAvec } = updateTotals();
 
     const btn = document.getElementById('btn-calc-roi');
@@ -777,7 +777,7 @@ function collectFormData() {
     const recommended = document.getElementById('recommended-option')?.value || 'Aucune recommandation';
     const kwp = parseFloat(document.getElementById('puissance-kwp')?.value) || 0;
     const panW = parseInt(document.getElementById('puissance-panneau')?.value) || 710;
-    const dayUsage = parseInt(document.getElementById('day-usage')?.value) || 60;
+    const dayUsage = parseInt(document.getElementById('day-usage')?.value) || 50;
     const structType = document.querySelector('input[name="structure-type"]:checked')?.value || 'acier';
     const onduleurKw = parseFloat(document.getElementById('onduleur-kw')?.value) || null;
     const onduleurPhase = document.querySelector('input[name="onduleur-phase"]:checked')?.value || 'Monophasé';

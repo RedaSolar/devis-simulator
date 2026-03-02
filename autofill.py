@@ -394,22 +394,28 @@ def auto_fill_from_power(df_common: pd.DataFrame, catalog, puissance_kwp: float,
                 elif "5" in marque and not dey_5_info:
                     dey_5_info = (marque, vals.get("sell_ttc"), vals.get("buy_ttc"))
 
-        # Ligne 1 : Batterie 5kWh, quantité 1
+        # Compute target battery kWh: round PV power to nearest 5 kWh, minimum 5 kWh
+        # e.g. 5.68 kWc → 5 kWh, 14 kWc → 15 kWh (1×10 + 1×5)
+        _target_kwh = max(5, round(puissance_kwp / 5) * 5)
+        _nb_10 = _target_kwh // 10
+        _nb_5  = 1 if (_target_kwh % 10) >= 5 else 0
+
+        # Ligne 1 : Batterie 5kWh
         if idx_bat_primary is not None and dey_5_info:
             df.at[idx_bat_primary, "Marque"] = dey_5_info[0]
-            df.at[idx_bat_primary, "Quantité"] = 1
-            if df.at[idx_bat_primary, "Prix Unit. TTC"] == 0 and dey_5_info[1] is not None:
+            df.at[idx_bat_primary, "Quantité"] = _nb_5
+            if dey_5_info[1] is not None:
                 df.at[idx_bat_primary, "Prix Unit. TTC"] = dey_5_info[1]
-            if df.at[idx_bat_primary, "Prix Achat TTC"] == 0 and dey_5_info[2] is not None:
+            if dey_5_info[2] is not None:
                 df.at[idx_bat_primary, "Prix Achat TTC"] = dey_5_info[2]
 
-        # Ligne 2 : Batterie 10kWh, quantité 1
+        # Ligne 2 : Batterie 10kWh
         if idx_bat_secondary is not None and dey_10_info:
             df.at[idx_bat_secondary, "Marque"] = dey_10_info[0]
-            df.at[idx_bat_secondary, "Quantité"] = 1
-            if df.at[idx_bat_secondary, "Prix Unit. TTC"] == 0 and dey_10_info[1] is not None:
+            df.at[idx_bat_secondary, "Quantité"] = _nb_10
+            if dey_10_info[1] is not None:
                 df.at[idx_bat_secondary, "Prix Unit. TTC"] = dey_10_info[1]
-            if df.at[idx_bat_secondary, "Prix Achat TTC"] == 0 and dey_10_info[2] is not None:
+            if dey_10_info[2] is not None:
                 df.at[idx_bat_secondary, "Prix Achat TTC"] = dey_10_info[2]
 
     return df

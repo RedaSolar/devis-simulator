@@ -19,7 +19,10 @@
       "Bash(timeout 60 python:*)",
       "Bash(dir:*)",
       "Bash(python3:*)",
-      "Bash(claude config:*)"
+      "Bash(claude config:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(echo.:*)"
     ]
   }
 }

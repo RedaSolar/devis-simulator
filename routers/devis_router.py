@@ -309,6 +309,7 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}\n{error_detail}")
     
 
+
     # Save to history
     devis_id = str(doc_number)
     history = _load_history()

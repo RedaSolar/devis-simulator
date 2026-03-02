@@ -207,8 +207,13 @@ AVEC_ITEMS   = _Q["avec_items"]
 
 MONTHS  = ["Jan","F\u00e9v","Mar","Avr","Mai","Jun",
            "Jul","Ao\u00fb","Sep","Oct","Nov","D\u00e9c"]
-ECO_S_M = QUOTE_INPUT["eco_s_monthly"]
-ECO_A_M = QUOTE_INPUT["eco_a_monthly"]
+ECO_S_M    = QUOTE_INPUT["eco_s_monthly"]
+ECO_A_M    = QUOTE_INPUT["eco_a_monthly"]
+# Actual monthly bills entered by user; fallback to proxy if not in QUOTE_INPUT
+FACTURES_M = QUOTE_INPUT.get("factures_mensuelles") or [
+    round(v * (ECO_S_ANN / 0.65) / max(1, sum(QUOTE_INPUT["eco_s_monthly"])))
+    for v in QUOTE_INPUT["eco_s_monthly"]
+]
 
 YEARS   = list(range(26))
 CUMUL_S = [-TOTAL_SANS + ECO_S_ANN * y for y in YEARS]
@@ -473,10 +478,8 @@ def make_chart_monthly():
     from matplotlib.lines import Line2D
     from matplotlib.patches import Patch
 
-    # Estimate ONEE monthly bill: proxy = ECO_S_ANN / 0.65 distributed by ECO_S_M seasonality
-    _onee_annual = ECO_S_ANN / 0.65
-    _eco_s_sum   = sum(ECO_S_M)
-    _onee_m      = [round(v * _onee_annual / _eco_s_sum) for v in ECO_S_M]
+    # Real monthly bills from the simulator input
+    _onee_m = FACTURES_M
 
     fig, ax = plt.subplots(figsize=(13, 4.0), dpi=130)
     fig.patch.set_facecolor("white"); ax.set_facecolor("white")
@@ -1127,6 +1130,7 @@ def generate_premium_pdf(data: dict, out_path) -> str:
     global KWC, NB_PAN, WP, PROD_KWH, TOTAL_SANS, TOTAL_AVEC
     global ECO_S_ANN, ECO_A_ANN, ROI_S, ROI_A, INST_TYPE
     global SANS_ITEMS, AVEC_ITEMS, ECO_S_M, ECO_A_M, CUMUL_S, CUMUL_A
+    global FACTURES_M
 
     CLIENT_NAME  = data["client_name"]
     CLIENT_ADDR  = data["client_addr"]
@@ -1148,6 +1152,7 @@ def generate_premium_pdf(data: dict, out_path) -> str:
     AVEC_ITEMS   = data["avec_items"]
     ECO_S_M      = data["eco_s_monthly"]
     ECO_A_M      = data["eco_a_monthly"]
+    FACTURES_M   = list(data["factures_mensuelles"])
     eco_a_cumul  = int(data["eco_a_cumul"])
     CUMUL_S      = [-TOTAL_SANS + ECO_S_ANN * y for y in YEARS]
     CUMUL_A      = [-TOTAL_AVEC + eco_a_cumul  * y for y in YEARS]

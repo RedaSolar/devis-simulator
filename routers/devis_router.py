@@ -267,6 +267,7 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         "roi_a":            round(payback_avec, 1) if payback_avec else 0,
         "eco_s_monthly":    [round(v) for v in eco_sans_monthly],
         "eco_a_monthly":    [round(v) for v in eco_avec_monthly],
+        "factures_mensuelles": [round(v) for v in factures],
         "sans_items":       _df_to_items(df_sans),
         "avec_items":       _df_to_items(df_avec),
     }

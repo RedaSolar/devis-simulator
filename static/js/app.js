@@ -379,7 +379,8 @@ function renderProductLines(lines, onduleurMeta) {
             const optEl = document.createElement('option');
             optEl.value = val;
             optEl.textContent = label;
-            const isMatch = (selPower !== null && Math.abs((opt.power || 0) - selPower) < 0.01 && opt.phase === selPhase);
+            const isTri = (s) => (s || '').toLowerCase().includes('tri');
+            const isMatch = (selPower !== null && Math.abs((opt.power || 0) - selPower) < 0.01 && isTri(opt.phase) === isTri(selPhase));
             if (isMatch) optEl.selected = true;
             sel.appendChild(optEl);
         });

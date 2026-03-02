@@ -49,7 +49,7 @@ class PriceUpdate(BaseModel):
     power: str = ""
     phase: str = ""
     sell_ttc: float = 0.0
-    buy_ttc: float = 0.0
+    buy_ttc: Optional[float] = None  # None = keep unchanged (non-admins never send this)
 
 
 # ---------- Endpoints ----------
@@ -141,7 +141,9 @@ async def update_price(entry: PriceUpdate, current_user: dict = Depends(get_curr
             raise HTTPException(status_code=404, detail="Entrée introuvable")
 
     target["sell_ttc"] = entry.sell_ttc
-    target["buy_ttc"] = entry.buy_ttc
+    # Only admins can update buy price
+    if entry.buy_ttc is not None and current_user.get("role") == "admin":
+        target["buy_ttc"] = entry.buy_ttc
     save_catalog(catalog)
     return {"status": "ok", "message": "Prix mis à jour"}
 

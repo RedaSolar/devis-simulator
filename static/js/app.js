@@ -84,6 +84,9 @@ async function initApp() {
         adminTabBtn.style.display = (user && user.role === 'admin') ? 'inline-flex' : 'none';
     }
 
+    // Apply role-based visibility (buy prices hidden for non-admins)
+    applyRoleVisibility(user);
+
     // Set default doc number
     try {
         const res = await authFetch('/api/devis');
@@ -134,6 +137,19 @@ async function initApp() {
 
     // Default product lines table
     renderProductLines(getDefaultProductLines());
+}
+
+function isAdmin() { return getUser()?.role === 'admin'; }
+
+function applyRoleVisibility(user) {
+    const admin = user?.role === 'admin';
+    // Hide .admin-only elements (buy-price inputs in catalog add-forms)
+    document.querySelectorAll('.admin-only').forEach(el => {
+        el.style.display = admin ? '' : 'none';
+    });
+    // Hide buy-price column header in product lines table
+    const thAchat = document.getElementById('th-prix-achat');
+    if (thAchat) thAchat.style.display = admin ? '' : 'none';
 }
 
 function getDefaultProductLines() {
@@ -321,6 +337,7 @@ function renderProductLines(lines, onduleurMeta) {
     currentProductLines = lines || [];
     const tbody = document.getElementById('product-lines-tbody');
     if (!tbody) return;
+    const showBuy = isAdmin();
     tbody.innerHTML = '';
     lines.forEach((line, i) => {
         const tr = document.createElement('tr');
@@ -368,10 +385,10 @@ function renderProductLines(lines, onduleurMeta) {
                 <input type="number" class="table-input table-input-num" data-field="prix_unit_ttc" data-idx="${i}"
                        value="${line.prix_unit_ttc || 0}" min="0" step="100">
             </td>
-            <td>
+            ${showBuy ? `<td>
                 <input type="number" class="table-input table-input-num" data-field="prix_achat_ttc" data-idx="${i}"
                        value="${line.prix_achat_ttc || 0}" min="0" step="100">
-            </td>
+            </td>` : ''}
             <td>
                 <select class="table-input" data-field="tva" data-idx="${i}">
                     ${[0,7,10,14,20].map(v => `<option value="${v}" ${v === (line.tva || 20) ? 'selected' : ''}>${v}%</option>`).join('')}
@@ -1012,6 +1029,7 @@ window._catPriceRows = [];
 
 function renderCatalogDisplay(catalog, container) {
     window._catPriceRows = [];
+    const admin = isAdmin();
     const ONDULEUR = ['Onduleur Injection', 'Onduleur Hybride'];
     const PANEL_BAT = ['Panneaux', 'Batterie'];
     const sections = [];
@@ -1022,7 +1040,7 @@ function renderCatalogDisplay(catalog, container) {
         let thead = '';
 
         if (ONDULEUR.includes(category)) {
-            thead = '<tr><th>Marque</th><th>Puissance</th><th>Phase</th><th>Prix Vente TTC</th><th>Prix Achat TTC</th><th></th></tr>';
+            thead = `<tr><th>Marque</th><th>Puissance</th><th>Phase</th><th>Prix Vente TTC</th>${admin ? '<th>Prix Achat TTC</th>' : ''}<th></th></tr>`;
             let hasRow = false;
             for (const [brand, bd] of Object.entries(items)) {
                 if (brand === '__default__' || typeof bd !== 'object') continue;
@@ -1041,7 +1059,7 @@ function renderCatalogDisplay(catalog, container) {
                             <td>${power} kW</td>
                             <td>${escHtml(phase)}</td>
                             <td><input type="number" class="form-control form-control-sm" id="cps${i}" value="${vd.sell_ttc || 0}" style="width:110px"></td>
-                            <td><input type="number" class="form-control form-control-sm" id="cpb${i}" value="${vd.buy_ttc || 0}" style="width:110px"></td>
+                            ${admin ? `<td><input type="number" class="form-control form-control-sm" id="cpb${i}" value="${vd.buy_ttc || 0}" style="width:110px"></td>` : ''}
                             <td><button class="btn btn-primary btn-sm" onclick="saveCatalogPrice(${i})">💾</button></td>
                         </tr>`;
                         hasRow = true;
@@ -1052,7 +1070,7 @@ function renderCatalogDisplay(catalog, container) {
 
         } else if (PANEL_BAT.includes(category)) {
             const unit = category === 'Panneaux' ? 'W' : 'kWh';
-            thead = `<tr><th>Marque</th><th>Capacité (${unit})</th><th>Prix Vente TTC</th><th>Prix Achat TTC</th><th></th></tr>`;
+            thead = `<tr><th>Marque</th><th>Capacité (${unit})</th><th>Prix Vente TTC</th>${admin ? '<th>Prix Achat TTC</th>' : ''}<th></th></tr>`;
             let hasRow = false;
             for (const [brand, bd] of Object.entries(items)) {
                 if (brand === '__default__' || typeof bd !== 'object') continue;
@@ -1066,7 +1084,7 @@ function renderCatalogDisplay(catalog, container) {
                         <td>${escHtml(brand)}</td>
                         <td>${power} ${unit}</td>
                         <td><input type="number" class="form-control form-control-sm" id="cps${i}" value="${pd.sell_ttc || 0}" style="width:110px"></td>
-                        <td><input type="number" class="form-control form-control-sm" id="cpb${i}" value="${pd.buy_ttc || 0}" style="width:110px"></td>
+                        ${admin ? `<td><input type="number" class="form-control form-control-sm" id="cpb${i}" value="${pd.buy_ttc || 0}" style="width:110px"></td>` : ''}
                         <td><button class="btn btn-primary btn-sm" onclick="saveCatalogPrice(${i})">💾</button></td>
                     </tr>`;
                     hasRow = true;
@@ -1078,12 +1096,12 @@ function renderCatalogDisplay(catalog, container) {
             // Simple category: just __default__ row
             const def = items['__default__'];
             if (!def || typeof def !== 'object') continue;
-            thead = '<tr><th>Prix Vente TTC</th><th>Prix Achat TTC</th><th></th></tr>';
+            thead = `<tr><th>Prix Vente TTC</th>${admin ? '<th>Prix Achat TTC</th>' : ''}<th></th></tr>`;
             const i = window._catPriceRows.length;
             window._catPriceRows.push({ category, brand: '__default__', power: '', phase: '' });
             rows = `<tr>
                 <td><input type="number" class="form-control form-control-sm" id="cps${i}" value="${def.sell_ttc || 0}" style="width:110px"></td>
-                <td><input type="number" class="form-control form-control-sm" id="cpb${i}" value="${def.buy_ttc || 0}" style="width:110px"></td>
+                ${admin ? `<td><input type="number" class="form-control form-control-sm" id="cpb${i}" value="${def.buy_ttc || 0}" style="width:110px"></td>` : ''}
                 <td><button class="btn btn-primary btn-sm" onclick="saveCatalogPrice(${i})">💾</button></td>
             </tr>`;
         }
@@ -1102,18 +1120,20 @@ async function saveCatalogPrice(i) {
     const row = window._catPriceRows[i];
     if (!row) return;
     const sell = parseFloat(document.getElementById(`cps${i}`)?.value) || 0;
-    const buy  = parseFloat(document.getElementById(`cpb${i}`)?.value) || 0;
+    const payload = {
+        category: row.category,
+        brand:    row.brand,
+        power:    row.power,
+        phase:    row.phase,
+        sell_ttc: sell,
+    };
+    if (isAdmin()) {
+        payload.buy_ttc = parseFloat(document.getElementById(`cpb${i}`)?.value) || 0;
+    }
     try {
         const res = await authFetch('/api/catalog/price', {
             method: 'PATCH',
-            body: JSON.stringify({
-                category: row.category,
-                brand:    row.brand,
-                power:    row.power,
-                phase:    row.phase,
-                sell_ttc: sell,
-                buy_ttc:  buy,
-            }),
+            body: JSON.stringify(payload),
         });
         if (!res) return;
         const data = await res.json();

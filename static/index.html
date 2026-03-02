@@ -286,7 +286,7 @@
                             <th style="min-width:110px;">Marque</th>
                             <th style="min-width:70px;">Qté</th>
                             <th style="min-width:110px;">Prix Unit. TTC</th>
-                            <th style="min-width:110px;">Prix Achat TTC</th>
+                            <th style="min-width:110px;" id="th-prix-achat">Prix Achat TTC</th>
                             <th style="min-width:70px;">TVA</th>
                             <th style="min-width:100px;text-align:right;">Total TTC</th>
                             <th style="width:40px;"></th>
@@ -468,7 +468,7 @@
                     <label for="inv-sell">Prix Vente TTC (MAD)</label>
                     <input type="number" id="inv-sell" class="form-control" placeholder="0" min="0">
                 </div>
-                <div class="form-group">
+                <div class="form-group admin-only">
                     <label for="inv-buy">Prix Achat TTC (MAD)</label>
                     <input type="number" id="inv-buy" class="form-control" placeholder="0" min="0">
                 </div>
@@ -496,7 +496,7 @@
                     <label for="pan-sell">Prix Vente TTC (MAD)</label>
                     <input type="number" id="pan-sell" class="form-control" placeholder="0" min="0">
                 </div>
-                <div class="form-group">
+                <div class="form-group admin-only">
                     <label for="pan-buy">Prix Achat TTC (MAD)</label>
                     <input type="number" id="pan-buy" class="form-control" placeholder="0" min="0">
                 </div>
@@ -524,7 +524,7 @@
                     <label for="bat-sell">Prix Vente TTC (MAD)</label>
                     <input type="number" id="bat-sell" class="form-control" placeholder="0" min="0">
                 </div>
-                <div class="form-group">
+                <div class="form-group admin-only">
                     <label for="bat-buy">Prix Achat TTC (MAD)</label>
                     <input type="number" id="bat-buy" class="form-control" placeholder="0" min="0">
                 </div>

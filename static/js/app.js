@@ -82,7 +82,15 @@ async function initApp() {
     // Show first tab
     showTab('devis');
 
-    // Compute kWp from nb-panneaux × puissance-panneau on load
+    // Compute kWp from nb-panneaux × puissance-panneau — wire both events
+    // so spinners (change) and keyboard (input) both trigger recalculation
+    ['nb-panneaux', 'puissance-panneau'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input',  updateKwp);
+            el.addEventListener('change', updateKwp);
+        }
+    });
     updateKwp();
 
     // Slider display

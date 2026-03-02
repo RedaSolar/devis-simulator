@@ -108,15 +108,21 @@ def select_inverter_for_power(catalog, onduleur_type: str, puissance_kwp: float)
     if not candidates:
         return None
 
-    def _best_from(collection):
-        return min(collection, key=lambda x: x[0])
+    def _pick_best(collection):
+        """From a collection, pick the smallest-power candidate,
+        preferring Triphase for inverters >= 10 kW and Monophase below."""
+        best_power = min(c[0] for c in collection)
+        same_power = [c for c in collection if c[0] == best_power]
+        prefer_tri = best_power >= 10
+        preferred = [c for c in same_power if ('tri' in c[3].lower()) == prefer_tri]
+        return preferred[0] if preferred else same_power[0]
 
     if puissance_kwp > 0:
         min_threshold = max(puissance_kwp * 0.8, 0.0)
         valid = [c for c in candidates if c[0] >= min_threshold]
-        best = _best_from(valid) if valid else max(candidates, key=lambda x: x[0])
+        best = _pick_best(valid) if valid else max(candidates, key=lambda x: x[0])
     else:
-        best = _best_from(candidates)
+        best = _pick_best(candidates)
 
     power_kw, marque, power_str, phase, sell, buy = best
     return {

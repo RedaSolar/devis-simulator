@@ -378,19 +378,20 @@ function renderProductLines(lines, onduleurMeta) {
             sel.innerHTML = `<option value="">${escHtml(brand)} (aucune option)</option>`;
             return;
         }
+        const isTri = (s) => (s || '').toLowerCase().includes('tri');
+        let matched = false;
         opts.forEach(opt => {
             const label = `${brand} ${opt.power != null ? opt.power + 'kW' : opt.power_str} — ${opt.phase}`;
             const val = JSON.stringify({ power: opt.power, phase: opt.phase, sell_ttc: opt.sell_ttc, buy_ttc: opt.buy_ttc });
             const optEl = document.createElement('option');
             optEl.value = val;
             optEl.textContent = label;
-            const isTri = (s) => (s || '').toLowerCase().includes('tri');
             const isMatch = (selPower !== null && Math.abs((opt.power || 0) - selPower) < 0.01 && isTri(opt.phase) === isTri(selPhase));
-            if (isMatch) optEl.selected = true;
+            if (isMatch) { optEl.selected = true; matched = true; }
             sel.appendChild(optEl);
         });
-        // If nothing matched, select the first option and apply its price
-        if (!sel.querySelector('option[selected]') && sel.options.length) {
+        // If nothing matched, fall back to first option
+        if (!matched && sel.options.length) {
             sel.options[0].selected = true;
         }
     });

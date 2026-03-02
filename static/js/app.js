@@ -215,6 +215,9 @@ function applyRoleVisibility(user) {
     const navCatalog = document.getElementById('nav-catalog');
     if (navCatalog) navCatalog.style.display = commercial ? 'none' : '';
 
+    const navHistory = document.getElementById('nav-history');
+    if (navHistory) navHistory.style.display = commercial ? 'none' : '';
+
     const hiddenForCommercial = ['section-product-lines', 'section-custom-lines', 'section-notes', 'tech-params-advanced', 'tech-struct-group'];
     hiddenForCommercial.forEach(id => {
         const el = document.getElementById(id);

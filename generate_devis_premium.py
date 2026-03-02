@@ -674,7 +674,7 @@ def page1():
       </div>
 
       <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:#FFFBF2;">
-        <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">&#201;conomies / an</div>
+        <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">&#201;conomies estim&#233;es / an</div>
         <div class="serif" style="font-size:13pt;color:{CN};line-height:1.1;"><span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span></div>
         <div style="font-size:6.5pt;color:{CA};margin-top:3px;">selon option choisie</div>
       </div>

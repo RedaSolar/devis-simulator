@@ -250,6 +250,8 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     def _df_to_items(df):
         items = []
         for _, row in df.iterrows():
+            if float(row.get("Quantité", 0) or 0) == 0:
+                continue
             des = row.get("Désignation", "")
             # Append kW and phase to any onduleur row when the user filled them in
             if _onduleur_kw and "onduleur" in des.lower():

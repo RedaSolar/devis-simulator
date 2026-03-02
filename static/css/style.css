@@ -385,6 +385,7 @@ tbody td { padding: 0.55rem 0.75rem; vertical-align: middle; }
 }
 .table-input-wide { min-width: 120px; }
 .table-input-num { min-width: 70px; text-align: right; }
+.onduleur-power-select { font-size: 0.78rem; min-width: 140px; }
 
 /* ---- ROI Metrics ---- */
 .metrics-grid {

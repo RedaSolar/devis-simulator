@@ -1,3 +1,4 @@
+import re as _re
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from routers.auth_router import get_current_user
@@ -63,7 +64,7 @@ async def autofill(body: AutofillRequest, current_user: dict = Depends(get_curre
     # Apply patches before importing autofill module
     _patch_catalog_for_autofill()
 
-    from autofill import auto_fill_from_power
+    from autofill import auto_fill_from_power, select_inverter_for_power
 
     catalog = load_catalog()
     df = _get_base_df()
@@ -86,4 +87,73 @@ async def autofill(body: AutofillRequest, current_user: dict = Depends(get_curre
             "tva": float(r.get("TVA (%)") or 20),
             "photo": str(r.get("PhotoKey") or ""),
         })
-    return cleaned
+
+    # Get selected onduleur info for each type
+    info_res = select_inverter_for_power(catalog, "Onduleur Injection", body.puissance_kwp)
+    info_hyb = select_inverter_for_power(catalog, "Onduleur Hybride", body.puissance_kwp)
+
+    onduleur_options = {}
+    if info_res:
+        onduleur_options["reseau"] = {
+            "brand": info_res["marque"],
+            "power": info_res["power"],
+            "phase": info_res["phase"],
+        }
+    if info_hyb:
+        onduleur_options["hybride"] = {
+            "brand": info_hyb["marque"],
+            "power": info_hyb["power"],
+            "phase": info_hyb["phase"],
+        }
+
+    return {"rows": cleaned, "onduleur_options": onduleur_options}
+
+
+@router.get("/onduleur-options")
+async def get_onduleur_catalog_options(
+    type: str = "reseau",
+    brand: str = "",
+    current_user: dict = Depends(get_current_user),
+):
+    """Return all available power/phase options for an onduleur brand from the catalog."""
+    _patch_catalog_for_autofill()
+    catalog = load_catalog()
+    onduleur_type = "Onduleur Injection" if type == "reseau" else "Onduleur Hybride"
+
+    if onduleur_type not in catalog or brand not in catalog[onduleur_type]:
+        return []
+
+    brand_dict = catalog[onduleur_type][brand]
+    options = []
+
+    for power_str, power_info in brand_dict.items():
+        if not isinstance(power_info, dict):
+            continue
+        power_kw = None
+        m = _re.search(r'(\d+(?:[.,]\d+)?)', str(power_str))
+        if m:
+            try:
+                power_kw = float(m.group(1).replace(",", "."))
+            except Exception:
+                pass
+
+        if "variants" in power_info and isinstance(power_info["variants"], dict):
+            for phase, vinfo in power_info["variants"].items():
+                options.append({
+                    "power_str": power_str,
+                    "power": power_kw,
+                    "phase": phase,
+                    "sell_ttc": vinfo.get("sell_ttc"),
+                    "buy_ttc": vinfo.get("buy_ttc"),
+                })
+        else:
+            options.append({
+                "power_str": power_str,
+                "power": power_kw,
+                "phase": power_info.get("phase", "Monophasé"),
+                "sell_ttc": power_info.get("sell_ttc"),
+                "buy_ttc": power_info.get("buy_ttc"),
+            })
+
+    options.sort(key=lambda x: (x["power"] or 0, x["phase"]))
+    return options

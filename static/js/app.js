@@ -9,6 +9,7 @@ let monthlyChart = null;
 let currentProductLines = [];
 let currentRoiResult = null;
 let _roiDebounce = null;
+let onduleurOptionsCache = {};  // cache: "{type}_{brand}" → [{power, phase, sell_ttc, buy_ttc}]
 
 // ---- Toast Notifications ----
 function showToast(message, type = 'info', duration = 4000) {
@@ -237,9 +238,13 @@ async function autoFill() {
             showToast('Erreur autofill: ' + (err.detail || 'Inconnue'), 'danger');
             return;
         }
-        const lines = await res.json();
+        const data = await res.json();
+        const lines = Array.isArray(data) ? data : (data.rows || []);
+        const onduleurMeta = Array.isArray(data) ? {} : (data.onduleur_options || {});
         currentProductLines = lines;
-        renderProductLines(lines);
+        // Sync autofilled onduleur power/phase into the Section 3 fields
+        _syncOnduleurSection3(onduleurMeta);
+        renderProductLines(lines, onduleurMeta);
         updateTotals();
         showToast('Produits auto-remplis depuis le catalogue!', 'success');
     } catch (e) {
@@ -249,8 +254,36 @@ async function autoFill() {
     }
 }
 
+// ---- Onduleur catalog helpers ----
+async function fetchOnduleurOptions(type, brand) {
+    const key = `${type}_${brand}`;
+    if (onduleurOptionsCache[key]) return onduleurOptionsCache[key];
+    try {
+        const res = await authFetch(`/api/autofill/onduleur-options?type=${encodeURIComponent(type)}&brand=${encodeURIComponent(brand)}`);
+        if (!res || !res.ok) return [];
+        const data = await res.json();
+        onduleurOptionsCache[key] = data;
+        return data;
+    } catch (e) {
+        console.error('Failed to fetch onduleur options:', e);
+        return [];
+    }
+}
+
+function _syncOnduleurSection3(onduleurMeta) {
+    // Sync autofill-selected onduleur into the Section 3 kW/phase fields
+    const meta = onduleurMeta.reseau || onduleurMeta.hybride;
+    if (!meta) return;
+    const kwInput = document.getElementById('onduleur-kw');
+    if (kwInput && meta.power) kwInput.value = meta.power;
+    const phaseVal = (meta.phase || 'Monophasé').toLowerCase().includes('tri') ? 'Triphasé' : 'Monophasé';
+    const phaseRadio = document.querySelector(`input[name="onduleur-phase"][value="${phaseVal}"]`);
+    if (phaseRadio) phaseRadio.checked = true;
+}
+
 // ---- Product Lines Table ----
-function renderProductLines(lines) {
+function renderProductLines(lines, onduleurMeta) {
+    onduleurMeta = onduleurMeta || {};
     currentProductLines = lines || [];
     const tbody = document.getElementById('product-lines-tbody');
     if (!tbody) return;
@@ -258,15 +291,41 @@ function renderProductLines(lines) {
     lines.forEach((line, i) => {
         const tr = document.createElement('tr');
         tr.dataset.idx = i;
+        const des = line.designation || '';
+        const isOndRes = des === 'Onduleur réseau';
+        const isOndHyb = des === 'Onduleur hybride';
+        const ondType = isOndRes ? 'reseau' : (isOndHyb ? 'hybride' : null);
+        const ondMeta = ondType ? onduleurMeta[ondType] : null;
+
+        // Build marque cell — special dropdown for onduleur rows when catalog metadata is available
+        let marqueTd;
+        if (ondMeta) {
+            const selPower = ondMeta.power || '';
+            const selPhase = ondMeta.phase || 'Monophasé';
+            const brand = ondMeta.brand || line.marque || '';
+            marqueTd = `<td>
+                <input type="text" class="table-input" data-field="marque" data-idx="${i}"
+                       value="${escHtml(brand)}" placeholder="Marque" style="margin-bottom:3px;">
+                <select class="table-input onduleur-power-select"
+                        data-field="onduleur_power_phase" data-idx="${i}"
+                        data-type="${escHtml(ondType)}" data-brand="${escHtml(brand)}"
+                        data-sel-power="${selPower}" data-sel-phase="${escHtml(selPhase)}">
+                    <option value="">Chargement…</option>
+                </select>
+            </td>`;
+        } else {
+            marqueTd = `<td>
+                <input type="text" class="table-input" data-field="marque" data-idx="${i}"
+                       value="${escHtml(line.marque || '')}" placeholder="Marque">
+            </td>`;
+        }
+
         tr.innerHTML = `
             <td>
                 <input type="text" class="table-input table-input-wide" data-field="designation" data-idx="${i}"
-                       value="${escHtml(line.designation || '')}" placeholder="Désignation">
+                       value="${escHtml(des)}" placeholder="Désignation">
             </td>
-            <td>
-                <input type="text" class="table-input" data-field="marque" data-idx="${i}"
-                       value="${escHtml(line.marque || '')}" placeholder="Marque">
-            </td>
+            ${marqueTd}
             <td>
                 <input type="number" class="table-input table-input-num" data-field="quantite" data-idx="${i}"
                        value="${line.quantite || 0}" min="0" step="1">
@@ -299,6 +358,37 @@ function renderProductLines(lines) {
         el.addEventListener('input', onProductLineChange);
         el.addEventListener('change', onProductLineChange);
     });
+
+    // Async-populate onduleur power/phase dropdowns
+    tbody.querySelectorAll('.onduleur-power-select').forEach(async (sel) => {
+        const type = sel.dataset.type;
+        const brand = sel.dataset.brand;
+        const selPower = parseFloat(sel.dataset.selPower) || null;
+        const selPhase = sel.dataset.selPhase || 'Monophasé';
+        if (!brand) { sel.innerHTML = '<option value="">— aucune marque —</option>'; return; }
+
+        const opts = await fetchOnduleurOptions(type, brand);
+        sel.innerHTML = '';
+        if (!opts.length) {
+            sel.innerHTML = `<option value="">${escHtml(brand)} (aucune option)</option>`;
+            return;
+        }
+        opts.forEach(opt => {
+            const label = `${brand} ${opt.power != null ? opt.power + 'kW' : opt.power_str} — ${opt.phase}`;
+            const val = JSON.stringify({ power: opt.power, phase: opt.phase, sell_ttc: opt.sell_ttc, buy_ttc: opt.buy_ttc });
+            const optEl = document.createElement('option');
+            optEl.value = val;
+            optEl.textContent = label;
+            const isMatch = (selPower !== null && Math.abs((opt.power || 0) - selPower) < 0.01 && opt.phase === selPhase);
+            if (isMatch) optEl.selected = true;
+            sel.appendChild(optEl);
+        });
+        // If nothing matched, select the first option and apply its price
+        if (!sel.querySelector('option[selected]') && sel.options.length) {
+            sel.options[0].selected = true;
+        }
+    });
+
     updateTotals();
 }
 
@@ -307,8 +397,35 @@ function onProductLineChange(e) {
     const idx = parseInt(el.dataset.idx);
     const field = el.dataset.field;
     if (idx < 0 || idx >= currentProductLines.length) return;
-    const val = (field === 'designation' || field === 'marque') ? el.value : parseFloat(el.value) || 0;
-    currentProductLines[idx][field] = val;
+
+    if (field === 'onduleur_power_phase') {
+        // Power/phase dropdown changed — update prices and sync Section 3
+        try {
+            const opt = JSON.parse(el.value);
+            if (opt.sell_ttc != null) {
+                currentProductLines[idx].prix_unit_ttc = opt.sell_ttc;
+                currentProductLines[idx].prix_achat_ttc = opt.buy_ttc || 0;
+                const tr = el.closest('tr');
+                const puIn = tr?.querySelector('[data-field="prix_unit_ttc"]');
+                const paIn = tr?.querySelector('[data-field="prix_achat_ttc"]');
+                if (puIn) puIn.value = opt.sell_ttc;
+                if (paIn) paIn.value = opt.buy_ttc || 0;
+            }
+            // Sync Section 3 onduleur kW/phase fields
+            if (opt.power) {
+                const kwInput = document.getElementById('onduleur-kw');
+                if (kwInput) kwInput.value = opt.power;
+            }
+            if (opt.phase) {
+                const phaseVal = opt.phase.toLowerCase().includes('tri') ? 'Triphasé' : 'Monophasé';
+                const phaseRadio = document.querySelector(`input[name="onduleur-phase"][value="${phaseVal}"]`);
+                if (phaseRadio) phaseRadio.checked = true;
+            }
+        } catch (_) { /* ignore JSON parse errors */ }
+    } else {
+        const val = (field === 'designation' || field === 'marque') ? el.value : parseFloat(el.value) || 0;
+        currentProductLines[idx][field] = val;
+    }
 
     // Update row total
     const line = currentProductLines[idx];

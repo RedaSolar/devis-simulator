@@ -691,7 +691,8 @@ def page1():
   <div style="flex:1;min-height:0;display:flex;gap:12px;padding:0 24px 10px;align-items:stretch;background:#FFFFFF !important;">
 
     <!-- OPTION 1 -->
-    <div style="flex:1;border:1.5px solid {CA};border-top:5px solid {CA};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:white;box-shadow:0 6px 24px rgba(0,0,0,0.08),0 1px 4px rgba(0,0,0,0.04);">
+    <!-- FIX v42: border-top:5px+box-shadow removed (grey on mobile); uniform 1.5px solid #E8A020 border applied -->
+    <div style="flex:1;border:1.5px solid #E8A020;border-radius:6px;padding:12px;display:flex;flex-direction:column;background:#FFFFFF;">
       <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 1</div>
       <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Sans batterie</div>
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Autoconsommation directe</div>
@@ -715,9 +716,8 @@ def page1():
     </div>
 
     <!-- OPTION 2 — amber border, RECOMMANDÉ badge, DARK NAVY top bar -->
-    <!-- FIX v40: background #FDF3E3 → #FFFFFF -->
-    <!-- FIX v41: removed amber box-shadow (was: 0 6px 24px rgba(245,166,35,0.18), 0 0 0 1px rgba(245,166,35,0.15), 0 1px 4px rgba(0,0,0,0.04)) — mobile PDF viewers rendered the amber semi-transparent shadow as a solid warm/beige tint over the card -->
-    <div style="flex:1;border:1.5px solid {CA};border-top:6px solid {CN};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:#FFFFFF;">
+    <!-- FIX v42: background restored to #FFF3E0 (warm light amber-cream, opaque — no transparency issue); border updated to 1.5px solid #E8A020 -->
+    <div style="flex:1;border:1.5px solid #E8A020;border-top:6px solid {CN};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:#FFF3E0;">
       <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 2</div>
       <div style="display:block;background:{CA};color:{CN};font-size:7pt;font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:8px;text-transform:uppercase;text-align:center;margin-bottom:6px;width:100%;box-sizing:border-box;">&#9733; RECOMMAND&#201;</div>
       <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Avec batterie</div>

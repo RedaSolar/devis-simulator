@@ -5,8 +5,10 @@
 const MONTHS_FR = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Août","Sep","Oct","Nov","Déc"];
 
 let roiChart = null;
+let monthlyChart = null;
 let currentProductLines = [];
 let currentRoiResult = null;
+let _roiDebounce = null;
 
 // ---- Toast Notifications ----
 function showToast(message, type = 'info', duration = 4000) {
@@ -89,9 +91,14 @@ async function initApp() {
         if (el) {
             el.addEventListener('input',  updateKwp);
             el.addEventListener('change', updateKwp);
+            // Also schedule ROI auto-refresh when these change
+            el.addEventListener('change', scheduleROI);
         }
     });
     updateKwp();
+
+    // Auto-refresh ROI when day-usage slider changes
+    document.getElementById('day-usage')?.addEventListener('change', scheduleROI);
 
     // Slider display
     const slider = document.getElementById('day-usage');
@@ -417,16 +424,19 @@ function getNotes(scenario) {
 }
 
 // ---- Calculate ROI ----
-async function calculateROI() {
+// silent=true: skip toasts (used for auto-refresh on field change)
+async function calculateROI(silent = false) {
     const kwp = parseFloat(document.getElementById('puissance-kwp')?.value) || 0;
-    if (kwp <= 0) { showToast('Entrez le nombre de panneaux', 'warning'); return; }
+    if (kwp <= 0) { if (!silent) showToast('Entrez le nombre de panneaux', 'warning'); return; }
 
     const factures = getMonthlyValues();
+    if (!factures.some(v => v > 0)) { if (!silent) showToast('Entrez vos factures mensuelles', 'warning'); return; }
+
     const dayPct = parseInt(document.getElementById('day-usage')?.value) || 60;
     const { totalSans, totalAvec } = updateTotals();
 
     const btn = document.getElementById('btn-calc-roi');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Calcul ROI...'; }
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Calcul...'; }
 
     try {
         const res = await authFetch('/api/roi/calculate', {
@@ -442,21 +452,90 @@ async function calculateROI() {
         });
         if (!res) return;
         if (!res.ok) {
-            const err = await res.json();
-            showToast('Erreur ROI: ' + (err.detail || 'Inconnue'), 'danger');
+            if (!silent) { const err = await res.json(); showToast('Erreur ROI: ' + (err.detail || 'Inconnue'), 'danger'); }
             return;
         }
         const data = await res.json();
         currentRoiResult = data;
         renderROISummary(data, totalSans, totalAvec);
-        renderROIChart(data);
-        document.getElementById('roi-section')?.classList.remove('hidden');
-        showToast('ROI calculé avec succès!', 'success');
+        renderMonthlyChart(data);
+        if (!silent) showToast('Simulation actualisée', 'success', 2000);
     } catch (e) {
-        showToast('Erreur réseau: ' + e.message, 'danger');
+        if (!silent) showToast('Erreur réseau: ' + e.message, 'danger');
     } finally {
-        if (btn) { btn.disabled = false; btn.innerHTML = '📈 Calculer ROI'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = '🔄 Actualiser'; }
     }
+}
+
+// ---- Monthly savings chart ----
+function renderMonthlyChart(data) {
+    const ctx = document.getElementById('roi-monthly-chart');
+    if (!ctx) return;
+    if (monthlyChart) { monthlyChart.destroy(); }
+    const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+    monthlyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Facture ONEE (MAD)',
+                    data: data.monthly_detail.map(d => d.facture),
+                    backgroundColor: 'rgba(181,192,206,0.55)',
+                    borderColor: 'rgba(181,192,206,0.8)',
+                    borderWidth: 1,
+                    borderRadius: 3,
+                    order: 2,
+                },
+                {
+                    label: 'Éco. Option 1 – Sans batterie',
+                    data: data.eco_sans_monthly,
+                    type: 'line',
+                    borderColor: '#1A2B4A',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.2,
+                    pointRadius: 4,
+                    tension: 0.3,
+                    order: 1,
+                },
+                {
+                    label: 'Éco. Option 2 – Avec batterie',
+                    data: data.eco_avec_monthly,
+                    type: 'line',
+                    borderColor: '#F5A623',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.2,
+                    pointRadius: 4,
+                    tension: 0.3,
+                    order: 0,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { position: 'top', labels: { font: { size: 11 } } },
+                tooltip: { callbacks: { label: c => `${c.dataset.label}: ${Math.round(c.parsed.y).toLocaleString('fr-MA')} MAD` } },
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: {
+                    title: { display: true, text: 'MAD / mois' },
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    ticks: { callback: v => v.toLocaleString('fr-MA') },
+                },
+            },
+        },
+    });
+    const wrapper = document.getElementById('roi-monthly-wrapper');
+    if (wrapper) wrapper.style.display = '';
+}
+
+// ---- Auto-refresh scheduler (debounced) ----
+function scheduleROI() {
+    clearTimeout(_roiDebounce);
+    _roiDebounce = setTimeout(() => calculateROI(true), 900);
 }
 
 function renderROISummary(data, totalSans, totalAvec) {
@@ -576,6 +655,8 @@ function collectFormData() {
     const panW = parseInt(document.getElementById('puissance-panneau')?.value) || 710;
     const dayUsage = parseInt(document.getElementById('day-usage')?.value) || 60;
     const structType = document.querySelector('input[name="structure-type"]:checked')?.value || 'acier';
+    const onduleurKw = parseFloat(document.getElementById('onduleur-kw')?.value) || null;
+    const onduleurPhase = document.querySelector('input[name="onduleur-phase"]:checked')?.value || 'Monophasé';
 
     const factures = getMonthlyValues();
     const lines = getCurrentProductLines();
@@ -604,6 +685,8 @@ function collectFormData() {
         notes_sans: notesSans,
         notes_avec: notesAvec,
         structure_type: structType,
+        onduleur_kw: onduleurKw,
+        onduleur_phase: onduleurPhase,
     };
 }
 

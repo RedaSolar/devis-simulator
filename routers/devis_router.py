@@ -244,16 +244,23 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     safe_client = re.sub(r"[^A-Za-z0-9]", "_", request.client_name or "Client")
     pdf_filename = f"{doc_type}_{safe_client}_{int(doc_number)}.pdf"
 
+    _onduleur_kw    = request.onduleur_kw
+    _onduleur_phase = request.onduleur_phase or "Monophasé"
+
     def _df_to_items(df):
-        return [
-            {
-                "designation":   row.get("Désignation", ""),
+        items = []
+        for _, row in df.iterrows():
+            des = row.get("Désignation", "")
+            # Append kW and phase to any onduleur row when the user filled them in
+            if _onduleur_kw and "onduleur" in des.lower():
+                des = f"{des} {_onduleur_kw:g}kW {_onduleur_phase}"
+            items.append({
+                "designation":   des,
                 "marque":        row.get("Marque", ""),
                 "quantite":      row.get("Quantité", 1),
                 "prix_unit_ttc": float(row.get("Prix Unit. TTC", 0)),
-            }
-            for _, row in df.iterrows()
-        ]
+            })
+        return items
 
     nb_pan = round(kwp * 1000 / request.puissance_panneau_w) if request.puissance_panneau_w > 0 else 0
 

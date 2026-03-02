@@ -34,3 +34,5 @@ class DevisRequest(BaseModel):
     notes_sans: List[str] = []
     notes_avec: List[str] = []
     structure_type: str = "acier"
+    onduleur_kw: Optional[float] = None
+    onduleur_phase: str = "Monophasé"

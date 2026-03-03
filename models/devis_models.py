@@ -37,3 +37,4 @@ class DevisRequest(BaseModel):
     onduleur_kw: Optional[float] = None
     onduleur_phase: str = "Monophasé"
     discount_percent: float = 0.0
+    pdf_mode: str = "full"   # "full" = 3-page premium | "onepage" = 1-page product list

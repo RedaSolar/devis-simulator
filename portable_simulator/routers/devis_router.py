@@ -272,6 +272,18 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
 
     nb_pan = round(kwp * 1000 / request.puissance_panneau_w) if request.puissance_panneau_w > 0 else 0
 
+    # Raw unfiltered items for one-page mode (no scenario filtering, no qty==0 skip)
+    all_items = [
+        {
+            "designation": ln.designation,
+            "marque": ln.marque or "",
+            "quantite": ln.quantite,
+            "prix_unit_ttc": ln.prix_unit_ttc,
+        }
+        for ln in request.product_lines
+        if ln.quantite and ln.quantite > 0
+    ]
+
     premium_data = {
         "ref":              str(doc_number),
         "date":             datetime.utcnow().strftime("%d/%m/%Y"),
@@ -297,6 +309,8 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         "avec_items":       _df_to_items(df_avec),
         "scenario":         scenario,
         "recommended":      request.recommended_option,
+        "pdf_mode":         request.pdf_mode,
+        "all_items":        all_items,
     }
 
     out_path = DEVIS_DIR / pdf_filename

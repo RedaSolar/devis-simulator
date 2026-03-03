@@ -1128,6 +1128,131 @@ def build_html():
 {page3()}
 </body></html>"""
 
+# ── ONE-PAGE MODE ─────────────────────────────────────────────────────────────
+def page_onepage(items):
+    """Single A4 page: header + amber strip + client block + product table + footer."""
+    # Compute total (skip zero-qty rows just in case)
+    total = sum(
+        float(it.get("quantite", 0)) * float(it.get("prix_unit_ttc", 0))
+        for it in items
+        if float(it.get("quantite", 0)) > 0
+    )
+
+    # Build table rows
+    rows_html = ""
+    row_idx = 0
+    for it in items:
+        qty = float(it.get("quantite", 0))
+        if qty == 0:
+            continue
+        bg = "white" if row_idx % 2 == 0 else CG1
+        pu = float(it.get("prix_unit_ttc", 0))
+        line_total = qty * pu
+        marque = it.get("marque", "") or ""
+        des = it.get("designation", "")
+        qty_str = str(int(qty)) if qty == int(qty) else fnum(qty)
+        marque_html = badge(marque) if marque else ""
+        rows_html += (
+            f'<tr style="background:{bg};">'
+            f'<td style="padding:6px 10px;font-weight:500;color:{CN};word-break:break-word;">{des}</td>'
+            f'<td style="padding:6px 10px;">{marque_html}</td>'
+            f'<td style="padding:6px 10px;text-align:center;color:{CG7};">{qty_str}</td>'
+            f'<td style="padding:6px 10px;text-align:right;color:{CG7};">{fnum(pu)}</td>'
+            f'<td style="padding:6px 10px;text-align:right;font-weight:500;color:{CN};">{fnum(line_total)}</td>'
+            f'</tr>'
+        )
+        row_idx += 1
+
+    return f"""
+<div class="page">
+
+  <!-- HEADER: navy -->
+  <div style="background:{CN};padding:14px 24px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
+    {logo_html("36px")}
+    <div style="text-align:right;">
+      <div style="color:white;font-size:11pt;font-weight:700;">DEVIS&nbsp;<span style="color:{CA};">N&#176;&#160;{REF}</span></div>
+      <div style="color:rgba(255,255,255,0.6);font-size:8pt;margin-top:2px;">{DATE_STR}</div>
+    </div>
+  </div>
+
+  <!-- AMBER STRIP -->
+  <div style="background:{CA};padding:8px 24px;flex-shrink:0;">
+    <div style="color:{CN};font-size:9pt;font-weight:700;">
+      Installation Photovolta&#239;que &#8212; {INST_TYPE} &#183; {KWC:g}&#160;kWc &#183; {NB_PAN}&#160;panneaux {WP}&#160;Wc
+    </div>
+  </div>
+
+  <!-- CLIENT BLOCK -->
+  <div style="background:{CG1};padding:12px 24px;flex-shrink:0;border-bottom:1px solid {CG2};">
+    <div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Client</div>
+    <div style="font-size:11pt;font-weight:700;color:{CN};">{CLIENT_NAME}</div>
+    <div style="font-size:8.5pt;color:{CG7};margin-top:2px;">{CLIENT_ADDR}</div>
+    <div style="font-size:8.5pt;color:{CG4};margin-top:1px;">{CLIENT_PHONE}</div>
+  </div>
+
+  <!-- PRODUCT TABLE -->
+  <div style="flex:1;overflow:hidden;padding:0 24px 0;">
+    <table style="width:100%;border-collapse:collapse;font-size:8.5pt;table-layout:fixed;">
+      <colgroup>
+        <col style="width:40%">
+        <col style="width:15%">
+        <col style="width:8%">
+        <col style="width:17%">
+        <col style="width:20%">
+      </colgroup>
+      <thead>
+        <tr style="background:{CN};">
+          <th style="padding:8px 10px;color:white;font-weight:700;font-size:7.5pt;text-align:left;text-transform:uppercase;letter-spacing:.5px;">D&#233;signation</th>
+          <th style="padding:8px 10px;color:white;font-weight:700;font-size:7.5pt;text-align:left;text-transform:uppercase;letter-spacing:.5px;">Marque</th>
+          <th style="padding:8px 10px;color:white;font-weight:700;font-size:7.5pt;text-align:center;text-transform:uppercase;letter-spacing:.5px;">Qt&#233;</th>
+          <th style="padding:8px 10px;color:white;font-weight:700;font-size:7.5pt;text-align:right;text-transform:uppercase;letter-spacing:.5px;">P.U. TTC (MAD)</th>
+          <th style="padding:8px 10px;color:white;font-weight:700;font-size:7.5pt;text-align:right;text-transform:uppercase;letter-spacing:.5px;">Total TTC (MAD)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows_html}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TOTAL ROW -->
+  <div style="background:{CAL};border-top:2px solid {CA};padding:10px 24px;flex-shrink:0;display:flex;justify-content:flex-end;align-items:center;gap:20px;margin:0 24px;">
+    <span style="font-size:9.5pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;">Total TTC</span>
+    <span style="font-size:13pt;font-weight:800;color:{CN};">{fmt(total)}</span>
+  </div>
+
+  <!-- CONDITIONS -->
+  <div style="padding:8px 24px;flex-shrink:0;">
+    <div style="font-size:7pt;color:{CG4};display:flex;gap:20px;flex-wrap:wrap;">
+      <span>&#183; Validit&#233;&#160;: 30 jours</span>
+      <span>&#183; Acompte&#160;: 30&#37;</span>
+      <span>&#183; Solde &#224; la r&#233;ception&#160;: 70&#37;</span>
+      <span>&#183; D&#233;lai d&#8217;installation&#160;: 7&#8211;14 jours</span>
+    </div>
+  </div>
+
+  <!-- FOOTER: navy -->
+  <div style="background:{CN};padding:8px 24px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
+    <div style="font-size:9pt;font-weight:800;color:{CA};letter-spacing:1px;">TAQINOR</div>
+    <div style="font-size:7pt;color:rgba(255,255,255,0.6);text-align:center;">Devis valable 30&#160;jours &#183; Document non contractuel</div>
+    <div style="font-size:7pt;color:rgba(255,255,255,0.6);">R&#233;f.&#160;{REF} &#183; contact@taqinor.com</div>
+  </div>
+
+</div>
+"""
+
+
+def build_html_onepage(items):
+    """Minimal HTML shell for the one-page PDF."""
+    return f"""<!DOCTYPE html>
+<html lang="fr" style="background:#FFFFFF !important;"><head><meta charset="UTF-8">
+<title>Devis TAQINOR N\u00b0 {REF}</title>
+<style>{CSS}</style></head>
+<body style="background:#FFFFFF !important;">
+{page_onepage(items)}
+</body></html>"""
+
+
 # ── Generate PDF ──────────────────────────────────────────────────────────────
 def generate():
     ref = QUOTE_INPUT["ref"]
@@ -1222,7 +1347,11 @@ def generate_premium_pdf(data: dict, out_path) -> str:
     CUMUL_A      = [-TOTAL_AVEC + eco_a_cumul  * y for y in YEARS]
 
     out_path = Path(out_path)
-    html = build_html()
+    mode = data.get("pdf_mode", "full")
+    if mode == "onepage":
+        html = build_html_onepage(data.get("all_items", []))
+    else:
+        html = build_html()
 
     with tempfile.NamedTemporaryFile(suffix=".html", delete=False,
                                      mode="w", encoding="utf-8") as tf:

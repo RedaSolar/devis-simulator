@@ -992,6 +992,7 @@ function collectFormData() {
     const notesSans = getNotes('sans');
     const notesAvec = getNotes('avec');
     const discountPct = parseFloat(document.getElementById('discount-pct')?.value) || 0;
+    const onepageMode = document.getElementById('onepage-mode')?.checked;
 
     return {
         doc_number: docNumber,
@@ -1016,6 +1017,7 @@ function collectFormData() {
         structure_type: structType,
         onduleur_kw: onduleurKw,
         onduleur_phase: onduleurPhase,
+        pdf_mode: onepageMode ? 'onepage' : 'full',
     };
 }
 

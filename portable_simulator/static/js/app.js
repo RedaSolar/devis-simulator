@@ -976,6 +976,7 @@ function collectFormData() {
     const clientName = document.getElementById('client-name')?.value || '';
     const clientAddress = document.getElementById('client-address')?.value || '';
     const clientPhone = document.getElementById('client-phone')?.value || '';
+    const clientIce = document.getElementById('client-ice')?.value || '';
     const scenario = document.getElementById('scenario-choice')?.value || 'Les deux (Sans + Avec)';
     const recommended = getRecommended();  // resolves "Auto" to actual value
     const kwp = parseFloat(document.getElementById('puissance-kwp')?.value) || 0;
@@ -1000,6 +1001,7 @@ function collectFormData() {
         client_name: clientName,
         client_address: clientAddress,
         client_phone: clientPhone,
+        client_ice: clientIce,
         scenario_choice: scenario,
         recommended_option: recommended,
         discount_percent: discountPct,

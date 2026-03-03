@@ -290,6 +290,7 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         "client_name":      request.client_name,
         "client_addr":      request.client_address,
         "client_phone":     request.client_phone,
+        "client_ice":       request.client_ice,
         "inst_type":        install_type,
         "puissance_kwc":    kwp,
         "nb_panneaux":      nb_pan,

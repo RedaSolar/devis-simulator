@@ -222,6 +222,7 @@ _Q = calculate_quote(QUOTE_INPUT)
 CLIENT_NAME  = QUOTE_INPUT["client_name"]
 CLIENT_ADDR  = QUOTE_INPUT["client_addr"]
 CLIENT_PHONE = QUOTE_INPUT["client_phone"]
+CLIENT_ICE   = QUOTE_INPUT.get("client_ice", "")
 REF          = QUOTE_INPUT["ref"]
 DATE_STR     = QUOTE_INPUT["date"]
 KWC          = QUOTE_INPUT["puissance_kwc"]
@@ -1181,6 +1182,7 @@ def page_onepage(items):
     <div style="font-size:11pt;font-weight:700;color:{CN};">{CLIENT_NAME}</div>
     <div style="font-size:8.5pt;color:{CG7};margin-top:2px;">{CLIENT_ADDR}</div>
     <div style="font-size:8.5pt;color:{CG4};margin-top:1px;">{CLIENT_PHONE}</div>
+    {'<div style="font-size:8pt;color:' + CG7 + ';margin-top:3px;"><span style="color:' + CG4 + ';font-weight:600;">ICE&#160;:</span>&#160;' + CLIENT_ICE + '</div>' if CLIENT_ICE else ''}
   </div>
 
   <!-- PRODUCT TABLE -->
@@ -1312,7 +1314,7 @@ def generate_premium_pdf(data: dict, out_path) -> str:
 
     Items dicts must have: designation, quantite, prix_unit_ttc, marque.
     """
-    global CLIENT_NAME, CLIENT_ADDR, CLIENT_PHONE, REF, DATE_STR
+    global CLIENT_NAME, CLIENT_ADDR, CLIENT_PHONE, CLIENT_ICE, REF, DATE_STR
     global KWC, NB_PAN, WP, PROD_KWH, TOTAL_SANS, TOTAL_AVEC
     global ECO_S_ANN, ECO_A_ANN, ROI_S, ROI_A, INST_TYPE
     global SANS_ITEMS, AVEC_ITEMS, ECO_S_M, ECO_A_M, CUMUL_S, CUMUL_A
@@ -1322,6 +1324,7 @@ def generate_premium_pdf(data: dict, out_path) -> str:
     CLIENT_NAME  = data["client_name"]
     CLIENT_ADDR  = data["client_addr"]
     CLIENT_PHONE = data["client_phone"]
+    CLIENT_ICE   = data.get("client_ice", "")
     REF          = str(data["ref"])
     DATE_STR     = data["date"]
     KWC          = float(data["puissance_kwc"])

@@ -1175,13 +1175,6 @@ def page_onepage(items):
     </div>
   </div>
 
-  <!-- AMBER STRIP -->
-  <div style="background:{CA};padding:8px 24px;flex-shrink:0;">
-    <div style="color:{CN};font-size:9pt;font-weight:700;">
-      Installation Photovolta&#239;que &#8212; {INST_TYPE} &#183; {KWC:g}&#160;kWc &#183; {NB_PAN}&#160;panneaux {WP}&#160;Wc
-    </div>
-  </div>
-
   <!-- CLIENT BLOCK -->
   <div style="background:{CG1};padding:12px 24px;flex-shrink:0;border-bottom:1px solid {CG2};">
     <div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Client</div>
@@ -1227,15 +1220,22 @@ def page_onepage(items):
       <span>&#183; Validit&#233;&#160;: 30 jours</span>
       <span>&#183; Acompte&#160;: 30&#37;</span>
       <span>&#183; Solde &#224; la r&#233;ception&#160;: 70&#37;</span>
-      <span>&#183; D&#233;lai d&#8217;installation&#160;: 7&#8211;14 jours</span>
     </div>
   </div>
 
-  <!-- FOOTER: navy -->
-  <div style="background:{CN};padding:8px 24px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
-    <div style="font-size:9pt;font-weight:800;color:{CA};letter-spacing:1px;">TAQINOR</div>
-    <div style="font-size:7pt;color:rgba(255,255,255,0.6);text-align:center;">Devis valable 30&#160;jours &#183; Document non contractuel</div>
-    <div style="font-size:7pt;color:rgba(255,255,255,0.6);">R&#233;f.&#160;{REF} &#183; contact@taqinor.com</div>
+  <!-- FOOTER: navy + legal identity -->
+  <div style="background:{CN};padding:6px 24px 5px;flex-shrink:0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div style="font-size:9pt;font-weight:800;color:{CA};letter-spacing:1px;">TAQINOR</div>
+      <div style="font-size:7pt;color:#888;text-align:center;">
+        contact@taqinor.com &nbsp;&#183;&nbsp; +212&#160;6&#160;61&#160;85&#160;04&#160;10 &nbsp;&#183;&nbsp; www.taqinor.ma
+      </div>
+      <div style="font-size:7pt;color:#888;">R&#233;f.&#160;{REF}</div>
+    </div>
+    <div style="font-size:7.5px;color:#888;text-align:center;font-style:italic;">
+      Taqinor Solutions SARLAU &middot; RC 691213 &middot; ICE 003799642000067 &middot;
+      Capital 100&#8239;000 MAD &middot; Si&#232;ge&#160;: 5 Rue Ennoussour RDC, Casablanca
+    </div>
   </div>
 
 </div>

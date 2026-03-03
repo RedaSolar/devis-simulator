@@ -314,7 +314,7 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     }
 
     out_path = DEVIS_DIR / pdf_filename
-   try:
+    try:
         generate_premium_pdf(premium_data, out_path)
     except Exception as e:
         import traceback

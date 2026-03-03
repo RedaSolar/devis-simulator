@@ -11,33 +11,47 @@ from pathlib import Path
 
 
 def _find_browser():
-    """Find Chrome/Chromium - checks system paths and Playwright's Chromium."""
+    """Find Chrome/Chromium - checks Playwright's Chromium and system paths."""
+    import glob, os
+
+    # Try playwright Python API
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            path = p.chromium.executable_path
+            print(f"Playwright chromium path: {path}")
+            if Path(path).exists():
+                return path
+    except Exception as ex:
+        print(f"Playwright API failed: {ex}")
+
+    # Glob search for playwright chromium in common Render paths
+    patterns = [
+        os.path.expanduser("~/.cache/ms-playwright/chromium-*/chrome-linux/chrome"),
+        "/opt/render/.cache/ms-playwright/chromium-*/chrome-linux/chrome",
+        "/root/.cache/ms-playwright/chromium-*/chrome-linux/chrome",
+        "/home/render/.cache/ms-playwright/chromium-*/chrome-linux/chrome",
+    ]
+    for pattern in patterns:
+        matches = glob.glob(pattern)
+        print(f"Glob {pattern}: {matches}")
+        if matches:
+            return matches[0]
+
+    # System browsers fallback
     candidates = [
         "/usr/bin/google-chrome",
         "/usr/bin/google-chrome-stable",
         "/usr/bin/chromium-browser",
         "/usr/bin/chromium",
-        "/snap/bin/chromium",
         r"C:\Program Files\Google\Chrome\Application\chrome.exe",
         r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
     ]
-    # Check Playwright's Chromium
-    try:
-        from playwright.sync_api import sync_playwright
-        with sync_playwright() as p:
-            return p.chromium.executable_path
-    except Exception:
-        pass
-    # Fallback: glob for playwright chromium in home dir
-    import glob
-    pw_paths = glob.glob(os.path.expanduser("~/.cache/ms-playwright/chromium-*/chrome-linux/chrome"))
-    if pw_paths:
-        return pw_paths[0]
-    br = next((b for b in candidates if Path(b).exists()), None)
-    if not br:
-        raise RuntimeError("Chrome or Edge not found.")
-    return br
+    for b in candidates:
+        if Path(b).exists():
+            return b
+
+    raise RuntimeError("Chrome or Edge not found.")
 
 
 import os

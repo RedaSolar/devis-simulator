@@ -1168,7 +1168,7 @@ def page_onepage(items):
 
   <!-- HEADER: navy -->
   <div style="background:{CN};padding:14px 24px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
-    {logo_html("36px")}
+    {logo_html("80px")}
     <div style="text-align:right;">
       <div style="color:white;font-size:11pt;font-weight:700;">DEVIS&nbsp;<span style="color:{CA};">N&#176;&#160;{REF}</span></div>
       <div style="color:rgba(255,255,255,0.6);font-size:8pt;margin-top:2px;">{DATE_STR}</div>

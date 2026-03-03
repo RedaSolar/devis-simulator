@@ -724,7 +724,7 @@ def page1():
   <!-- CLIENT INFO — white area, below header band, no overlap -->
   <div style="padding:8px 24px 4px;flex-shrink:0;background:#FFFFFF !important;">
     <div style="font-size:13pt;font-weight:700;color:{CA};margin-bottom:2px;">{CLIENT_NAME}</div>
-    <div style="font-size:8pt;color:{CG4};line-height:1.6;">{CLIENT_ADDR}<br>{CLIENT_PHONE}</div>
+    <div style="font-size:8pt;color:{CG4};line-height:1.6;">{CLIENT_ADDR}<br>{CLIENT_PHONE}{'<br><span style="color:' + CG7 + ';"><span style="font-weight:600;">ICE&#160;:</span>&#160;' + CLIENT_ICE + '</span>' if CLIENT_ICE else ''}</div>
     <div style="margin-top:4px;display:inline-block;background:{CN};border-radius:3px;padding:2px 7px;font-size:7.5px;color:white;">&#127968; {INST_TYPE}</div>
   </div>
 

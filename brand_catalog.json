@@ -112,12 +112,12 @@
         "variants": {
           "Monophase": {
             "phase": "Monophase",
-            "sell_ttc": 29000.0,
+            "sell_ttc": 28000.0,
             "buy_ttc": 24000.0
           },
           "Triphase": {
             "phase": "Triphase",
-            "sell_ttc": 29000.0,
+            "sell_ttc": 28000.0,
             "buy_ttc": 24000.0
           }
         }
@@ -126,7 +126,7 @@
         "variants": {
           "Monophase": {
             "phase": "Monophase",
-            "sell_ttc": 38000.0,
+            "sell_ttc": 36000.0,
             "buy_ttc": 30600.0
           },
           "Triphase": {
@@ -140,12 +140,12 @@
         "variants": {
           "Monophase": {
             "phase": "Monophase",
-            "sell_ttc": 47000.0,
+            "sell_ttc": 48000.0,
             "buy_ttc": 42000.0
           },
           "Triphase": {
             "phase": "Triphase",
-            "sell_ttc": 47000.0,
+            "sell_ttc": 48000.0,
             "buy_ttc": 42000.0
           }
         }

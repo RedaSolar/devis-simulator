@@ -22,7 +22,8 @@
       "Bash(claude config:*)",
       "Bash(mkdir:*)",
       "Bash(cp:*)",
-      "Bash(echo.:*)"
+      "Bash(echo.:*)",
+      "Bash(rm:*)"
     ]
   }
 }

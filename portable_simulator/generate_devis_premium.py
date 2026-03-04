@@ -948,6 +948,34 @@ def page2(sans_items, img_roi, img_mon):
 
 # ── PAGE 3 — trust, guarantees, conditions, prochaines étapes, signature ─────
 def page3():
+    # "Option choisie" tick-boxes — only shown when both options are presented
+    _opt = (
+        f'<div style="margin-bottom:10px;">'
+        f'<div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;'
+        f'letter-spacing:1px;margin-bottom:7px;">Option choisie par le client</div>'
+        f'<div style="display:flex;gap:12px;">'
+        # Sans batterie box
+        f'<div style="flex:1;border:1.5px solid {CG2};border-radius:7px;padding:10px 13px;'
+        f'background:white;display:flex;align-items:center;gap:11px;">'
+        f'<div style="width:17px;height:17px;border:2px solid {CG7};border-radius:3px;flex-shrink:0;"></div>'
+        f'<div>'
+        f'<div style="font-size:9pt;font-weight:700;color:{CN};">Sans batterie</div>'
+        f'<div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Option 1 &#8212; R&#233;seau uniquement</div>'
+        f'</div>'
+        f'</div>'
+        # Avec batterie box
+        f'<div style="flex:1;border:1.5px solid {CA};border-radius:7px;padding:10px 13px;'
+        f'background:{CAL};display:flex;align-items:center;gap:11px;">'
+        f'<div style="width:17px;height:17px;border:2px solid {CA};border-radius:3px;flex-shrink:0;"></div>'
+        f'<div>'
+        f'<div style="font-size:9pt;font-weight:700;color:{CN};">Avec batterie</div>'
+        f'<div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Option 2 &#8212; R&#233;seau + Stockage</div>'
+        f'</div>'
+        f'</div>'
+        f'</div>'
+        f'</div>'
+    ) if SCENARIO == "Les deux (Sans + Avec)" else ""
+
     return f"""
 <div class="page">
   <div style="background:{CN};padding:9px 24px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
@@ -1103,6 +1131,7 @@ def page3():
     <div style="border-left:4px solid {CA};padding-left:12px;margin-bottom:10px;">
       <div style="font-size:8pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:1.5px;">Bon pour accord</div>
     </div>
+    {_opt}
     <div style="display:flex;gap:16px;margin-bottom:12px;">
       <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:13px 14px;min-height:80px;background:white;">
         <div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Signature du client</div>

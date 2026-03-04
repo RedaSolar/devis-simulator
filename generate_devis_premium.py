@@ -1128,7 +1128,8 @@ def page3():
       <ul style="list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;">
         <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Validit\u00e9 de l&#8217;offre&#160;: 30 jours</li>
         <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Acompte \u00e0 la commande&#160;: 30&#37;</li>
-        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Solde \u00e0 la r\u00e9ception&#160;: 70&#37;</li>
+        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>60&#37; \u00e0 la r\u00e9ception du mat\u00e9riel</li>
+        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>10&#37; apr\u00e8s la mise en marche</li>
         <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>D\u00e9lai d&#8217;installation&#160;: 7\u201314 jours ouvr\u00e9s</li>
         <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>TVA 10&#37; modules / 20&#37; autres</li>
         <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Tarifs de r\u00e9f\u00e9rence&#160;: bar\u00e8me ONEE/SRM</li>
@@ -1226,11 +1227,15 @@ def build_html():
 def page_onepage(items):
     """Single A4 page: header + amber strip + client block + product table + footer."""
     # Compute total (skip zero-qty rows just in case)
-    total = sum(
+    total_raw = sum(
         float(it.get("quantite", 0)) * float(it.get("prix_unit_ttc", 0))
         for it in items
         if float(it.get("quantite", 0)) > 0
     )
+    if DISCOUNT_PCT > 0:
+        total = round(total_raw * (1 - DISCOUNT_PCT / 100))
+    else:
+        total = total_raw
 
     # Build table rows
     rows_html = ""
@@ -1304,17 +1309,23 @@ def page_onepage(items):
   </div>
 
   <!-- TOTAL ROW -->
-  <div style="background:{CAL};border-top:2px solid {CA};padding:10px 24px;flex-shrink:0;display:flex;justify-content:flex-end;align-items:center;gap:20px;margin:0 24px;">
+  <div style="background:{CAL};border-top:2px solid {CA};padding:10px 24px;flex-shrink:0;display:flex;justify-content:flex-end;align-items:center;gap:16px;margin:0 24px;">
     <span style="font-size:9.5pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;">Total TTC</span>
-    <span style="font-size:13pt;font-weight:800;color:{CN};">{fmt(total)}</span>
+    {'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">'
+     '<span style="font-size:9pt;color:' + CG4 + ';text-decoration:line-through;opacity:0.8;white-space:nowrap;">' + fnum(total_raw) + '&nbsp;MAD</span>'
+     '<span style="background:' + CA + ';color:' + CN + ';border-radius:3px;padding:1px 7px;font-size:6pt;font-weight:800;align-self:flex-end;">\u2212' + str(int(DISCOUNT_PCT)) + '\u202f%\u00a0REMISE</span>'
+     '<span style="font-size:13pt;font-weight:800;color:' + CGR + ';white-space:nowrap;">' + fmt(total) + '</span>'
+     '</div>'
+     if DISCOUNT_PCT > 0 else
+     '<span style="font-size:13pt;font-weight:800;color:' + CN + ';">' + fmt(total) + '</span>'}
   </div>
 
   <!-- CONDITIONS -->
   <div style="padding:8px 24px;flex-shrink:0;">
     <div style="font-size:7pt;color:{CG4};display:flex;gap:20px;flex-wrap:wrap;">
       <span>&#183; Validit&#233;&#160;: 30 jours</span>
-      <span>&#183; Acompte&#160;: 30&#37;</span>
-      <span>&#183; Solde &#224; la r&#233;ception&#160;: 70&#37;</span>
+      <span>&#183; Acompte&#160;: 50&#37;</span>
+      <span>&#183; Solde &#224; la livraison&#160;: 50&#37;</span>
     </div>
   </div>
 

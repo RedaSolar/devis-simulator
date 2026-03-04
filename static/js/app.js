@@ -47,7 +47,7 @@ function showTab(tabName) {
 
 // ---- Autoconsumption default by installation type ----
 const DAY_USAGE_DEFAULTS = {
-    'Résidentielle': 50,
+    'Résidentielle': 60,
     'Commerciale':   80,
     'Industrielle':  80,
     'Agricole':      100,

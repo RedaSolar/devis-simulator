@@ -133,7 +133,8 @@ async function initApp() {
         });
     }
 
-    // Update autoconsumption default when installation type changes
+    // Set autoconsumption default for initial type, then update on change
+    updateDayUsageForType();
     document.getElementById('install-type')?.addEventListener('change', updateDayUsageForType);
 
     // Re-render simulation when scenario/recommended changes (no new API call needed)

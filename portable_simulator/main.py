@@ -11,11 +11,13 @@ import db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize database and default admin user
+    # Initialize database and default users
     db.init_db()
-    if not db.get_user_by_username("admin"):
-        from auth_utils import hash_password
-        db.create_user("admin", hash_password("admin123"), role="admin")
+    from auth_utils import hash_password
+    if not db.get_user_by_username("reda"):
+        db.create_user("reda", hash_password("taqinoreda"), role="admin")
+    if not db.get_user_by_username("meryem"):
+        db.create_user("meryem", hash_password("mertaq"), role="user")
     yield
 
 

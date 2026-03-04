@@ -150,14 +150,17 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
             return 0.0
         return float((df["Prix Unit. TTC"] * df["Quantité"]).sum())
 
-    total_sans = _total_ttc(df_sans)
-    total_avec = _total_ttc(df_avec)
+    total_sans_before = _total_ttc(df_sans)
+    total_avec_before = _total_ttc(df_avec)
 
     # Apply discount
     if request.discount_percent and request.discount_percent > 0:
         _factor = 1 - request.discount_percent / 100
-        total_sans = round(total_sans * _factor, 2)
-        total_avec = round(total_avec * _factor, 2)
+        total_sans = round(total_sans_before * _factor, 2)
+        total_avec = round(total_avec_before * _factor, 2)
+    else:
+        total_sans = total_sans_before
+        total_avec = total_avec_before
 
     # ROI calculations
     factures = request.roi_data.factures_mensuelles
@@ -312,6 +315,9 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         "recommended":      request.recommended_option,
         "pdf_mode":         request.pdf_mode,
         "all_items":        all_items,
+        "discount_pct":     request.discount_percent,
+        "total_sans_before": total_sans_before,
+        "total_avec_before": total_avec_before,
     }
 
     out_path = DEVIS_DIR / pdf_filename

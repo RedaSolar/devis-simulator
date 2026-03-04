@@ -175,8 +175,18 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     # eco_sans: solar self-consumption savings only
     eco_sans_monthly, _ = _calc_roi(factures, kwp, day_pct, 0)
 
-    # eco_avec: eco_sans + flat battery bonus of 300 MAD/month (fixed, independent of electricity price)
-    _bat_monthly_bonus = 300
+    # eco_avec: eco_sans + battery bonus at 300 MAD/month per 5 kWh = 60 MAD/kWh/month
+    _bat_total_kwh = 0.0
+    if not df_avec.empty and "Désignation" in df_avec.columns:
+        for _, _row in df_avec.iterrows():
+            _des = str(_row.get("Désignation", "")).lower()
+            if "batterie" not in _des:
+                continue
+            _qty = float(_row.get("Quantité", 0) or 0)
+            _search_str = _des + " " + str(_row.get("Marque", "")).lower()
+            _m = re.search(r'(\d+(?:\.\d+)?)\s*kwh', _search_str)
+            _bat_total_kwh += _qty * (float(_m.group(1)) if _m else 5.0)
+    _bat_monthly_bonus = round(_bat_total_kwh * 60)  # 300 MAD/month per 5 kWh
 
     eco_avec_monthly = [s + _bat_monthly_bonus for s in eco_sans_monthly]
     eco_sans_annual = sum(eco_sans_monthly)

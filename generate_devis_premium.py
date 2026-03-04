@@ -849,9 +849,7 @@ def page1():
       {_r2}
       <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Avec batterie</div>
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
-      <div class="serif" style="font-size:30pt;font-weight:400;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
-        <span style="white-space:nowrap;">{ta}</span>
-      </div>
+      {_ta_price}
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
       <div style="display:inline-block;width:auto;align-self:flex-start;background:{CN};color:white;border-radius:3px;padding:3px 9px;font-size:6.5pt;font-weight:700;margin-bottom:7px;">&#128200; Retour en {ROI_A} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>

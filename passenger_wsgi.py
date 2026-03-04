@@ -1,9 +1,8 @@
 import sys
 import os
 
-# Absolute path to the app on the cPanel server
-APP_DIR = "/home/taqinorm/taqinor_app"
-
+# Dynamically resolve the app directory — works wherever the zip is extracted
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, APP_DIR)
 os.chdir(APP_DIR)
 

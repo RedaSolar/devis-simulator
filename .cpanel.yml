@@ -3,3 +3,4 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/taqinorm/taqinor_app/
     - /bin/cp -R . $DEPLOYPATH
+    - chmod 644 $DEPLOYPATH/Passengerfile.json

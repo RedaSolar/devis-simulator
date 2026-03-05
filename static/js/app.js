@@ -11,6 +11,7 @@ let currentRoiResult = null;
 let currentTotals = { sans: 0, avec: 0 };
 let _roiDebounce = null;
 let onduleurOptionsCache = {};  // cache: "{type}_{brand}" → [{power, phase, sell_ttc, buy_ttc}]
+let _catalogCache = null;       // full catalog fetched once on load
 
 // ---- Toast Notifications ----
 function showToast(message, type = 'info', duration = 4000) {
@@ -133,6 +134,9 @@ async function initApp() {
         });
     }
 
+    // Pre-fetch catalog so price auto-fill is instant on first edit
+    _ensureCatalog();
+
     // Set autoconsumption default for initial type, then update on change
     updateDayUsageForType();
     document.getElementById('install-type')?.addEventListener('change', updateDayUsageForType);
@@ -171,8 +175,11 @@ async function initApp() {
         }
     });
 
-    // Default product lines table
+    // Default product lines table — then auto-fill prices for known items
     renderProductLines(getDefaultProductLines());
+    _ensureCatalog().then(() => {
+        currentProductLines.forEach((_, i) => autofillRowPrice(i));
+    });
 }
 
 function isAdmin() { return getUser()?.role === 'admin'; }
@@ -433,6 +440,62 @@ function _syncOnduleurSection3(onduleurMeta) {
 }
 
 // ---- Product Lines Table ----
+// ---- Catalog price auto-fill ----
+async function _ensureCatalog() {
+    if (_catalogCache) return _catalogCache;
+    try {
+        const res = await authFetch('/api/catalog');
+        if (res && res.ok) _catalogCache = await res.json();
+    } catch (_) {}
+    return _catalogCache;
+}
+
+function _catalogKeyFor(designation) {
+    const d = (designation || '').toLowerCase().trim();
+    if (!d) return null;
+    if (d.includes('onduleur') || d === 'panneaux' || d.startsWith('panneau') || d === 'batterie') return null;
+    if (d.startsWith('structures')) return 'Structures';
+    // Match canonical names case-insensitively
+    const canonicals = ['Smart Meter','Wifi Dongle','Socles','Accessoires',
+        'Tableau De Protection AC/DC','Installation','Transport',
+        'Suivi journalier, maintenance chaque 12 mois pendent 2 ans'];
+    for (const c of canonicals) {
+        if (d === c.toLowerCase()) return c;
+    }
+    return designation; // fallback: try as-is
+}
+
+async function autofillRowPrice(idx) {
+    const line = currentProductLines[idx];
+    if (!line) return;
+    if (line.prix_unit_ttc && line.prix_unit_ttc > 0) return; // already has a price
+    const catKey = _catalogKeyFor(line.designation);
+    if (!catKey) return; // onduleur/panneaux/batterie — needs brand+power, skip
+    const catalog = await _ensureCatalog();
+    if (!catalog) return;
+    const entry = catalog[catKey]?.['__default__'];
+    if (!entry || !entry.sell_ttc) return;
+
+    // Write price into model
+    line.prix_unit_ttc  = entry.sell_ttc;
+    if (entry.buy_ttc != null) line.prix_achat_ttc = entry.buy_ttc;
+
+    // Update UI inputs on the same row
+    const tr = document.querySelector(`tr[data-idx="${idx}"]`);
+    const puIn = tr?.querySelector('[data-field="prix_unit_ttc"]');
+    const paIn = tr?.querySelector('[data-field="prix_achat_ttc"]');
+    if (puIn) puIn.value = entry.sell_ttc;
+    if (paIn && entry.buy_ttc != null) paIn.value = entry.buy_ttc;
+
+    // Recompute row total display
+    const total = (line.prix_unit_ttc || 0) * (line.quantite || 0);
+    const totalEl = document.querySelector(`.row-total[data-idx="${idx}"]`);
+    if (totalEl) totalEl.textContent = formatMoney(total);
+
+    updateTotals();
+    scheduleROI();
+}
+
 function renderProductLines(lines, onduleurMeta) {
     onduleurMeta = onduleurMeta || {};
     currentProductLines = lines || [];
@@ -579,6 +642,13 @@ function onProductLineChange(e) {
     } else {
         const val = (field === 'designation' || field === 'marque') ? el.value : parseFloat(el.value) || 0;
         currentProductLines[idx][field] = val;
+        // Auto-fill price from catalog when designation changes or qty becomes non-zero
+        if (field === 'designation') {
+            currentProductLines[idx].prix_unit_ttc = 0; // reset so lookup fires
+            autofillRowPrice(idx);
+        } else if (field === 'quantite' && val > 0) {
+            autofillRowPrice(idx);
+        }
     }
 
     // Update row total

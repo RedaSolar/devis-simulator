@@ -103,7 +103,7 @@
         "variants": {
           "Monophase": {
             "phase": "Monophase",
-            "sell_ttc": 16000.0,
+            "sell_ttc": 17000.0,
             "buy_ttc": 12000.0
           }
         }
@@ -124,11 +124,6 @@
       },
       "15": {
         "variants": {
-          "Monophase": {
-            "phase": "Monophase",
-            "sell_ttc": 36000.0,
-            "buy_ttc": 30600.0
-          },
           "Triphase": {
             "phase": "Triphase",
             "sell_ttc": 36000.0,
@@ -138,11 +133,6 @@
       },
       "20": {
         "variants": {
-          "Monophase": {
-            "phase": "Monophase",
-            "sell_ttc": 48000.0,
-            "buy_ttc": 42000.0
-          },
           "Triphase": {
             "phase": "Triphase",
             "sell_ttc": 48000.0,
@@ -177,11 +167,11 @@
     },
     "Deyness": {
       "5": {
-        "sell_ttc": 16000.0,
+        "sell_ttc": 17000.0,
         "buy_ttc": 13000.0
       },
       "10": {
-        "sell_ttc": 27000.0,
+        "sell_ttc": 30000.0,
         "buy_ttc": 22000.0
       }
     },
@@ -254,8 +244,8 @@
   },
   "Structures aluminium": {
     "__default__": {
-      "sell_ttc": 500.0,
-      "buy_ttc": 350.0
+      "sell_ttc": 850.0,
+      "buy_ttc": 600.0
     }
   }
 }

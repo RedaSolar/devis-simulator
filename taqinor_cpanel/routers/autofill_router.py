@@ -2,7 +2,7 @@ import re as _re
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from routers.auth_router import get_current_user
-from catalog import load_catalog, get_prices
+from catalog import load_catalog
 import pandas as pd
 import sys
 
@@ -35,7 +35,6 @@ _patch_catalog_for_autofill()
 class AutofillRequest(BaseModel):
     puissance_kwp: float
     puissance_panneau_w: int = 710
-    structure_type: str = "acier"  # "acier" or "aluminium"
 
 
 def _get_base_df() -> pd.DataFrame:
@@ -74,28 +73,6 @@ async def autofill(body: AutofillRequest, current_user: dict = Depends(get_curre
         result_df = auto_fill_from_power(df, catalog, body.puissance_kwp, body.puissance_panneau_w)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Autofill error: {str(e)}")
-
-    # Override structure selection based on user's radio button choice
-    use_acier = body.structure_type != "aluminium"
-    chosen_des = "Structures acier" if use_acier else "Structures aluminium"
-    other_des  = "Structures aluminium" if use_acier else "Structures acier"
-    # Calculate nb_panneaux from kwp and panel wattage
-    nb_pan_auto = round(body.puissance_kwp * 1000 / body.puissance_panneau_w) if body.puissance_panneau_w > 0 else 0
-    mask_chosen = result_df["Désignation"] == chosen_des
-    mask_other  = result_df["Désignation"] == other_des
-    if mask_chosen.any():
-        idx_c = mask_chosen.idxmax()
-        if result_df.at[idx_c, "Quantité"] == 0 and nb_pan_auto > 0:
-            result_df.at[idx_c, "Quantité"] = nb_pan_auto
-        # Fill price from catalog if missing
-        sell_s, buy_s = get_prices(catalog, chosen_des, "")
-        if result_df.at[idx_c, "Prix Unit. TTC"] == 0 and sell_s:
-            result_df.at[idx_c, "Prix Unit. TTC"] = sell_s
-        if result_df.at[idx_c, "Prix Achat TTC"] == 0 and buy_s:
-            result_df.at[idx_c, "Prix Achat TTC"] = buy_s
-    if mask_other.any():
-        idx_o = mask_other.idxmax()
-        result_df.at[idx_o, "Quantité"] = 0  # zero out the non-chosen structure
 
     # Convert to list of dicts, handle NaN
     records = result_df.where(result_df.notna(), other=None).to_dict(orient="records")

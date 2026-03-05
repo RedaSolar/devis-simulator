@@ -150,17 +150,14 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
             return 0.0
         return float((df["Prix Unit. TTC"] * df["Quantité"]).sum())
 
-    total_sans_before = _total_ttc(df_sans)
-    total_avec_before = _total_ttc(df_avec)
+    total_sans = _total_ttc(df_sans)
+    total_avec = _total_ttc(df_avec)
 
     # Apply discount
     if request.discount_percent and request.discount_percent > 0:
         _factor = 1 - request.discount_percent / 100
-        total_sans = round(total_sans_before * _factor, 2)
-        total_avec = round(total_avec_before * _factor, 2)
-    else:
-        total_sans = total_sans_before
-        total_avec = total_avec_before
+        total_sans = round(total_sans * _factor, 2)
+        total_avec = round(total_avec * _factor, 2)
 
     # ROI calculations
     factures = request.roi_data.factures_mensuelles
@@ -175,7 +172,9 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     # eco_sans: solar self-consumption savings only
     eco_sans_monthly, _ = _calc_roi(factures, kwp, day_pct, 0)
 
-    # eco_avec: eco_sans + battery bonus at 300 MAD/month per 5 kWh = 60 MAD/kWh/month
+    # eco_avec: eco_sans + flat battery bonus (236.25 MAD/month per 5 kWh = 47.25 MAD/kWh/month)
+    # Search designation AND marque for the kWh value — autofill keeps designation as
+    # plain "Batterie" and puts the capacity (e.g. "Deyness 5kWh") in Marque.
     _bat_total_kwh = 0.0
     if not df_avec.empty and "Désignation" in df_avec.columns:
         for _, _row in df_avec.iterrows():
@@ -186,7 +185,7 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
             _search_str = _des + " " + str(_row.get("Marque", "")).lower()
             _m = re.search(r'(\d+(?:\.\d+)?)\s*kwh', _search_str)
             _bat_total_kwh += _qty * (float(_m.group(1)) if _m else 5.0)
-    _bat_monthly_bonus = round(_bat_total_kwh * 60)  # 300 MAD/month per 5 kWh
+    _bat_monthly_bonus = round(_bat_total_kwh * 47.25)  # 236.25 / 5 kWh = 47.25 MAD/kWh/month
 
     eco_avec_monthly = [s + _bat_monthly_bonus for s in eco_sans_monthly]
     eco_sans_annual = sum(eco_sans_monthly)
@@ -273,20 +272,17 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
 
     nb_pan = round(kwp * 1000 / request.puissance_panneau_w) if request.puissance_panneau_w > 0 else 0
 
-    # Raw unfiltered items for one-page mode — enrich onduleur rows with kW/phase
-    all_items = []
-    for ln in request.product_lines:
-        if not (ln.quantite and ln.quantite > 0):
-            continue
-        des = ln.designation
-        if _onduleur_kw and "onduleur" in des.lower():
-            des = f"{des} {_onduleur_kw:g}kW {_onduleur_phase}"
-        all_items.append({
-            "designation": des,
+    # Raw unfiltered items for one-page mode (no scenario filtering, no qty==0 skip)
+    all_items = [
+        {
+            "designation": ln.designation,
             "marque": ln.marque or "",
             "quantite": ln.quantite,
             "prix_unit_ttc": ln.prix_unit_ttc,
-        })
+        }
+        for ln in request.product_lines
+        if ln.quantite and ln.quantite > 0
+    ]
 
     premium_data = {
         "ref":              str(doc_number),
@@ -316,16 +312,18 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         "recommended":      request.recommended_option,
         "pdf_mode":         request.pdf_mode,
         "all_items":        all_items,
-        "discount_pct":     request.discount_percent,
-        "total_sans_before": total_sans_before,
-        "total_avec_before": total_avec_before,
     }
 
     out_path = DEVIS_DIR / pdf_filename
     try:
         generate_premium_pdf(premium_data, out_path)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
+        import traceback
+        error_detail = traceback.format_exc()
+        print(f"PDF ERROR:\n{error_detail}")
+        raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}\n{error_detail}")
+    
+
 
     # Save to history
     devis_id = str(doc_number)

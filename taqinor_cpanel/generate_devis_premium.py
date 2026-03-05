@@ -243,11 +243,8 @@ KWC          = QUOTE_INPUT["puissance_kwc"]
 NB_PAN       = QUOTE_INPUT["nb_panneaux"]
 WP           = QUOTE_INPUT["watt_par_panneau"]
 PROD_KWH     = QUOTE_INPUT["prod_kwh"]
-TOTAL_SANS        = _Q["total_sans"]
-TOTAL_AVEC        = _Q["total_avec"]
-DISCOUNT_PCT      = 0.0
-TOTAL_SANS_BEFORE = _Q["total_sans"]
-TOTAL_AVEC_BEFORE = _Q["total_avec"]
+TOTAL_SANS   = _Q["total_sans"]
+TOTAL_AVEC   = _Q["total_avec"]
 ECO_S_ANN    = QUOTE_INPUT["eco_s_ann"]
 ECO_A_ANN    = QUOTE_INPUT["eco_a_ann"]
 ROI_S        = QUOTE_INPUT["roi_s"]
@@ -661,65 +658,16 @@ def page1():
     _s1   = 'display:none;' if SCENARIO == 'Avec batterie' else ''
     _s2   = 'display:none;' if SCENARIO == 'Sans batterie' else ''
     _both = not _s1 and not _s2
-    # Badge: position:absolute at the top of the card — does NOT shift price downwards
-    _badge_css = (f'position:absolute;top:0;left:0;right:0;background:{CA};color:{CN};'
-                  f'font-size:7pt;font-weight:700;letter-spacing:1px;padding:5px 9px;'
-                  f'border-radius:4px 4px 0 0;text-transform:uppercase;text-align:center;')
-    _r1   = (f'<div style="{_badge_css}">&#9733; RECOMMAND\u00c9</div>'
+    _r1   = (f'<div style="display:block;background:{CA};color:{CN};font-size:7pt;'
+             f'font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:8px;'
+             f'text-transform:uppercase;text-align:center;margin-bottom:6px;'
+             f'width:100%;box-sizing:border-box;">&#9733; RECOMMAND\u00c9</div>'
              if _both and RECOMMENDED == 'Sans batterie' else '')
-    _r2   = (f'<div style="{_badge_css}">&#9733; RECOMMAND\u00c9</div>'
-             if _both and RECOMMENDED == 'Avec batterie' else '')
-    # Price display — crossed-out original + discount badge + new price when discount active
-    if DISCOUNT_PCT > 0:
-        _s_before = f"{int(TOTAL_SANS_BEFORE):,}".replace(",", _s) + "\u00a0MAD"
-        _a_before = f"{int(TOTAL_AVEC_BEFORE):,}".replace(",", _s) + "\u00a0MAD"
-        _disc_str = f"\u2212{int(DISCOUNT_PCT)}\u202f%"
-        _ts_price = (
-            f'<div style="font-size:10pt;color:{CG4};text-decoration:line-through;'
-            f'opacity:0.75;margin-bottom:1px;white-space:nowrap;">{_s_before}</div>'
-            f'<div style="margin-bottom:4px;">'
-            f'<span style="background:{CA};color:{CN};border-radius:3px;padding:2px 8px;'
-            f'font-size:6pt;font-weight:800;letter-spacing:0.5px;">{_disc_str}\u00a0REMISE</span>'
-            f'</div>'
-            f'<div class="serif" style="font-size:27pt;font-weight:400;color:{CGR};'
-            f'line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">'
-            f'<span style="white-space:nowrap;">{ts}</span></div>'
-        )
-        _ta_price = (
-            f'<div style="font-size:10pt;color:{CG4};text-decoration:line-through;'
-            f'opacity:0.75;margin-bottom:1px;white-space:nowrap;">{_a_before}</div>'
-            f'<div style="margin-bottom:4px;">'
-            f'<span style="background:{CA};color:{CN};border-radius:3px;padding:2px 8px;'
-            f'font-size:6pt;font-weight:800;letter-spacing:0.5px;">{_disc_str}\u00a0REMISE</span>'
-            f'</div>'
-            f'<div class="serif" style="font-size:27pt;font-weight:400;color:{CGR};'
-            f'line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">'
-            f'<span style="white-space:nowrap;">{ta}</span></div>'
-        )
-    else:
-        _ts_price = (
-            f'<div class="serif" style="font-size:30pt;font-weight:400;color:{CN};'
-            f'line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">'
-            f'<span style="white-space:nowrap;">{ts}</span></div>'
-        )
-        _ta_price = (
-            f'<div class="serif" style="font-size:30pt;font-weight:400;color:{CN};'
-            f'line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">'
-            f'<span style="white-space:nowrap;">{ta}</span></div>'
-        )
-    # KPI economies card — scenario-aware
-    if SCENARIO == 'Sans batterie':
-        _eco_val   = f'<span style="white-space:nowrap;">{esa_mad}</span>'
-        _eco_size  = "17pt"
-        _eco_sub   = "&#233;conomies par an"
-    elif SCENARIO == 'Avec batterie':
-        _eco_val   = f'<span style="white-space:nowrap;">{eaa_mad}</span>'
-        _eco_size  = "17pt"
-        _eco_sub   = "&#233;conomies par an"
-    else:
-        _eco_val   = f'<span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span>'
-        _eco_size  = "13pt"
-        _eco_sub   = "selon option choisie"
+    _r2   = (f'<div style="display:block;background:{CA};color:{CN};font-size:7pt;'
+             f'font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:8px;'
+             f'text-transform:uppercase;text-align:center;margin-bottom:6px;'
+             f'width:100%;box-sizing:border-box;">&#9733; RECOMMAND\u00c9</div>'
+             if not _s2 and (_both and RECOMMENDED == 'Avec batterie') else '')
     return f"""
 <div class="page" style="background:#FFFFFF !important;">
 
@@ -798,10 +746,10 @@ def page1():
         <div style="font-size:6.5pt;color:{CG4};margin-top:3px;">&#233;nergie propre / an</div>
       </div>
 
-      <div style="flex:1;border:2px solid {CA};border-left:5px solid {CA};border-radius:6px;padding:14px 12px;background:#FFFBF2;box-shadow:0 2px 10px rgba(245,166,35,0.18);">
-        <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">&#201;conomies estim&#233;es / an</div>
-        <div class="serif" style="font-size:{_eco_size};color:{CN};line-height:1.1;">{_eco_val}</div>
-        <div style="font-size:6.5pt;color:{CA};font-weight:600;margin-top:3px;">{_eco_sub}</div>
+      <div style="flex:1;border:1px solid {CG2};border-left:4px solid {CA};border-radius:6px;padding:14px 12px;background:#FFFBF2;">
+        <div style="font-size:4.5pt;letter-spacing:1.5px;color:{CG4};font-weight:400;text-transform:uppercase;margin-bottom:4px;">&#201;conomies estim&#233;es / an</div>
+        <div class="serif" style="font-size:13pt;color:{CN};line-height:1.1;"><span style="white-space:nowrap;">{esa_mad}&nbsp;&#8211;&nbsp;{eaa_mad}</span></div>
+        <div style="font-size:6.5pt;color:{CA};margin-top:3px;">selon option choisie</div>
       </div>
 
     </div>
@@ -819,12 +767,14 @@ def page1():
   <div style="flex:1;min-height:0;display:flex;gap:12px;padding:0 24px 10px;align-items:stretch;background:#FFFFFF !important;">
 
     <!-- OPTION 1 -->
-    <div style="flex:1;border:1.5px solid #E8A020;border-radius:6px;padding:28px 12px 12px;display:flex;flex-direction:column;background:#FFFFFF;position:relative;{_s1}">
-      {_r1}
+    <div style="flex:1;border:1.5px solid #E8A020;border-radius:6px;padding:12px;display:flex;flex-direction:column;background:#FFFFFF;{_s1}">
       <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 1</div>
+      {_r1}
       <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Sans batterie</div>
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Autoconsommation directe</div>
-      {_ts_price}
+      <div class="serif" style="font-size:30pt;font-weight:400;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
+        <span style="white-space:nowrap;">{ts}</span>
+      </div>
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
       <div style="display:inline-block;width:auto;align-self:flex-start;background:{CA};color:{CN};border-radius:3px;padding:3px 9px;font-size:6.5pt;font-weight:700;margin-bottom:7px;">&#128200; Retour en {ROI_S} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
@@ -832,7 +782,6 @@ def page1():
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> {NB_PAN} panneaux {WP}&nbsp;W</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Onduleur r&#233;seau Huawei</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Smart Meter + Wifi Dongle</li>
-        <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Monitoring int&#233;gr&#233; via app Huawei</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>
@@ -843,12 +792,14 @@ def page1():
     </div>
 
     <!-- OPTION 2 -->
-    <div style="flex:1;border:1.5px solid #E8A020;border-radius:6px;padding:28px 12px 12px;display:flex;flex-direction:column;background:#FFF3E0;position:relative;{_s2}">
-      {_r2}
+    <div style="flex:1;border:1.5px solid #E8A020;border-top:6px solid {CN};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:#FFF3E0;{_s2}">
       <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 2</div>
+      {_r2}
       <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Avec batterie</div>
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
-      {_ta_price}
+      <div class="serif" style="font-size:30pt;font-weight:400;color:{CN};line-height:1.0;letter-spacing:-0.5px;margin-bottom:2px;">
+        <span style="white-space:nowrap;">{ta}</span>
+      </div>
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
       <div style="display:inline-block;width:auto;align-self:flex-start;background:{CN};color:white;border-radius:3px;padding:3px 9px;font-size:6.5pt;font-weight:700;margin-bottom:7px;">&#128200; Retour en {ROI_A} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
@@ -997,34 +948,6 @@ def page2(sans_items, img_roi, img_mon):
 
 # ── PAGE 3 — trust, guarantees, conditions, prochaines étapes, signature ─────
 def page3():
-    # "Option choisie" tick-boxes — only shown when both options are presented
-    _opt = (
-        f'<div style="margin-bottom:10px;">'
-        f'<div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;'
-        f'letter-spacing:1px;margin-bottom:7px;">Option choisie par le client</div>'
-        f'<div style="display:flex;gap:12px;">'
-        # Sans batterie box
-        f'<div style="flex:1;border:1.5px solid {CG2};border-radius:7px;padding:10px 13px;'
-        f'background:white;display:flex;align-items:center;gap:11px;">'
-        f'<div style="width:17px;height:17px;border:2px solid {CG7};border-radius:3px;flex-shrink:0;"></div>'
-        f'<div>'
-        f'<div style="font-size:9pt;font-weight:700;color:{CN};">Sans batterie</div>'
-        f'<div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Option 1 &#8212; R&#233;seau uniquement</div>'
-        f'</div>'
-        f'</div>'
-        # Avec batterie box
-        f'<div style="flex:1;border:1.5px solid {CA};border-radius:7px;padding:10px 13px;'
-        f'background:{CAL};display:flex;align-items:center;gap:11px;">'
-        f'<div style="width:17px;height:17px;border:2px solid {CA};border-radius:3px;flex-shrink:0;"></div>'
-        f'<div>'
-        f'<div style="font-size:9pt;font-weight:700;color:{CN};">Avec batterie</div>'
-        f'<div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Option 2 &#8212; R&#233;seau + Stockage</div>'
-        f'</div>'
-        f'</div>'
-        f'</div>'
-        f'</div>'
-    ) if SCENARIO == "Les deux (Sans + Avec)" else ""
-
     return f"""
 <div class="page">
   <div style="background:{CN};padding:9px 24px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
@@ -1127,8 +1050,7 @@ def page3():
       <ul style="list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;">
         <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Validit\u00e9 de l&#8217;offre&#160;: 30 jours</li>
         <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Acompte \u00e0 la commande&#160;: 30&#37;</li>
-        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>60&#37; \u00e0 la r\u00e9ception du mat\u00e9riel</li>
-        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>10&#37; apr\u00e8s la mise en marche</li>
+        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Solde \u00e0 la r\u00e9ception&#160;: 70&#37;</li>
         <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>D\u00e9lai d&#8217;installation&#160;: 7\u201314 jours ouvr\u00e9s</li>
         <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>TVA 10&#37; modules / 20&#37; autres</li>
         <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Tarifs de r\u00e9f\u00e9rence&#160;: bar\u00e8me ONEE/SRM</li>
@@ -1181,7 +1103,6 @@ def page3():
     <div style="border-left:4px solid {CA};padding-left:12px;margin-bottom:10px;">
       <div style="font-size:8pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:1.5px;">Bon pour accord</div>
     </div>
-    {_opt}
     <div style="display:flex;gap:16px;margin-bottom:12px;">
       <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:13px 14px;min-height:80px;background:white;">
         <div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Signature du client</div>
@@ -1226,15 +1147,11 @@ def build_html():
 def page_onepage(items):
     """Single A4 page: header + amber strip + client block + product table + footer."""
     # Compute total (skip zero-qty rows just in case)
-    total_raw = sum(
+    total = sum(
         float(it.get("quantite", 0)) * float(it.get("prix_unit_ttc", 0))
         for it in items
         if float(it.get("quantite", 0)) > 0
     )
-    if DISCOUNT_PCT > 0:
-        total = round(total_raw * (1 - DISCOUNT_PCT / 100))
-    else:
-        total = total_raw
 
     # Build table rows
     rows_html = ""
@@ -1308,23 +1225,17 @@ def page_onepage(items):
   </div>
 
   <!-- TOTAL ROW -->
-  <div style="background:{CAL};border-top:2px solid {CA};padding:10px 24px;flex-shrink:0;display:flex;justify-content:flex-end;align-items:center;gap:16px;margin:0 24px;">
+  <div style="background:{CAL};border-top:2px solid {CA};padding:10px 24px;flex-shrink:0;display:flex;justify-content:flex-end;align-items:center;gap:20px;margin:0 24px;">
     <span style="font-size:9.5pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;">Total TTC</span>
-    {'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">'
-     '<span style="font-size:9pt;color:' + CG4 + ';text-decoration:line-through;opacity:0.8;white-space:nowrap;">' + fnum(total_raw) + '&nbsp;MAD</span>'
-     '<span style="background:' + CA + ';color:' + CN + ';border-radius:3px;padding:1px 7px;font-size:6pt;font-weight:800;align-self:flex-end;">\u2212' + str(int(DISCOUNT_PCT)) + '\u202f%\u00a0REMISE</span>'
-     '<span style="font-size:13pt;font-weight:800;color:' + CGR + ';white-space:nowrap;">' + fmt(total) + '</span>'
-     '</div>'
-     if DISCOUNT_PCT > 0 else
-     '<span style="font-size:13pt;font-weight:800;color:' + CN + ';">' + fmt(total) + '</span>'}
+    <span style="font-size:13pt;font-weight:800;color:{CN};">{fmt(total)}</span>
   </div>
 
   <!-- CONDITIONS -->
   <div style="padding:8px 24px;flex-shrink:0;">
     <div style="font-size:7pt;color:{CG4};display:flex;gap:20px;flex-wrap:wrap;">
       <span>&#183; Validit&#233;&#160;: 30 jours</span>
-      <span>&#183; Acompte&#160;: 50&#37;</span>
-      <span>&#183; Solde &#224; la livraison&#160;: 50&#37;</span>
+      <span>&#183; Acompte&#160;: 30&#37;</span>
+      <span>&#183; Solde &#224; la r&#233;ception&#160;: 70&#37;</span>
     </div>
   </div>
 
@@ -1419,7 +1330,6 @@ def generate_premium_pdf(data: dict, out_path) -> str:
     """
     global CLIENT_NAME, CLIENT_ADDR, CLIENT_PHONE, CLIENT_ICE, REF, DATE_STR
     global KWC, NB_PAN, WP, PROD_KWH, TOTAL_SANS, TOTAL_AVEC
-    global DISCOUNT_PCT, TOTAL_SANS_BEFORE, TOTAL_AVEC_BEFORE
     global ECO_S_ANN, ECO_A_ANN, ROI_S, ROI_A, INST_TYPE
     global SANS_ITEMS, AVEC_ITEMS, ECO_S_M, ECO_A_M, CUMUL_S, CUMUL_A
     global FACTURES_M
@@ -1435,11 +1345,8 @@ def generate_premium_pdf(data: dict, out_path) -> str:
     NB_PAN       = int(data["nb_panneaux"])
     WP           = int(data["watt_par_panneau"])
     PROD_KWH     = int(data["prod_kwh"])
-    TOTAL_SANS        = float(data["total_sans"])
-    TOTAL_AVEC        = float(data["total_avec"])
-    DISCOUNT_PCT      = float(data.get("discount_pct", 0))
-    TOTAL_SANS_BEFORE = float(data.get("total_sans_before", TOTAL_SANS))
-    TOTAL_AVEC_BEFORE = float(data.get("total_avec_before", TOTAL_AVEC))
+    TOTAL_SANS   = float(data["total_sans"])
+    TOTAL_AVEC   = float(data["total_avec"])
     ECO_S_ANN    = int(data["eco_s_ann"])
     ECO_A_ANN    = int(data["eco_a_ann"])
     ROI_S        = float(data["roi_s"])

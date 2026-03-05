@@ -23,7 +23,8 @@
       "Bash(mkdir:*)",
       "Bash(cp:*)",
       "Bash(echo.:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(powershell:*)"
     ]
   }
 }

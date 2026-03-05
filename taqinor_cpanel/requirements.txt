@@ -1,5 +1,6 @@
 fastapi
 uvicorn[standard]
+a2wsgi
 python-multipart
 python-jose[cryptography]
 bcrypt
@@ -7,4 +8,5 @@ pandas
 numpy
 matplotlib
 reportlab
+streamlit
 playwright

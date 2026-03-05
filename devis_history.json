@@ -49719,7 +49719,7 @@
         "Marque": "Deye",
         "Quantité": 1.0,
         "Prix Achat TTC": 24000.0,
-        "Prix Unit. TTC": 29000.0,
+        "Prix Unit. TTC": 28000.0,
         "TVA (%)": 20.0
       },
       {
@@ -49742,16 +49742,16 @@
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
         "Quantité": 16.0,
-        "Prix Achat TTC": 750.0,
-        "Prix Unit. TTC": 950.0,
+        "Prix Achat TTC": 1200.0,
+        "Prix Unit. TTC": 1400.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Batterie",
         "Marque": "Deyness 5kWh",
         "Quantité": 0.0,
-        "Prix Achat TTC": 12000.0,
-        "Prix Unit. TTC": 16000.0,
+        "Prix Achat TTC": 13000.0,
+        "Prix Unit. TTC": 17000.0,
         "TVA (%)": 20.0
       },
       {
@@ -49774,8 +49774,8 @@
         "Désignation": "Structures aluminium",
         "Marque": "",
         "Quantité": 0.0,
-        "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 500.0,
+        "Prix Achat TTC": 600.0,
+        "Prix Unit. TTC": 850.0,
         "TVA (%)": 20.0
       },
       {
@@ -49856,8 +49856,8 @@
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
         "Quantité": 16.0,
-        "Prix Achat TTC": 750.0,
-        "Prix Unit. TTC": 950.0,
+        "Prix Achat TTC": 1200.0,
+        "Prix Unit. TTC": 1400.0,
         "TVA (%)": 20.0
       },
       {
@@ -49872,8 +49872,8 @@
         "Désignation": "Structures aluminium",
         "Marque": "",
         "Quantité": 0.0,
-        "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 500.0,
+        "Prix Achat TTC": 600.0,
+        "Prix Unit. TTC": 850.0,
         "TVA (%)": 20.0
       },
       {
@@ -49931,23 +49931,23 @@
         "Marque": "Deye",
         "Quantité": 1.0,
         "Prix Achat TTC": 24000.0,
-        "Prix Unit. TTC": 29000.0,
+        "Prix Unit. TTC": 28000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
         "Quantité": 16.0,
-        "Prix Achat TTC": 750.0,
-        "Prix Unit. TTC": 950.0,
+        "Prix Achat TTC": 1200.0,
+        "Prix Unit. TTC": 1400.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Batterie",
         "Marque": "Deyness 5kWh",
         "Quantité": 0.0,
-        "Prix Achat TTC": 12000.0,
-        "Prix Unit. TTC": 16000.0,
+        "Prix Achat TTC": 13000.0,
+        "Prix Unit. TTC": 17000.0,
         "TVA (%)": 20.0
       },
       {
@@ -49970,8 +49970,8 @@
         "Désignation": "Structures aluminium",
         "Marque": "",
         "Quantité": 0.0,
-        "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 500.0,
+        "Prix Achat TTC": 600.0,
+        "Prix Unit. TTC": 850.0,
         "TVA (%)": 20.0
       },
       {
@@ -50023,17 +50023,17 @@
         "TVA (%)": 20.0
       }
     ],
-    "total_ttc": 90212.0,
-    "total_sans": 58862.0,
-    "total_avec": 90212.0,
+    "total_ttc": 101160.0,
+    "total_sans": 69160.0,
+    "total_avec": 101160.0,
     "notes_sans": [],
     "notes_avec": [],
     "scenario_choice": "Les deux (Sans + Avec)",
     "installation_type": "Résidentielle",
-    "recommended_option": "Sans batterie",
+    "recommended_option": "Avec batterie",
     "puissance_kwp": 11.36,
     "pdf_filename": "Devis_Reda_Kasri_410.pdf",
-    "created_at": "2026-03-04"
+    "created_at": "2026-03-05"
   },
   "9999": {
     "client_name": "Test Images",
@@ -50141,7 +50141,7 @@
         "Marque": "Deye",
         "Quantité": 1.0,
         "Prix Achat TTC": 24000.0,
-        "Prix Unit. TTC": 29000.0,
+        "Prix Unit. TTC": 28000.0,
         "TVA (%)": 20.0
       },
       {
@@ -50164,16 +50164,16 @@
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
         "Quantité": 16.0,
-        "Prix Achat TTC": 750.0,
-        "Prix Unit. TTC": 950.0,
+        "Prix Achat TTC": 1200.0,
+        "Prix Unit. TTC": 1400.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Batterie",
         "Marque": "Deyness 5kWh",
         "Quantité": 0.0,
-        "Prix Achat TTC": 12000.0,
-        "Prix Unit. TTC": 16000.0,
+        "Prix Achat TTC": 13000.0,
+        "Prix Unit. TTC": 17000.0,
         "TVA (%)": 20.0
       },
       {
@@ -50187,7 +50187,7 @@
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 16.0,
+        "Quantité": 0.0,
         "Prix Achat TTC": 350.0,
         "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
@@ -50195,9 +50195,9 @@
       {
         "Désignation": "Structures aluminium",
         "Marque": "",
-        "Quantité": 0.0,
-        "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 500.0,
+        "Quantité": 16.0,
+        "Prix Achat TTC": 600.0,
+        "Prix Unit. TTC": 850.0,
         "TVA (%)": 20.0
       },
       {
@@ -50278,14 +50278,14 @@
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
         "Quantité": 16.0,
-        "Prix Achat TTC": 750.0,
-        "Prix Unit. TTC": 950.0,
+        "Prix Achat TTC": 1200.0,
+        "Prix Unit. TTC": 1400.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 16.0,
+        "Quantité": 0.0,
         "Prix Achat TTC": 350.0,
         "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
@@ -50293,9 +50293,9 @@
       {
         "Désignation": "Structures aluminium",
         "Marque": "",
-        "Quantité": 0.0,
-        "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 500.0,
+        "Quantité": 16.0,
+        "Prix Achat TTC": 600.0,
+        "Prix Unit. TTC": 850.0,
         "TVA (%)": 20.0
       },
       {
@@ -50353,23 +50353,23 @@
         "Marque": "Deye",
         "Quantité": 1.0,
         "Prix Achat TTC": 24000.0,
-        "Prix Unit. TTC": 29000.0,
+        "Prix Unit. TTC": 28000.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Panneaux",
         "Marque": "Canadien Solar",
         "Quantité": 16.0,
-        "Prix Achat TTC": 750.0,
-        "Prix Unit. TTC": 950.0,
+        "Prix Achat TTC": 1200.0,
+        "Prix Unit. TTC": 1400.0,
         "TVA (%)": 20.0
       },
       {
         "Désignation": "Batterie",
         "Marque": "Deyness 5kWh",
         "Quantité": 0.0,
-        "Prix Achat TTC": 12000.0,
-        "Prix Unit. TTC": 16000.0,
+        "Prix Achat TTC": 13000.0,
+        "Prix Unit. TTC": 17000.0,
         "TVA (%)": 20.0
       },
       {
@@ -50383,7 +50383,7 @@
       {
         "Désignation": "Structures acier",
         "Marque": "",
-        "Quantité": 16.0,
+        "Quantité": 0.0,
         "Prix Achat TTC": 350.0,
         "Prix Unit. TTC": 500.0,
         "TVA (%)": 20.0
@@ -50391,9 +50391,9 @@
       {
         "Désignation": "Structures aluminium",
         "Marque": "",
-        "Quantité": 0.0,
-        "Prix Achat TTC": 350.0,
-        "Prix Unit. TTC": 500.0,
+        "Quantité": 16.0,
+        "Prix Achat TTC": 600.0,
+        "Prix Unit. TTC": 850.0,
         "TVA (%)": 20.0
       },
       {
@@ -50445,17 +50445,17 @@
         "TVA (%)": 20.0
       }
     ],
-    "total_ttc": 90212.0,
-    "total_sans": 58862.0,
-    "total_avec": 90212.0,
+    "total_ttc": 106760.0,
+    "total_sans": 74760.0,
+    "total_avec": 106760.0,
     "notes_sans": [],
     "notes_avec": [],
     "scenario_choice": "Les deux (Sans + Avec)",
     "installation_type": "Résidentielle",
-    "recommended_option": "Sans batterie",
+    "recommended_option": "Avec batterie",
     "puissance_kwp": 11.36,
     "pdf_filename": "Devis_Reda_Kasri_411.pdf",
-    "created_at": "2026-03-04"
+    "created_at": "2026-03-05"
   },
   "8888": {
     "client_name": "Test Client",

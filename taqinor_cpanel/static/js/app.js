@@ -11,137 +11,6 @@ let currentRoiResult = null;
 let currentTotals = { sans: 0, avec: 0 };
 let _roiDebounce = null;
 let onduleurOptionsCache = {};  // cache: "{type}_{brand}" → [{power, phase, sell_ttc, buy_ttc}]
-let _catalogCache = null;       // full catalog fetched once on load
-
-// ---- Special product line type detection ----
-function _getSpecialType(designation) {
-    const d = (designation || '').toLowerCase().trim();
-    if (d === 'onduleur réseau') return 'onduleur_reseau';
-    if (d === 'onduleur hybride') return 'onduleur_hybride';
-    if (d === 'panneaux') return 'panneaux';
-    if (d === 'batterie') return 'batterie';
-    return null;
-}
-
-function _catKeyForStype(stype) {
-    if (stype === 'onduleur_reseau') return 'Onduleur Injection';
-    if (stype === 'onduleur_hybride') return 'Onduleur Hybride';
-    if (stype === 'panneaux') return 'Panneaux';
-    if (stype === 'batterie') return 'Batterie';
-    return null;
-}
-
-// Build <option> tags for power/phase dropdown from catalog entry
-function _buildPowerOptsHtml(catEntry, brand, isOnduleur, unit, selPower, selPhase) {
-    if (!catEntry || !brand || !catEntry[brand]) return '';
-    const brandData = catEntry[brand];
-    const powers = Object.keys(brandData)
-        .filter(k => !isNaN(parseFloat(k)))
-        .sort((a, b) => parseFloat(a) - parseFloat(b));
-    let opts = '';
-    if (isOnduleur) {
-        for (const power of powers) {
-            const pd = brandData[power];
-            if (!pd?.variants) continue;
-            const phases = Object.keys(pd.variants).sort();
-            for (const phase of phases) {
-                const vd = pd.variants[phase];
-                if (!vd) continue;
-                const label = `${power}kW — ${phase}`;
-                const val = JSON.stringify({ power: parseFloat(power), phase, sell_ttc: vd.sell_ttc, buy_ttc: vd.buy_ttc });
-                const isSel = selPower !== undefined &&
-                    Math.abs(parseFloat(power) - parseFloat(selPower || 0)) < 0.01 &&
-                    (!selPhase || phase === selPhase);
-                opts += `<option value="${escHtml(val)}" ${isSel ? 'selected' : ''}>${escHtml(label)}</option>`;
-            }
-        }
-    } else {
-        for (const power of powers) {
-            const pd = brandData[power];
-            if (!pd) continue;
-            const label = `${power} ${unit}`;
-            const val = JSON.stringify({ power: parseFloat(power), sell_ttc: pd.sell_ttc, buy_ttc: pd.buy_ttc });
-            const isSel = selPower !== undefined &&
-                Math.abs(parseFloat(power) - parseFloat(selPower || 0)) < 0.01;
-            opts += `<option value="${escHtml(val)}" ${isSel ? 'selected' : ''}>${escHtml(label)}</option>`;
-        }
-    }
-    return opts;
-}
-
-// Build the <td> with brand + power cascading dropdowns for special rows
-function _buildSpecialDropdownsTd(line, i) {
-    const stype = _getSpecialType(line.designation);
-    if (!stype || !_catalogCache) {
-        return `<td>
-            <input type="text" class="table-input" data-field="marque" data-idx="${i}"
-                   value="${escHtml(line.marque || '')}" placeholder="Marque">
-        </td>`;
-    }
-    const catKey = _catKeyForStype(stype);
-    const catEntry = _catalogCache[catKey];
-    if (!catEntry) {
-        return `<td>
-            <input type="text" class="table-input" data-field="marque" data-idx="${i}"
-                   value="${escHtml(line.marque || '')}" placeholder="Marque">
-        </td>`;
-    }
-    const isOnduleur = stype.startsWith('onduleur');
-    const unit = stype === 'panneaux' ? 'W' : 'kWh';
-    const brands = Object.keys(catEntry).filter(k => k !== '__default__');
-    const selBrand = line._specBrand || line.marque || (brands[0] || '');
-    const brandOpts = brands.map(b =>
-        `<option value="${escHtml(b)}" ${b === selBrand ? 'selected' : ''}>${escHtml(b)}</option>`
-    ).join('');
-    const powerOpts = _buildPowerOptsHtml(catEntry, selBrand, isOnduleur, unit, line._specPower, line._specPhase);
-    return `<td>
-        <select class="table-input spec-brand" data-idx="${i}" data-stype="${escHtml(stype)}" style="margin-bottom:3px;width:100%;">
-            ${brandOpts || '<option value="">— aucune marque —</option>'}
-        </select>
-        <select class="table-input spec-power" data-idx="${i}" data-stype="${escHtml(stype)}" style="width:100%;">
-            ${powerOpts || '<option value="">— sélectionner puissance —</option>'}
-        </select>
-    </td>`;
-}
-
-// ---- Default lines suppression (admin, stored in localStorage) ----
-const _HIDDEN_LINES_KEY = 'taqinor_hidden_lines';
-
-function _getHiddenLines() {
-    try { return JSON.parse(localStorage.getItem(_HIDDEN_LINES_KEY) || '[]'); } catch { return []; }
-}
-function _setHiddenLines(arr) {
-    localStorage.setItem(_HIDDEN_LINES_KEY, JSON.stringify(arr));
-}
-function resetDefaultLines() {
-    _setHiddenLines([]);
-    renderDefaultLinesList();
-    showToast('Table par défaut réinitialisée', 'success');
-}
-function renderDefaultLinesList() {
-    const container = document.getElementById('default-lines-list');
-    if (!container) return;
-    const allLines = _allDefaultProductLines();
-    const hidden = _getHiddenLines();
-    container.innerHTML = allLines.map(des => {
-        const isSuppressed = hidden.includes(des);
-        return `<label style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;">
-            <input type="checkbox" ${isSuppressed ? 'checked' : ''} onchange="toggleDefaultLine('${escHtml(des)}', this.checked)">
-            <span style="${isSuppressed ? 'text-decoration:line-through;color:#aaa;' : ''}">${escHtml(des)}</span>
-        </label>`;
-    }).join('');
-}
-function toggleDefaultLine(designation, suppress) {
-    const hidden = _getHiddenLines();
-    if (suppress && !hidden.includes(designation)) {
-        hidden.push(designation);
-    } else if (!suppress) {
-        const idx = hidden.indexOf(designation);
-        if (idx !== -1) hidden.splice(idx, 1);
-    }
-    _setHiddenLines(hidden);
-    renderDefaultLinesList();
-}
 
 // ---- Toast Notifications ----
 function showToast(message, type = 'info', duration = 4000) {
@@ -173,12 +42,12 @@ function showTab(tabName) {
     // Load data for specific tabs
     if (tabName === 'history') loadHistory();
     if (tabName === 'catalog') loadCatalog();
-    if (tabName === 'admin') { loadUsers(); renderDefaultLinesList(); }
+    if (tabName === 'admin') loadUsers();
 }
 
 // ---- Autoconsumption default by installation type ----
 const DAY_USAGE_DEFAULTS = {
-    'Résidentielle': 60,
+    'Résidentielle': 50,
     'Commerciale':   80,
     'Industrielle':  80,
     'Agricole':      100,
@@ -264,11 +133,7 @@ async function initApp() {
         });
     }
 
-    // Pre-fetch catalog so price auto-fill is instant on first edit
-    _ensureCatalog();
-
-    // Set autoconsumption default for initial type, then update on change
-    updateDayUsageForType();
+    // Update autoconsumption default when installation type changes
     document.getElementById('install-type')?.addEventListener('change', updateDayUsageForType);
 
     // Re-render simulation when scenario/recommended changes (no new API call needed)
@@ -305,13 +170,8 @@ async function initApp() {
         }
     });
 
-    // Default product lines table — render once now, then re-render after catalog loads
-    // so that Onduleur/Panneaux/Batterie rows show brand+power dropdowns
+    // Default product lines table
     renderProductLines(getDefaultProductLines());
-    _ensureCatalog().then(() => {
-        renderProductLines(currentProductLines); // shows special dropdowns now that cache is ready
-        currentProductLines.forEach((_, i) => autofillRowPrice(i));
-    });
 }
 
 function isAdmin() { return getUser()?.role === 'admin'; }
@@ -324,11 +184,20 @@ function getScenario() {
 function getRecommended() {
     const val = document.getElementById('recommended-option')?.value || 'Auto';
     if (val !== 'Auto') return val;
-    // Auto: always default to "Avec batterie" unless scenario forces single option
+    // Auto: resolve based on scenario and ROI data
     const { v } = getScenario();
     if (v === 'Sans batterie') return 'Sans batterie';
     if (v === 'Avec batterie') return 'Avec batterie';
-    return 'Avec batterie'; // Both options → recommend Avec batterie by default
+    // Both options: pick the one with lower payback (shorter ROI = better)
+    if (currentRoiResult) {
+        const ps = currentRoiResult.payback_sans ?? 0;
+        const pa = currentRoiResult.payback_avec ?? 0;
+        if (ps <= 0 && pa <= 0) return 'Aucune recommandation';
+        if (ps <= 0) return 'Avec batterie';
+        if (pa <= 0) return 'Sans batterie';
+        return ps <= pa ? 'Sans batterie' : 'Avec batterie';
+    }
+    return 'Aucune recommandation';
 }
 
 function applyRoleVisibility(user) {
@@ -365,29 +234,8 @@ function applyRoleVisibility(user) {
     if (btnCalcRoi) btnCalcRoi.style.display = commercial ? 'none' : '';
 }
 
-function _allDefaultProductLines() {
-    return [
-        "Onduleur réseau",
-        "Onduleur hybride",
-        "Smart Meter",
-        "Wifi Dongle",
-        "Panneaux",
-        "Batterie",
-        "Batterie",
-        "Structures acier",
-        "Structures aluminium",
-        "Socles",
-        "Accessoires",
-        "Tableau De Protection AC/DC",
-        "Installation",
-        "Transport",
-        "Suivi journalier, maintenance chaque 12 mois pendent 2 ans",
-    ];
-}
-
 function getDefaultProductLines() {
-    const hidden = _getHiddenLines();
-    const all = [
+    return [
         { designation: "Onduleur réseau",   marque: "", quantite: 1, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
         { designation: "Onduleur hybride",  marque: "", quantite: 1, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
         { designation: "Smart Meter",       marque: "", quantite: 0, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
@@ -404,16 +252,6 @@ function getDefaultProductLines() {
         { designation: "Transport",         marque: "", quantite: 1, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
         { designation: "Suivi journalier, maintenance chaque 12 mois pendent 2 ans", marque: "", quantite: 1, prix_achat_ttc: 0, prix_unit_ttc: 0, tva: 20 },
     ];
-    if (!hidden.length) return all;
-    // Filter hidden lines (track count for duplicate designations like "Batterie")
-    const hiddenCount = {};
-    return all.filter(line => {
-        const des = line.designation;
-        if (!hidden.includes(des)) return true;
-        // For duplicates, suppress only the first occurrence that matches
-        hiddenCount[des] = (hiddenCount[des] || 0) + 1;
-        return false; // suppress all matching
-    });
 }
 
 // ---- Monthly Inputs ----
@@ -521,10 +359,9 @@ async function autoFill() {
     const btn = document.getElementById('btn-autofill');
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Remplissage...'; }
     try {
-        const structType = document.querySelector('input[name="structure-type"]:checked')?.value || 'acier';
         const res = await authFetch('/api/autofill', {
             method: 'POST',
-            body: JSON.stringify({ puissance_kwp: kwp, puissance_panneau_w: panW, structure_type: structType }),
+            body: JSON.stringify({ puissance_kwp: kwp, puissance_panneau_w: panW }),
         });
         if (!res) return;
         if (!res.ok) {
@@ -535,21 +372,6 @@ async function autoFill() {
         const data = await res.json();
         const lines = Array.isArray(data) ? data : (data.rows || []);
         const onduleurMeta = Array.isArray(data) ? {} : (data.onduleur_options || {});
-        // Sync spec selections from autofill metadata into line data
-        lines.forEach(line => {
-            const stype = _getSpecialType(line.designation);
-            if (stype === 'onduleur_reseau' && onduleurMeta.reseau) {
-                line._specBrand = onduleurMeta.reseau.brand || line.marque;
-                line._specPower = onduleurMeta.reseau.power;
-                line._specPhase = onduleurMeta.reseau.phase;
-            } else if (stype === 'onduleur_hybride' && onduleurMeta.hybride) {
-                line._specBrand = onduleurMeta.hybride.brand || line.marque;
-                line._specPower = onduleurMeta.hybride.power;
-                line._specPhase = onduleurMeta.hybride.phase;
-            } else if (line.marque) {
-                line._specBrand = line.marque;
-            }
-        });
         currentProductLines = lines;
         // Sync autofilled onduleur power/phase into the Section 3 fields
         _syncOnduleurSection3(onduleurMeta);
@@ -610,64 +432,6 @@ function _syncOnduleurSection3(onduleurMeta) {
 }
 
 // ---- Product Lines Table ----
-// ---- Catalog price auto-fill ----
-async function _ensureCatalog() {
-    if (_catalogCache) return _catalogCache;
-    try {
-        const res = await authFetch('/api/catalog');
-        if (res && res.ok) _catalogCache = await res.json();
-    } catch (_) {}
-    return _catalogCache;
-}
-
-function _catalogKeyFor(designation) {
-    const d = (designation || '').toLowerCase().trim();
-    if (!d) return null;
-    if (d.includes('onduleur') || d === 'panneaux' || d.startsWith('panneau') || d === 'batterie') return null;
-    if (d === 'structures acier') return 'Structures acier';
-    if (d === 'structures aluminium') return 'Structures aluminium';
-    if (d.startsWith('structures')) return 'Structures acier'; // legacy fallback
-    // Match canonical names case-insensitively
-    const canonicals = ['Smart Meter','Wifi Dongle','Socles','Accessoires',
-        'Tableau De Protection AC/DC','Installation','Transport',
-        'Suivi journalier, maintenance chaque 12 mois pendent 2 ans'];
-    for (const c of canonicals) {
-        if (d === c.toLowerCase()) return c;
-    }
-    return designation; // fallback: try as-is
-}
-
-async function autofillRowPrice(idx) {
-    const line = currentProductLines[idx];
-    if (!line) return;
-    if (line.prix_unit_ttc && line.prix_unit_ttc > 0) return; // already has a price
-    const catKey = _catalogKeyFor(line.designation);
-    if (!catKey) return; // onduleur/panneaux/batterie — needs brand+power, skip
-    const catalog = await _ensureCatalog();
-    if (!catalog) return;
-    const entry = catalog[catKey]?.['__default__'];
-    if (!entry || !entry.sell_ttc) return;
-
-    // Write price into model
-    line.prix_unit_ttc  = entry.sell_ttc;
-    if (entry.buy_ttc != null) line.prix_achat_ttc = entry.buy_ttc;
-
-    // Update UI inputs on the same row
-    const tr = document.querySelector(`tr[data-idx="${idx}"]`);
-    const puIn = tr?.querySelector('[data-field="prix_unit_ttc"]');
-    const paIn = tr?.querySelector('[data-field="prix_achat_ttc"]');
-    if (puIn) puIn.value = entry.sell_ttc;
-    if (paIn && entry.buy_ttc != null) paIn.value = entry.buy_ttc;
-
-    // Recompute row total display
-    const total = (line.prix_unit_ttc || 0) * (line.quantite || 0);
-    const totalEl = document.querySelector(`.row-total[data-idx="${idx}"]`);
-    if (totalEl) totalEl.textContent = formatMoney(total);
-
-    updateTotals();
-    scheduleROI();
-}
-
 function renderProductLines(lines, onduleurMeta) {
     onduleurMeta = onduleurMeta || {};
     currentProductLines = lines || [];
@@ -679,13 +443,33 @@ function renderProductLines(lines, onduleurMeta) {
         const tr = document.createElement('tr');
         tr.dataset.idx = i;
         const des = line.designation || '';
-        const stype = _getSpecialType(des);
+        const isOndRes = des === 'Onduleur réseau';
+        const isOndHyb = des === 'Onduleur hybride';
+        const ondType = isOndRes ? 'reseau' : (isOndHyb ? 'hybride' : null);
+        const ondMeta = ondType ? onduleurMeta[ondType] : null;
 
-        // Build marque cell — cascading brand+power dropdowns for special types
-        const marqueTd = stype ? _buildSpecialDropdownsTd(line, i) : `<td>
-            <input type="text" class="table-input" data-field="marque" data-idx="${i}"
-                   value="${escHtml(line.marque || '')}" placeholder="Marque">
-        </td>`;
+        // Build marque cell — special dropdown for onduleur rows when catalog metadata is available
+        let marqueTd;
+        if (ondMeta) {
+            const selPower = ondMeta.power || '';
+            const selPhase = ondMeta.phase || 'Monophasé';
+            const brand = ondMeta.brand || line.marque || '';
+            marqueTd = `<td>
+                <input type="text" class="table-input" data-field="marque" data-idx="${i}"
+                       value="${escHtml(brand)}" placeholder="Marque" style="margin-bottom:3px;">
+                <select class="table-input onduleur-power-select"
+                        data-field="onduleur_power_phase" data-idx="${i}"
+                        data-type="${escHtml(ondType)}" data-brand="${escHtml(brand)}"
+                        data-sel-power="${selPower}" data-sel-phase="${escHtml(selPhase)}">
+                    <option value="">Chargement…</option>
+                </select>
+            </td>`;
+        } else {
+            marqueTd = `<td>
+                <input type="text" class="table-input" data-field="marque" data-idx="${i}"
+                       value="${escHtml(line.marque || '')}" placeholder="Marque">
+            </td>`;
+        }
 
         tr.innerHTML = `
             <td>
@@ -720,93 +504,45 @@ function renderProductLines(lines, onduleurMeta) {
         tbody.appendChild(tr);
     });
 
-    // Attach change listeners to all data-field inputs/selects
+    // Attach change listeners
     tbody.querySelectorAll('[data-field]').forEach(el => {
         el.addEventListener('input', onProductLineChange);
         el.addEventListener('change', onProductLineChange);
     });
 
-    // spec-brand: rebuild power dropdown when brand changes
-    tbody.querySelectorAll('.spec-brand').forEach(sel => {
-        sel.addEventListener('change', () => {
-            const idx = parseInt(sel.dataset.idx);
-            const stype = sel.dataset.stype;
-            const brand = sel.value;
-            currentProductLines[idx]._specBrand = brand;
-            currentProductLines[idx].marque = brand;
-            currentProductLines[idx]._specPower = undefined;
-            currentProductLines[idx].prix_unit_ttc = 0;
-            currentProductLines[idx].prix_achat_ttc = 0;
-            const tr = sel.closest('tr');
-            const powerSel = tr?.querySelector('.spec-power');
-            if (powerSel && _catalogCache) {
-                const catKey = _catKeyForStype(stype);
-                const catEntry = _catalogCache[catKey];
-                const isOnd = stype.startsWith('onduleur');
-                const unit = stype === 'panneaux' ? 'W' : 'kWh';
-                powerSel.innerHTML = _buildPowerOptsHtml(catEntry, brand, isOnd, unit) ||
-                    '<option value="">— sélectionner puissance —</option>';
-            }
-            updateTotals();
-        });
-    });
+    // Async-populate onduleur power/phase dropdowns
+    tbody.querySelectorAll('.onduleur-power-select').forEach(async (sel) => {
+        const type = sel.dataset.type;
+        const brand = sel.dataset.brand;
+        const selPower = parseFloat(sel.dataset.selPower) || null;
+        const selPhase = sel.dataset.selPhase || 'Monophasé';
+        if (!brand) { sel.innerHTML = '<option value="">— aucune marque —</option>'; return; }
 
-    // spec-power: fill price and sync Section 3 for onduleurs
-    tbody.querySelectorAll('.spec-power').forEach(sel => {
-        sel.addEventListener('change', _applySpecPower);
-        // Auto-apply first option price on load if price is 0
-        if (sel.options.length && sel.value) {
-            const idx = parseInt(sel.dataset.idx);
-            const line = currentProductLines[idx];
-            if (line && !(line.prix_unit_ttc > 0)) {
-                _applySpecPower({ target: sel });
-            }
+        const opts = await fetchOnduleurOptions(type, brand);
+        sel.innerHTML = '';
+        if (!opts.length) {
+            sel.innerHTML = `<option value="">${escHtml(brand)} (aucune option)</option>`;
+            return;
+        }
+        const isTri = (s) => (s || '').toLowerCase().includes('tri');
+        let matched = false;
+        opts.forEach(opt => {
+            const label = `${brand} ${opt.power != null ? opt.power + 'kW' : opt.power_str} — ${opt.phase}`;
+            const val = JSON.stringify({ power: opt.power, phase: opt.phase, sell_ttc: opt.sell_ttc, buy_ttc: opt.buy_ttc });
+            const optEl = document.createElement('option');
+            optEl.value = val;
+            optEl.textContent = label;
+            const isMatch = (selPower !== null && Math.abs((opt.power || 0) - selPower) < 0.01 && isTri(opt.phase) === isTri(selPhase));
+            if (isMatch) { optEl.selected = true; matched = true; }
+            sel.appendChild(optEl);
+        });
+        // If nothing matched, fall back to first option
+        if (!matched && sel.options.length) {
+            sel.options[0].selected = true;
         }
     });
 
     updateTotals();
-}
-
-function _applySpecPower(e) {
-    const sel = e.target;
-    const idx = parseInt(sel.dataset.idx);
-    const stype = sel.dataset.stype;
-    if (!sel.value) return;
-    try {
-        const opt = JSON.parse(sel.value);
-        const line = currentProductLines[idx];
-        if (!line) return;
-        line.prix_unit_ttc = opt.sell_ttc || 0;
-        line.prix_achat_ttc = opt.buy_ttc || 0;
-        line._specPower = opt.power;
-        if (opt.phase) line._specPhase = opt.phase;
-        // Sync brand from the sibling brand select
-        const tr = sel.closest('tr');
-        const brandSel = tr?.querySelector('.spec-brand');
-        if (brandSel) { line._specBrand = brandSel.value; line.marque = brandSel.value; }
-        // Update visible price inputs
-        const puIn = tr?.querySelector('[data-field="prix_unit_ttc"]');
-        const paIn = tr?.querySelector('[data-field="prix_achat_ttc"]');
-        if (puIn) puIn.value = opt.sell_ttc || 0;
-        if (paIn) paIn.value = opt.buy_ttc || 0;
-        // Sync Section 3 for onduleurs
-        if (stype && stype.startsWith('onduleur')) {
-            if (opt.power) {
-                const kwInput = document.getElementById('onduleur-kw');
-                if (kwInput) kwInput.value = opt.power;
-            }
-            if (opt.phase) {
-                const phaseVal = opt.phase.toLowerCase().includes('tri') ? 'Triphasé' : 'Monophasé';
-                const phaseRadio = document.querySelector(`input[name="onduleur-phase"][value="${phaseVal}"]`);
-                if (phaseRadio) phaseRadio.checked = true;
-            }
-        }
-        const total = (opt.sell_ttc || 0) * (line.quantite || 0);
-        const totalEl = document.querySelector(`.row-total[data-idx="${idx}"]`);
-        if (totalEl) totalEl.textContent = formatMoney(total);
-        updateTotals();
-        scheduleROI();
-    } catch (_) {}
 }
 
 function onProductLineChange(e) {
@@ -842,18 +578,6 @@ function onProductLineChange(e) {
     } else {
         const val = (field === 'designation' || field === 'marque') ? el.value : parseFloat(el.value) || 0;
         currentProductLines[idx][field] = val;
-        // Auto-fill price from catalog when designation changes or qty becomes non-zero
-        if (field === 'designation') {
-            currentProductLines[idx].prix_unit_ttc = 0;
-            if (_getSpecialType(val) && _catalogCache) {
-                // Special type: re-render to show brand+power dropdowns
-                renderProductLines(currentProductLines);
-                return;
-            }
-            autofillRowPrice(idx);
-        } else if (field === 'quantite' && val > 0) {
-            autofillRowPrice(idx);
-        }
     }
 
     // Update row total
@@ -1478,10 +1202,7 @@ function renderCatalogDisplay(catalog, container) {
                             <td>${escHtml(phase)}</td>
                             <td><input type="number" class="form-control form-control-sm" id="cps${i}" value="${vd.sell_ttc || 0}" style="width:110px"></td>
                             ${admin ? `<td><input type="number" class="form-control form-control-sm" id="cpb${i}" value="${vd.buy_ttc || 0}" style="width:110px"></td>` : ''}
-                            <td style="white-space:nowrap;">
-                                <button class="btn btn-primary btn-sm" onclick="saveCatalogPrice(${i})">💾</button>
-                                ${admin ? `<button class="btn btn-danger btn-sm" onclick="deleteCatalogEntry(${i})" title="Supprimer">🗑️</button>` : ''}
-                            </td>
+                            <td><button class="btn btn-primary btn-sm" onclick="saveCatalogPrice(${i})">💾</button></td>
                         </tr>`;
                         hasRow = true;
                     }
@@ -1506,10 +1227,7 @@ function renderCatalogDisplay(catalog, container) {
                         <td>${power} ${unit}</td>
                         <td><input type="number" class="form-control form-control-sm" id="cps${i}" value="${pd.sell_ttc || 0}" style="width:110px"></td>
                         ${admin ? `<td><input type="number" class="form-control form-control-sm" id="cpb${i}" value="${pd.buy_ttc || 0}" style="width:110px"></td>` : ''}
-                        <td style="white-space:nowrap;">
-                            <button class="btn btn-primary btn-sm" onclick="saveCatalogPrice(${i})">💾</button>
-                            ${admin ? `<button class="btn btn-danger btn-sm" onclick="deleteCatalogEntry(${i})" title="Supprimer">🗑️</button>` : ''}
-                        </td>
+                        <td><button class="btn btn-primary btn-sm" onclick="saveCatalogPrice(${i})">💾</button></td>
                     </tr>`;
                     hasRow = true;
                 }
@@ -1567,24 +1285,6 @@ async function saveCatalogPrice(i) {
     } catch (e) {
         showToast('Erreur: ' + e.message, 'danger');
     }
-}
-
-async function deleteCatalogEntry(i) {
-    const row = window._catPriceRows[i];
-    if (!row) return;
-    const label = row.phase ? `${row.brand} ${row.power}kW ${row.phase}` : `${row.brand} ${row.power}`;
-    if (!confirm(`Supprimer "${label}" du catalogue?`)) return;
-    try {
-        const res = await authFetch('/api/catalog/entry', {
-            method: 'DELETE',
-            body: JSON.stringify({ category: row.category, brand: row.brand, power: row.power, phase: row.phase }),
-        });
-        if (!res) return;
-        const data = await res.json();
-        showToast(data.message || 'Entrée supprimée', 'success');
-        _catalogCache = null; // invalidate local cache
-        loadCatalog();
-    } catch (e) { showToast('Erreur: ' + e.message, 'danger'); }
 }
 
 async function addCatalogInverter() {

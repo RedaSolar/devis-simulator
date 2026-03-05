@@ -2,7 +2,7 @@
 // TAQINOR — JWT Authentication Utilities
 // =========================================================
 
-const API_BASE = '';
+const API_BASE = '/simulator';
 
 function getToken() {
     return localStorage.getItem('taqinor_token');
@@ -35,7 +35,7 @@ function clearUser() {
 async function authFetch(url, options = {}) {
     const token = getToken();
     if (!token) {
-        window.location.href = '/login';
+        window.location.href = '/simulator/login';
         return null;
     }
     const headers = {
@@ -48,7 +48,7 @@ async function authFetch(url, options = {}) {
         if (res.status === 401) {
             clearToken();
             clearUser();
-            window.location.href = '/login';
+            window.location.href = '/simulator/login';
             return null;
         }
         return res;
@@ -61,7 +61,7 @@ async function authFetch(url, options = {}) {
 async function logout() {
     clearToken();
     clearUser();
-    window.location.href = '/login';
+    window.location.href = '/simulator/login';
 }
 
 function isAuthenticated() {
@@ -70,7 +70,7 @@ function isAuthenticated() {
 
 function requireAuth() {
     if (!isAuthenticated()) {
-        window.location.href = '/login';
+        window.location.href = '/simulator/login';
         return false;
     }
     return true;

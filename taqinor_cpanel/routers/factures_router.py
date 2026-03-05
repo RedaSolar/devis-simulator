@@ -12,7 +12,7 @@ import pdf_generator
 
 router = APIRouter()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(".")
 DEVIS_HISTORY_FILE = BASE_DIR / "devis_history.json"
 CONFIG_FILE = BASE_DIR / "config.json"
 FACTURES_DIR = BASE_DIR / "factures_client"

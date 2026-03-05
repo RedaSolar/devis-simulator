@@ -76,8 +76,7 @@ def load_catalog():
         "Onduleur Hybride": {},
         "Panneaux": {},
         "Batterie": {},
-        "Structures acier": {"__default__": {"sell_ttc": 0.0, "buy_ttc": 0.0}},
-        "Structures aluminium": {"__default__": {"sell_ttc": 0.0, "buy_ttc": 0.0}},
+        "Structures": {"__default__": {"sell_ttc": 0.0, "buy_ttc": 0.0}},
         "Socles": {"__default__": {"sell_ttc": 0.0, "buy_ttc": 0.0}},
         "Accessoires": {"__default__": {"sell_ttc": 0.0, "buy_ttc": 0.0}},
         "Smart Meter": {"__default__": {"sell_ttc": 0.0, "buy_ttc": 0.0}},
@@ -102,12 +101,8 @@ def _catalog_key_for_designation(designation: str) -> str:
         return "Onduleur Injection" if designation == "Onduleur réseau" else "Onduleur Hybride"
     if designation in ("Panneaux", "Batterie"):
         return designation
-    if designation == "Structures acier":
-        return "Structures acier"
-    if designation == "Structures aluminium":
-        return "Structures aluminium"
-    if isinstance(designation, str) and designation.lower().startswith("structures"):
-        return "Structures acier"  # fallback for legacy "Structures" entries
+    if isinstance(designation, str) and designation.startswith("Structures"):
+        return "Structures"
     return designation
 
 

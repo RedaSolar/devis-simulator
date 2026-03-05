@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TAQINOR — Connexion</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/simulator/static/css/style.css">
     <style>
         body { background: linear-gradient(135deg, #073d57 0%, #0A5275 50%, #1a7aad 100%); }
     </style>
@@ -50,7 +50,7 @@
     // Redirect if already logged in
     const token = localStorage.getItem('taqinor_token');
     if (token) {
-        window.location.href = '/';
+        window.location.href = '/simulator/';
     }
 
     async function doLogin(e) {
@@ -65,7 +65,7 @@
         btn.innerHTML = '<span class="spinner"></span> Connexion...';
 
         try {
-            const res = await fetch('/api/auth/login', {
+            const res = await fetch('/simulator/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),
@@ -79,7 +79,7 @@
             const data = await res.json();
             localStorage.setItem('taqinor_token', data.access_token);
             localStorage.setItem('taqinor_user', JSON.stringify(data.user));
-            window.location.href = '/';
+            window.location.href = '/simulator/';
         } catch (err) {
             errorEl.textContent = err.message;
             errorEl.style.display = 'block';

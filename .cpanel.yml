@@ -1,7 +1,7 @@
 ---
 deployment:
   tasks:
+    - /bin/chmod o+x /home/taqinorm
     - export DEPLOYPATH=/home/taqinorm/taqinor_app/
     - /bin/cp -R . $DEPLOYPATH
-    - /bin/chmod o+x /home/taqinorm
     - /bin/chmod -R o+rX $DEPLOYPATH

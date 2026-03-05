@@ -10,3 +10,8 @@ if not db.get_user_by_username("admin"):
     print("OK: admin user created")
 else:
     print("OK: admin user already exists")
+if not db.get_user_by_username("moumna"):
+    db.create_user("moumna", hash_password("sisayed"), role="user")
+    print("OK: user moumna created")
+else:
+    print("OK: user moumna already exists")

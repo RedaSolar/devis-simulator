@@ -250,7 +250,14 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     doc_number = request.doc_number
     doc_type = "Devis"
     safe_client = re.sub(r"[^A-Za-z0-9]", "_", request.client_name or "Client")
-    pdf_filename = f"{doc_type}_{safe_client}_{int(doc_number)}.pdf"
+    kwp_str = f"{kwp:g}kWc".replace(".", ",")
+    if scenario == "Les deux (Sans + Avec)":
+        opt_str = "sans+avec"
+    elif scenario == "Avec batterie":
+        opt_str = "avec"
+    else:
+        opt_str = "sans"
+    pdf_filename = f"{doc_type}_{safe_client}_{int(doc_number)}_{kwp_str}_{opt_str}.pdf"
 
     _onduleur_kw    = request.onduleur_kw
     _onduleur_phase = request.onduleur_phase or "Monophasé"

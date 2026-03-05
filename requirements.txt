@@ -8,5 +8,6 @@ pandas
 numpy
 matplotlib
 reportlab
+weasyprint
 streamlit
 playwright

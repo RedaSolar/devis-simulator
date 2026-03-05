@@ -10,48 +10,14 @@ import base64, io, json, subprocess, sys, tempfile
 from pathlib import Path
 
 
-def _find_browser():
-    """Find Chrome/Chromium - checks Playwright's Chromium and system paths."""
-    import glob, os
-
-    # Try playwright Python API
-    try:
-        from playwright.sync_api import sync_playwright
-        with sync_playwright() as p:
-            path = p.chromium.executable_path
-            print(f"Playwright chromium path: {path}")
-            if Path(path).exists():
-                return path
-    except Exception as ex:
-        print(f"Playwright API failed: {ex}")
-
-    # Glob search for playwright chromium in common Render paths
-    patterns = [
-        os.path.expanduser("~/.cache/ms-playwright/chromium-*/chrome-linux/chrome"),
-        "/opt/render/.cache/ms-playwright/chromium-*/chrome-linux/chrome",
-        "/root/.cache/ms-playwright/chromium-*/chrome-linux/chrome",
-        "/home/render/.cache/ms-playwright/chromium-*/chrome-linux/chrome",
-    ]
-    for pattern in patterns:
-        matches = glob.glob(pattern)
-        print(f"Glob {pattern}: {matches}")
-        if matches:
-            return matches[0]
-
-    # System browsers fallback
-    candidates = [
-        "/usr/bin/google-chrome",
-        "/usr/bin/google-chrome-stable",
-        "/usr/bin/chromium-browser",
-        "/usr/bin/chromium",
-        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-    ]
-    for b in candidates:
-        if Path(b).exists():
-            return b
-
-    raise RuntimeError("Chrome or Edge not found.")
+def _render_pdf_weasyprint(html_string, out_path):
+    """Render HTML to PDF using WeasyPrint (no browser needed)."""
+    from weasyprint import HTML
+    base_dir = str(Path(__file__).resolve().parent)
+    HTML(string=html_string, base_url=f"file://{base_dir}/").write_pdf(str(out_path))
+    if not Path(out_path).exists():
+        raise RuntimeError("WeasyPrint PDF generation failed.")
+    print(f"WeasyPrint rendered: {out_path}")
 
 
 import os
@@ -1385,20 +1351,9 @@ def generate():
         tf.write(html)
         tmp = tf.name
 
-    print("[3/3] Rendering with Chrome headless...")
-    br = _find_browser()
-
-    import platform
-    file_url = f"file://{tmp}" if platform.system() != "Windows" else f"file:///{tmp.replace(chr(92), '/')}"
-    cmd = [br, "--headless=new", "--disable-gpu", "--no-sandbox",
-           "--disable-dev-shm-usage",
-           f"--print-to-pdf={out}", "--print-to-pdf-no-header",
-           file_url]
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+    print("[3/3] Rendering with WeasyPrint...")
+    _render_pdf_weasyprint(html, str(out))
     Path(tmp).unlink(missing_ok=True)
-
-    if not out.exists():
-        raise RuntimeError(f"Chrome failed.\n{r.stderr[:400]}")
 
     kb = out.stat().st_size // 1024
     msg = (f"\n\u2705 Saved: {out.name} | Pages: 3 | {kb} KB\n")
@@ -1468,19 +1423,8 @@ def generate_premium_pdf(data: dict, out_path) -> str:
         tf.write(html)
         tmp = tf.name
 
-    br = _find_browser()
-
-    import platform
-    file_url = f"file://{tmp}" if platform.system() != "Windows" else f"file:///{tmp.replace(chr(92), '/')}"
-    cmd = [br, "--headless=new", "--disable-gpu", "--no-sandbox",
-           "--disable-dev-shm-usage",
-           f"--print-to-pdf={out_path}", "--print-to-pdf-no-header",
-           file_url]
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+    _render_pdf_weasyprint(html, str(out_path))
     Path(tmp).unlink(missing_ok=True)
-
-    if not out_path.exists():
-        raise RuntimeError(f"Chrome failed.\n{r.stderr[:400]}")
 
     return str(out_path)
 

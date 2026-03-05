@@ -1,3 +1,5 @@
-<Files "Passengerfile.json">
-    Require all granted
-</Files>
+PassengerAppRoot "/home/taqinorm/taqinor_app"
+PassengerBaseURI "/simulator"
+PassengerPython "/home/taqinorm/virtualenv/taqinor_app/3.12/bin/python"
+PassengerAppType wsgi
+PassengerStartupFile app_wsgi.py

@@ -17,3 +17,5 @@ run_devis_old.bat
 # Temporary scripts
 tmp_*.py
 tmp_*.ps1
+tmp/
+*.db

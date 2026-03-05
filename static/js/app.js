@@ -530,9 +530,10 @@ async function autoFill() {
     const btn = document.getElementById('btn-autofill');
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Remplissage...'; }
     try {
+        const structType = document.querySelector('input[name="structure-type"]:checked')?.value || 'acier';
         const res = await authFetch('/api/autofill', {
             method: 'POST',
-            body: JSON.stringify({ puissance_kwp: kwp, puissance_panneau_w: panW }),
+            body: JSON.stringify({ puissance_kwp: kwp, puissance_panneau_w: panW, structure_type: structType }),
         });
         if (!res) return;
         if (!res.ok) {
@@ -632,7 +633,9 @@ function _catalogKeyFor(designation) {
     const d = (designation || '').toLowerCase().trim();
     if (!d) return null;
     if (d.includes('onduleur') || d === 'panneaux' || d.startsWith('panneau') || d === 'batterie') return null;
-    if (d.startsWith('structures')) return 'Structures';
+    if (d === 'structures acier') return 'Structures acier';
+    if (d === 'structures aluminium') return 'Structures aluminium';
+    if (d.startsWith('structures')) return 'Structures acier'; // legacy fallback
     // Match canonical names case-insensitively
     const canonicals = ['Smart Meter','Wifi Dongle','Socles','Accessoires',
         'Tableau De Protection AC/DC','Installation','Transport',

@@ -158,27 +158,15 @@
       "buy_ttc": 900.0
     },
     "Canadien Solar": {
-      "630": {
-        "sell_ttc": 950.0,
-        "buy_ttc": 750.0
-      },
       "710": {
-        "sell_ttc": 1100.0,
-        "buy_ttc": 900.0
+        "sell_ttc": 1400.0,
+        "buy_ttc": 1200.0
       }
     },
     "Jinko": {
-      "590": {
-        "sell_ttc": 850.0,
-        "buy_ttc": 680.0
-      },
-      "620": {
-        "sell_ttc": 900.0,
-        "buy_ttc": 840.0
-      },
       "710": {
-        "sell_ttc": 1100.0,
-        "buy_ttc": 900.0
+        "sell_ttc": 1400.0,
+        "buy_ttc": 1200.0
       }
     }
   },
@@ -190,7 +178,7 @@
     "Deyness": {
       "5": {
         "sell_ttc": 16000.0,
-        "buy_ttc": 12000.0
+        "buy_ttc": 13000.0
       },
       "10": {
         "sell_ttc": 27000.0,
@@ -208,12 +196,6 @@
         "sell_ttc": 5000.0,
         "buy_ttc": 3100.0
       }
-    }
-  },
-  "Structures": {
-    "__default__": {
-      "sell_ttc": 500.0,
-      "buy_ttc": 350.0
     }
   },
   "Socles": {
@@ -262,6 +244,18 @@
     "__default__": {
       "sell_ttc": 5000.0,
       "buy_ttc": 4000.0
+    }
+  },
+  "Structures acier": {
+    "__default__": {
+      "sell_ttc": 500.0,
+      "buy_ttc": 350.0
+    }
+  },
+  "Structures aluminium": {
+    "__default__": {
+      "sell_ttc": 500.0,
+      "buy_ttc": 350.0
     }
   }
 }

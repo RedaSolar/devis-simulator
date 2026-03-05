@@ -148,6 +148,42 @@ async def update_price(entry: PriceUpdate, current_user: dict = Depends(get_curr
     return {"status": "ok", "message": "Prix mis à jour"}
 
 
+class DeleteEntry(BaseModel):
+    category: str
+    brand: str
+    power: str = ""
+    phase: str = ""
+
+
+@router.delete("/entry")
+async def delete_catalog_entry(entry: DeleteEntry, current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admins seulement")
+    catalog = load_catalog()
+    cat = catalog.get(entry.category)
+    if cat is None:
+        raise HTTPException(status_code=404, detail="Catégorie introuvable")
+    try:
+        if entry.power and entry.phase:
+            variants = cat[entry.brand][entry.power]["variants"]
+            del variants[entry.phase]
+            if not variants:
+                del cat[entry.brand][entry.power]
+            if not cat.get(entry.brand):
+                cat.pop(entry.brand, None)
+        elif entry.power:
+            del cat[entry.brand][entry.power]
+            if not cat.get(entry.brand):
+                cat.pop(entry.brand, None)
+        else:
+            del cat[entry.brand]
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Entrée introuvable")
+    save_catalog(catalog)
+    _catalogCache = None  # bust JS-side cache hint (informational)
+    return {"status": "ok", "message": "Entrée supprimée"}
+
+
 @router.get("/templates")
 async def get_templates(current_user: dict = Depends(get_current_user)):
     return load_custom_templates()

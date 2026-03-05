@@ -273,17 +273,20 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
 
     nb_pan = round(kwp * 1000 / request.puissance_panneau_w) if request.puissance_panneau_w > 0 else 0
 
-    # Raw unfiltered items for one-page mode (no scenario filtering, no qty==0 skip)
-    all_items = [
-        {
-            "designation": ln.designation,
+    # Raw unfiltered items for one-page mode — enrich onduleur rows with kW/phase
+    all_items = []
+    for ln in request.product_lines:
+        if not (ln.quantite and ln.quantite > 0):
+            continue
+        des = ln.designation
+        if _onduleur_kw and "onduleur" in des.lower():
+            des = f"{des} {_onduleur_kw:g}kW {_onduleur_phase}"
+        all_items.append({
+            "designation": des,
             "marque": ln.marque or "",
             "quantite": ln.quantite,
             "prix_unit_ttc": ln.prix_unit_ttc,
-        }
-        for ln in request.product_lines
-        if ln.quantite and ln.quantite > 0
-    ]
+        })
 
     premium_data = {
         "ref":              str(doc_number),

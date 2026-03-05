@@ -661,16 +661,14 @@ def page1():
     _s1   = 'display:none;' if SCENARIO == 'Avec batterie' else ''
     _s2   = 'display:none;' if SCENARIO == 'Sans batterie' else ''
     _both = not _s1 and not _s2
-    _r1   = (f'<div style="display:block;background:{CA};color:{CN};font-size:7pt;'
-             f'font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:8px;'
-             f'text-transform:uppercase;text-align:center;margin-bottom:6px;'
-             f'width:100%;box-sizing:border-box;">&#9733; RECOMMAND\u00c9</div>'
+    # Badge: position:absolute at the top of the card — does NOT shift price downwards
+    _badge_css = (f'position:absolute;top:0;left:0;right:0;background:{CA};color:{CN};'
+                  f'font-size:7pt;font-weight:700;letter-spacing:1px;padding:5px 9px;'
+                  f'border-radius:4px 4px 0 0;text-transform:uppercase;text-align:center;')
+    _r1   = (f'<div style="{_badge_css}">&#9733; RECOMMAND\u00c9</div>'
              if _both and RECOMMENDED == 'Sans batterie' else '')
-    _r2   = (f'<div style="display:block;background:{CA};color:{CN};font-size:7pt;'
-             f'font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:8px;'
-             f'text-transform:uppercase;text-align:center;margin-bottom:6px;'
-             f'width:100%;box-sizing:border-box;">&#9733; RECOMMAND\u00c9</div>'
-             if not _s2 and (_both and RECOMMENDED == 'Avec batterie') else '')
+    _r2   = (f'<div style="{_badge_css}">&#9733; RECOMMAND\u00c9</div>'
+             if _both and RECOMMENDED == 'Avec batterie' else '')
     # Price display — crossed-out original + discount badge + new price when discount active
     if DISCOUNT_PCT > 0:
         _s_before = f"{int(TOTAL_SANS_BEFORE):,}".replace(",", _s) + "\u00a0MAD"
@@ -821,9 +819,9 @@ def page1():
   <div style="flex:1;min-height:0;display:flex;gap:12px;padding:0 24px 10px;align-items:stretch;background:#FFFFFF !important;">
 
     <!-- OPTION 1 -->
-    <div style="flex:1;border:1.5px solid #E8A020;border-radius:6px;padding:12px;display:flex;flex-direction:column;background:#FFFFFF;{_s1}">
-      <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 1</div>
+    <div style="flex:1;border:1.5px solid #E8A020;border-radius:6px;padding:28px 12px 12px;display:flex;flex-direction:column;background:#FFFFFF;position:relative;{_s1}">
       {_r1}
+      <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 1</div>
       <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Sans batterie</div>
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Autoconsommation directe</div>
       {_ts_price}
@@ -844,9 +842,9 @@ def page1():
     </div>
 
     <!-- OPTION 2 -->
-    <div style="flex:1;border:1.5px solid #E8A020;border-top:6px solid {CN};border-radius:6px;padding:12px;display:flex;flex-direction:column;background:#FFF3E0;{_s2}">
-      <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 2</div>
+    <div style="flex:1;border:1.5px solid #E8A020;border-radius:6px;padding:28px 12px 12px;display:flex;flex-direction:column;background:#FFF3E0;position:relative;{_s2}">
       {_r2}
+      <div style="font-size:6.5pt;letter-spacing:3px;color:{CA};font-weight:700;text-transform:uppercase;margin-bottom:4px;">Option 2</div>
       <div style="font-size:13pt;font-weight:500;color:{CN};margin-bottom:2px;">Avec batterie</div>
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
       {_ta_price}

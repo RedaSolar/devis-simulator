@@ -324,20 +324,11 @@ function getScenario() {
 function getRecommended() {
     const val = document.getElementById('recommended-option')?.value || 'Auto';
     if (val !== 'Auto') return val;
-    // Auto: resolve based on scenario and ROI data
+    // Auto: always default to "Avec batterie" unless scenario forces single option
     const { v } = getScenario();
     if (v === 'Sans batterie') return 'Sans batterie';
     if (v === 'Avec batterie') return 'Avec batterie';
-    // Both options: pick the one with lower payback (shorter ROI = better)
-    if (currentRoiResult) {
-        const ps = currentRoiResult.payback_sans ?? 0;
-        const pa = currentRoiResult.payback_avec ?? 0;
-        if (ps <= 0 && pa <= 0) return 'Aucune recommandation';
-        if (ps <= 0) return 'Avec batterie';
-        if (pa <= 0) return 'Sans batterie';
-        return ps <= pa ? 'Sans batterie' : 'Avec batterie';
-    }
-    return 'Aucune recommandation';
+    return 'Avec batterie'; // Both options → recommend Avec batterie by default
 }
 
 function applyRoleVisibility(user) {

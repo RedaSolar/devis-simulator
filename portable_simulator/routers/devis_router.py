@@ -13,6 +13,7 @@ from roi import roi_figure_buffer, roi_cumulative_buffer
 from pdf_generator import generate_double_devis_pdf
 import pdf_generator
 from generate_devis_premium import generate_premium_pdf
+from catalog import load_catalog
 
 router = APIRouter()
 
@@ -274,6 +275,8 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     nb_pan = round(kwp * 1000 / request.puissance_panneau_w) if request.puissance_panneau_w > 0 else 0
 
     # Raw unfiltered items for one-page mode — enrich onduleur rows with kW/phase
+    # and battery rows with kWh capacity
+    _bat_catalog = load_catalog().get("Batterie", {})
     all_items = []
     for ln in request.product_lines:
         if not (ln.quantite and ln.quantite > 0):
@@ -281,6 +284,12 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         des = ln.designation
         if _onduleur_kw and "onduleur" in des.lower():
             des = f"{des} {_onduleur_kw:g}kW {_onduleur_phase}"
+        elif "batterie" in des.lower() and ln.marque and ln.prix_unit_ttc > 0:
+            brand_entries = _bat_catalog.get(ln.marque, {})
+            for cap_str, entry in brand_entries.items():
+                if isinstance(entry, dict) and abs(entry.get("sell_ttc", 0) - ln.prix_unit_ttc) < 1:
+                    des = f"{des} {cap_str}kWh"
+                    break
         all_items.append({
             "designation": des,
             "marque": ln.marque or "",

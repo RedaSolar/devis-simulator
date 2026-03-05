@@ -832,6 +832,7 @@ def page1():
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> {NB_PAN} panneaux {WP}&nbsp;W</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Onduleur r&#233;seau Huawei</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Smart Meter + Wifi Dongle</li>
+        <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Monitoring int&#233;gr&#233; via app Huawei</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>

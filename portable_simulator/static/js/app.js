@@ -305,9 +305,11 @@ async function initApp() {
         }
     });
 
-    // Default product lines table — then auto-fill prices for known items
+    // Default product lines table — render once now, then re-render after catalog loads
+    // so that Onduleur/Panneaux/Batterie rows show brand+power dropdowns
     renderProductLines(getDefaultProductLines());
     _ensureCatalog().then(() => {
+        renderProductLines(currentProductLines); // shows special dropdowns now that cache is ready
         currentProductLines.forEach((_, i) => autofillRowPrice(i));
     });
 }

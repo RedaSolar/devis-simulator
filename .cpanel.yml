@@ -3,4 +3,5 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/taqinorm/taqinor_app/
     - /bin/cp -R . $DEPLOYPATH
-    - /bin/chmod -R a+rX $DEPLOYPATH
+    - /bin/chmod o+x /home/taqinorm
+    - /bin/chmod -R o+rX $DEPLOYPATH

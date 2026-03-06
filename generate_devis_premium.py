@@ -499,11 +499,13 @@ def make_chart_roi():
     _roi_pts = []
     if _show_s: _roi_pts.append((ROI_S, CUMUL_S, CNM, f"ROI ~{ROI_S} ans"))
     if _show_a: _roi_pts.append((ROI_A, CUMUL_A, CA,  f"ROI ~{ROI_A} ans"))
-    for roi, cumul, color, lbl in _roi_pts:
+    _y_offsets = [15, -25]  # Sans batterie above, Avec batterie below
+    for i, (roi, cumul, color, lbl) in enumerate(_roi_pts):
         yr = int(roi); fr = roi - yr
         yv = cumul[yr] + fr * (cumul[yr+1] - cumul[yr]) if yr < 25 else cumul[25]
         ax.scatter([roi], [yv], color=color, s=120, zorder=6, marker="*")
-        ax.annotate(lbl, (roi, yv), xytext=(6, 10), textcoords="offset points",
+        yoff = _y_offsets[i] if i < len(_y_offsets) else 10
+        ax.annotate(lbl, (roi, yv), xytext=(6, yoff), textcoords="offset points",
                     fontsize=8.5, color=color, fontweight="bold",
                     arrowprops=dict(arrowstyle="-", color=color, lw=0.8))
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{v/1000:.0f}k"))
@@ -1173,7 +1175,7 @@ def page3():
       <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:4px 8px;min-height:45px;background:white;">
         <div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Signature TAQINOR</div>
         <div style="border-bottom:1px solid {CG2};min-height:10px;margin-bottom:2px;"></div>
-        <div style="font-size:7pt;color:{CG4};margin-top:1px;">Repr\u00e9sentant&#160;: <strong style="color:{CG7};">TAQINOR</strong></div>
+        <div style="font-size:7pt;color:{CG4};margin-top:1px;">Repr\u00e9sentant&#160;: _______________</div>
         <div style="border-bottom:1px solid {CG2};min-height:8px;margin-top:2px;margin-bottom:2px;"></div>
         <div style="font-size:7pt;color:{CG4};">Date&#160;: _______________</div>
         <div style="font-size:5.5pt;color:{CG4};margin-top:3px;font-style:italic;">Cachet et signature de la soci\u00e9t\u00e9</div>

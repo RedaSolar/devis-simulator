@@ -793,14 +793,14 @@ def page1():
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Autoconsommation directe</div>
       {_ts_price}
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
-      <div style="display:inline-block;align-self:flex-start;background:#e8f5e9;color:#2e7d32;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">Retour en {ROI_S} ans</div>
+      <div style="display:inline-block;align-self:flex-start;background:#e8f5e9;color:#2e7d32;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">\u2197 Retour en {ROI_S} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
-        <li><span style="color:{CGR};font-weight:800;">&#10003;</span> {NB_PAN} panneaux {WP}&nbsp;W</li>
-        <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Onduleur r&#233;seau Huawei</li>
-        <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Smart Meter + Wifi Dongle</li>
-        <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Monitoring int&#233;gr&#233; via app Huawei</li>
-        <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
+        <li>\u2713 {NB_PAN} panneaux {WP}&nbsp;W</li>
+        <li>\u2713 Onduleur r&#233;seau Huawei</li>
+        <li>\u2713 Smart Meter + Wifi Dongle</li>
+        <li>\u2713 Monitoring int&#233;gr&#233; via app Huawei</li>
+        <li>\u2713 Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>
       <div style="background:{CG1};border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
@@ -817,14 +817,14 @@ def page1():
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
       {_ta_price}
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
-      <div style="display:inline-block;align-self:flex-start;background:#1a1a2e;color:white;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">Retour en {ROI_A} ans</div>
+      <div style="display:inline-block;align-self:flex-start;background:#1a1a2e;color:white;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">\u2197 Retour en {ROI_A} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
-        <li><span style="color:{CGR};font-weight:800;">&#10003;</span> {NB_PAN} panneaux {WP}&nbsp;W</li>
-        <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Onduleur hybride Deye</li>
-        <li style="color:#d4a84b;font-weight:bold;"><span style="color:#d4a84b;font-weight:bold;font-size:9pt;vertical-align:middle;margin-right:2px;">&#9650;</span> Batterie de stockage incluse</li>
-        <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Monitoring int&#233;gr&#233; via app Deye</li>
-        <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
+        <li>\u2713 {NB_PAN} panneaux {WP}&nbsp;W</li>
+        <li>\u2713 Onduleur hybride Deye</li>
+        <li>\u26a1 Batterie de stockage incluse</li>
+        <li>\u2713 Monitoring int&#233;gr&#233; via app Deye</li>
+        <li>\u2713 Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>
       <div style="background:white;border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
@@ -842,7 +842,7 @@ def page1():
     <div style="display:flex;gap:6px;">
       <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">&#9728; 3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
       <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">&#9889; Prix ONEE en hausse</span>
-      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">&#127758; &#201;nergie 100&#37; propre</span>
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">&#9679; &#201;nergie 100&#37; propre</span>
     </div>
     <div style="font-size:6.5pt;color:rgba(255,255,255,0.70);white-space:nowrap;">
       <span style="color:{CA};font-weight:700;">&#9312;</span> Devis

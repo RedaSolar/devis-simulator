@@ -19,3 +19,4 @@ tmp_*.py
 tmp_*.ps1
 tmp/
 *.db
+devis_history.json

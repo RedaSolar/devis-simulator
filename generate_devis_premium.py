@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 # ── Inline SVG icons for Page 1 (WeasyPrint renders inline SVG perfectly) ────
 SVG_CHECK   = '<svg width="13" height="13" viewBox="0 0 13 13" style="vertical-align:middle;margin-right:4px;"><path d="M2 6.5l3.5 3.5 5.5-6" stroke="#2e7d32" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-SVG_BOLT    = '<svg width="13" height="13" viewBox="0 0 13 13" style="vertical-align:middle;margin-right:4px;"><path d="M7.5 1.5L3.5 7.5H6.5L5.5 11.5L10 6H7Z" fill="#d4a84b"/></svg>'
+SVG_BOLT    = '<svg width="13" height="13" viewBox="0 0 13 13" style="vertical-align:middle;margin-right:4px;"><path d="M8 1L4 7.5H7L5 12L10 6H7Z" fill="#d4a84b"/></svg>'
 SVG_CHART   = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><rect rx="3" width="14" height="14" fill="#e8f5e9"/><path d="M3 10L6 6l2 2 3-4" stroke="#2e7d32" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
 SVG_CHART2  = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><rect rx="3" width="14" height="14" fill="#1a1a2e"/><path d="M3 10L6 6l2 2 3-4" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
 SVG_STAR    = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><path d="M7 1l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4z" fill="#d4a84b"/></svg>'
@@ -422,9 +422,9 @@ def footer(n, total=3):
             f'<div style="font-size:7pt;color:#888;">Page {n}&nbsp;/&nbsp;{total} &nbsp;|&nbsp; R\u00e9f.&nbsp;{REF}</div>'
             f'</div>')
 
-def footer_p3():
+def footer_p3(extra_style=""):
     """Page 3 footer — dark navy + legal identity line."""
-    return (f'<div style="background:{CN};padding:6px 24px 5px;flex-shrink:0;">'
+    return (f'<div style="{extra_style}background:{CN};padding:6px 24px 5px;flex-shrink:0;">'
             f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
             f'<div style="font-size:9pt;font-weight:800;color:{CA};letter-spacing:1px;">TAQINOR</div>'
             f'<div style="font-size:7pt;color:#888;text-align:center;">'
@@ -860,14 +860,15 @@ def page1():
   </div><!-- end white content area -->
 
   <!-- BOTTOM DARK STRIP — solid edge-to-edge dark navy, compact height -->
-  <div style="background:{CN};flex-shrink:0;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:8px 30px;">
-    <div style="display:flex;gap:6px;">
-      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_SUN}3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
-      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_ZAP}Prix ONEE en hausse</span>
-      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_GLOBE}&#201;nergie 100&#37; propre</span>
+  <div style="background:{CN};flex-shrink:0;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:8px 24px;gap:16px;">
+    <div style="display:flex;gap:5px;flex-shrink:0;">
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.35);border-radius:11px;padding:2px 7px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_SUN}3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.35);border-radius:11px;padding:2px 7px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_ZAP}Prix ONEE en hausse</span>
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.35);border-radius:11px;padding:2px 7px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_GLOBE}&#201;nergie 100&#37; propre</span>
     </div>
-    <div style="font-size:6.5pt;color:rgba(255,255,255,0.70);white-space:nowrap;">
-      {svg_num(1)} Devis {SVG_ARROW} {svg_num(2)} Visite {SVG_ARROW} {svg_num(3)} Installation 7&#8211;14&#160;j {SVG_ARROW} {svg_num(4)} Mise en service
+    <div style="width:1px;height:16px;background:rgba(255,255,255,0.2);flex-shrink:0;"></div>
+    <div style="font-size:6.5pt;color:rgba(255,255,255,0.70);white-space:nowrap;flex-shrink:0;">
+      {svg_num(1)} Devis {SVG_ARROW} {svg_num(2)} Visite {SVG_ARROW} {svg_num(3)} Install. 7&#8211;14&#160;j {SVG_ARROW} {svg_num(4)} Mise en service
     </div>
   </div>
 
@@ -1009,18 +1010,21 @@ def page3():
     ) if SCENARIO == "Les deux (Sans + Avec)" else ""
 
     return f"""
-<div class="page" style="overflow:visible;">
-  <div style="background:{CN};padding:9px 24px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
+<div class="page" style="display:block;position:relative;overflow:hidden;">
+  <div style="background:{CN};padding:9px 24px;display:flex;align-items:center;justify-content:space-between;">
     <div>
       <div style="color:white;font-size:10pt;font-weight:700;">Confiance, Garanties &amp; Bon pour accord</div>
       <div style="color:rgba(255,255,255,0.45);font-size:7pt;margin-top:2px;">Devis N\u00b0\u00a0{REF} \u2014 {CLIENT_NAME}</div>
     </div>
     {logo_html("42px")}
   </div>
-  <div style="height:3px;background:{CA};flex-shrink:0;"></div>
+  <div style="height:3px;background:{CA};"></div>
+
+  <!-- content wrapper: clipped so it never overlaps absolutely-positioned BPA + footer -->
+  <div style="overflow:hidden;max-height:820px;">
 
   <!-- WHY TAQINOR -->
-  <div style="padding:6px 24px 4px;margin-bottom:6px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
+  <div style="padding:6px 24px 4px;margin-bottom:5px;">
     <div class="serif" style="font-size:26px;color:{CN};margin-bottom:2px;">Pourquoi choisir TAQINOR&#160;?</div>
     <div style="font-size:9pt;color:{CG4};font-style:italic;margin-bottom:5px;">Des experts engag\u00e9s pour votre transition \u00e9nerg\u00e9tique</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
@@ -1078,7 +1082,7 @@ def page3():
   </div>
 
   <!-- GUARANTEE BADGES -->
-  <div style="padding:0 24px 4px;margin-bottom:6px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
+  <div style="padding:0 24px 4px;margin-bottom:5px;">
     <div style="display:flex;gap:5px;">
       <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:6px 5px;text-align:center;background:white;">
         <div class="serif" style="font-size:38px;color:{CN};line-height:1.0;letter-spacing:-1px;">10</div>
@@ -1104,7 +1108,7 @@ def page3():
   </div>
 
   <!-- CONDITIONS GENERALES -->
-  <div style="padding:0 24px 4px;margin-bottom:6px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
+  <div style="padding:0 24px 4px;margin-bottom:5px;">
     <div style="background:{CG1};border-radius:8px;padding:7px 12px;border:1px solid {CG2};border-left:4px solid {CN};">
       <div style="font-size:9pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Conditions g\u00e9n\u00e9rales du devis</div>
       <ul style="list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">
@@ -1120,7 +1124,7 @@ def page3():
   </div>
 
   <!-- NOTRE ENGAGEMENT -->
-  <div style="background:{CA};padding:7px 18px;flex-shrink:0;text-align:center;margin:0 24px 6px;border-radius:8px;page-break-inside:auto !important;break-inside:auto !important;">
+  <div style="background:{CA};padding:7px 18px;text-align:center;margin:0 24px 5px;border-radius:8px;">
     <div style="font-size:8pt;letter-spacing:2px;color:{CN};font-weight:800;text-transform:uppercase;margin-bottom:2px;">Notre Engagement</div>
     <div style="font-style:italic;color:white;font-size:9.5pt;line-height:1.4;">
       Notre \u00e9quipe reste \u00e0 votre disposition pour toute question.<br>
@@ -1129,7 +1133,7 @@ def page3():
   </div>
 
   <!-- PROCHAINES ÉTAPES -->
-  <div style="padding:0 24px;margin-bottom:4px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
+  <div style="padding:0 24px;margin-bottom:5px;">
     <div style="background:#F8F6F0;border:1px solid #EAECF0;border-radius:10px;padding:8px 12px;margin:2px 0;">
       <div style="border-left:4px solid #F5A623;padding-left:10px;margin-bottom:5px;">
         <div style="font-size:12px;font-weight:700;letter-spacing:2px;color:{CN};text-transform:uppercase;">PROCHAINES \u00c9TAPES</div>
@@ -1159,8 +1163,10 @@ def page3():
     </div>
   </div>
 
-  <!-- BON POUR ACCORD -->
-  <div style="padding:0 24px;margin-top:auto;page-break-inside:auto !important;break-inside:auto !important;">
+  </div><!-- end content wrapper -->
+
+  <!-- BON POUR ACCORD — always pinned above footer via position:absolute -->
+  <div style="position:absolute;bottom:43px;left:0;right:0;padding:0 24px;">
     <div style="border-left:4px solid {CA};padding-left:10px;margin-bottom:6px;">
       <div style="font-size:10pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:1.5px;">Bon pour accord</div>
     </div>
@@ -1186,7 +1192,7 @@ def page3():
 
   </div>
 
-  {footer_p3()}
+  {footer_p3("position:absolute;bottom:0;left:0;right:0;")}
 </div>
 """
 

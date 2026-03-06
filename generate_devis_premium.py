@@ -39,6 +39,8 @@ SVG_SUN     = '<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-a
 SVG_ZAP     = '<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:middle;margin-right:3px;"><path d="M7 1L3 7h3l-1 4 5-6H7l1-4z" fill="#d4a84b"/></svg>'
 SVG_GLOBE   = '<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:middle;margin-right:3px;"><circle cx="6" cy="6" r="5" fill="none" stroke="#4caf50" stroke-width="1"/><ellipse cx="6" cy="6" rx="2.5" ry="5" fill="none" stroke="#4caf50" stroke-width="0.8"/><line x1="1" y1="6" x2="11" y2="6" stroke="#4caf50" stroke-width="0.8"/></svg>'
 
+SVG_ARROW   = '<svg width="8" height="8" viewBox="0 0 8 8" style="vertical-align:middle;margin:0 3px;"><path d="M1 4h5M4 1l3 3-3 3" stroke="rgba(255,255,255,0.55)" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+
 def svg_num(n):
     return (f'<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:middle;margin-right:2px;">'
             f'<circle cx="8" cy="8" r="7" fill="#d4a84b"/>'
@@ -653,9 +655,9 @@ def page1():
     _badge_css = (f'position:absolute;top:0;left:0;right:0;background:{CA};color:{CN};'
                   f'font-size:7pt;font-weight:700;letter-spacing:1px;padding:5px 9px;'
                   f'border-radius:4px 4px 0 0;text-transform:uppercase;text-align:center;')
-    _r1   = (f'<div style="{_badge_css}"><span style="color:#d4a84b;font-size:16px;">★</span> RECOMMAND\u00c9</div>'
+    _r1   = (f'<div style="{_badge_css}">{SVG_STAR} RECOMMAND\u00c9</div>'
              if _both and RECOMMENDED == 'Sans batterie' else '')
-    _r2   = (f'<div style="{_badge_css}"><span style="color:#d4a84b;font-size:16px;">★</span> RECOMMAND\u00c9</div>'
+    _r2   = (f'<div style="{_badge_css}">{SVG_STAR} RECOMMAND\u00c9</div>'
              if _both and RECOMMENDED == 'Avec batterie' else '')
     # Price display — crossed-out original + discount badge + new price when discount active
     if DISCOUNT_PCT > 0:
@@ -817,11 +819,11 @@ def page1():
       <div style="display:inline-block;align-self:flex-start;background:#e8f5e9;color:#2e7d32;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">{SVG_CHART}Retour en {ROI_S} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
-        <li><span class="option-check">✓</span>{NB_PAN} panneaux {WP}&nbsp;W</li>
-        <li><span class="option-check">✓</span>Onduleur r&#233;seau Huawei</li>
-        <li><span class="option-check">✓</span>Smart Meter + Wifi Dongle</li>
-        <li><span class="option-check">✓</span>Monitoring int&#233;gr&#233; via app Huawei</li>
-        <li><span class="option-check">✓</span>Structures + installation compl&#232;te</li>
+        <li>{SVG_CHECK}{NB_PAN} panneaux {WP}&nbsp;W</li>
+        <li>{SVG_CHECK}Onduleur r&#233;seau Huawei</li>
+        <li>{SVG_CHECK}Smart Meter + Wifi Dongle</li>
+        <li>{SVG_CHECK}Monitoring int&#233;gr&#233; via app Huawei</li>
+        <li>{SVG_CHECK}Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>
       <div style="background:{CG1};border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
@@ -841,11 +843,11 @@ def page1():
       <div style="display:inline-block;align-self:flex-start;background:#1a1a2e;color:white;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">{SVG_CHART2}Retour en {ROI_A} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
-        <li><span class="option-check">✓</span>{NB_PAN} panneaux {WP}&nbsp;W</li>
-        <li><span class="option-check">✓</span>Onduleur hybride Deye</li>
-        <li><span style="color:#d4a84b;font-weight:bold;">⚡</span> Batterie de stockage incluse</li>
-        <li><span class="option-check">✓</span>Monitoring int&#233;gr&#233; via app Deye</li>
-        <li><span class="option-check">✓</span>Structures + installation compl&#232;te</li>
+        <li>{SVG_CHECK}{NB_PAN} panneaux {WP}&nbsp;W</li>
+        <li>{SVG_CHECK}Onduleur hybride Deye</li>
+        <li>{SVG_BOLT}Batterie de stockage incluse</li>
+        <li>{SVG_CHECK}Monitoring int&#233;gr&#233; via app Deye</li>
+        <li>{SVG_CHECK}Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>
       <div style="background:white;border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
@@ -861,12 +863,12 @@ def page1():
   <!-- BOTTOM DARK STRIP — solid edge-to-edge dark navy, compact height -->
   <div style="background:{CN};flex-shrink:0;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:8px 30px;">
     <div style="display:flex;gap:6px;">
-      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">☀ 3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
-      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">⚡ Prix ONEE en hausse</span>
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_SUN}3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_ZAP}Prix ONEE en hausse</span>
       <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_GLOBE}&#201;nergie 100&#37; propre</span>
     </div>
     <div style="font-size:6.5pt;color:rgba(255,255,255,0.70);white-space:nowrap;">
-      ① Devis → ② Visite → ③ Installation 7&#8211;14&#160;j → ④ Mise en service
+      {svg_num(1)} Devis {SVG_ARROW} {svg_num(2)} Visite {SVG_ARROW} {svg_num(3)} Installation 7&#8211;14&#160;j {SVG_ARROW} {svg_num(4)} Mise en service
     </div>
   </div>
 

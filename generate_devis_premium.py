@@ -28,8 +28,8 @@ matplotlib.use("Agg")
 BASE_DIR = Path(__file__).resolve().parent
 
 # ── Inline SVG icons for Page 1 (WeasyPrint renders inline SVG perfectly) ────
-SVG_CHECK   = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:4px;"><circle cx="7" cy="7" r="7" fill="#2e7d32"/><path d="M4 7l2 2 4-4" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
-SVG_BOLT    = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:4px;"><circle cx="7" cy="7" r="7" fill="#d4a84b"/><path d="M8 3L5 8h3l-1 4 4-5H8l1-4z" fill="white"/></svg>'
+SVG_CHECK   = '<svg width="13" height="13" viewBox="0 0 13 13" style="vertical-align:middle;margin-right:4px;"><path d="M2 6.5l3.5 3.5 5.5-6" stroke="#2e7d32" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+SVG_BOLT    = '<svg width="13" height="13" viewBox="0 0 13 13" style="vertical-align:middle;margin-right:4px;"><path d="M8 1L4.5 7h3.5L5.5 12 12 5.5H8.5L10 1z" fill="#d4a84b"/></svg>'
 SVG_CHART   = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><rect rx="3" width="14" height="14" fill="#e8f5e9"/><path d="M3 10L6 6l2 2 3-4" stroke="#2e7d32" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
 SVG_CHART2  = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><rect rx="3" width="14" height="14" fill="#1a1a2e"/><path d="M3 10L6 6l2 2 3-4" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
 SVG_STAR    = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><path d="M7 1l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4z" fill="#d4a84b"/></svg>'
@@ -39,12 +39,12 @@ SVG_SUN     = '<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-a
 SVG_ZAP     = '<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:middle;margin-right:3px;"><path d="M7 1L3 7h3l-1 4 5-6H7l1-4z" fill="#d4a84b"/></svg>'
 SVG_GLOBE   = '<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:middle;margin-right:3px;"><circle cx="6" cy="6" r="5" fill="none" stroke="#4caf50" stroke-width="1"/><ellipse cx="6" cy="6" rx="2.5" ry="5" fill="none" stroke="#4caf50" stroke-width="0.8"/><line x1="1" y1="6" x2="11" y2="6" stroke="#4caf50" stroke-width="0.8"/></svg>'
 
-SVG_ARROW   = '<svg width="8" height="8" viewBox="0 0 8 8" style="vertical-align:middle;margin:0 3px;"><path d="M1 4h5M4 1l3 3-3 3" stroke="rgba(255,255,255,0.55)" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+SVG_ARROW   = '<svg width="6" height="6" viewBox="0 0 6 6" style="vertical-align:middle;margin:0 2px;"><path d="M1 3h4M3 1l2 2-2 2" stroke="rgba(255,255,255,0.55)" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 
 def svg_num(n):
-    return (f'<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:middle;margin-right:2px;">'
-            f'<circle cx="8" cy="8" r="7" fill="#d4a84b"/>'
-            f'<text x="8" y="11.5" text-anchor="middle" font-size="10" fill="white" font-weight="bold">{n}</text>'
+    return (f'<svg width="13" height="13" viewBox="0 0 13 13" style="vertical-align:middle;margin-right:2px;">'
+            f'<circle cx="6.5" cy="6.5" r="6" fill="#d4a84b"/>'
+            f'<text x="6.5" y="9.8" text-anchor="middle" font-size="8" fill="white" font-weight="bold">{n}</text>'
             f'</svg>')
 
 def _fetch_gfont(family_url, weight=400, style="normal"):
@@ -962,13 +962,13 @@ def page2(sans_items, img_roi, img_mon):
   <div style="padding:4px 24px 6px;flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;">
     <div style="flex:1;min-height:0;background:{CG1};border-radius:7px;padding:8px 11px;border:1px solid {CG2};display:flex;flex-direction:column;">
       <div style="font-size:7pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;flex-shrink:0;">
-        &#128200; Gain cumul\u00e9 sur 25 ans \u2014 Point de retour sur investissement
+        <svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:middle;margin-right:3px;"><polyline points="1,10 4,6 7,8 11,2" fill="none" stroke="{CN}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="8,2 11,2 11,5" fill="none" stroke="{CN}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Gain cumul\u00e9 sur 25 ans \u2014 Point de retour sur investissement
       </div>
       <img src="{img_roi}" style="flex:1;min-height:0;width:100%;object-fit:contain;display:block;">
     </div>
     <div style="flex:1;min-height:0;background:{CG1};border-radius:7px;padding:8px 11px;border:1px solid {CG2};display:flex;flex-direction:column;">
       <div style="font-size:7pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px;flex-shrink:0;">
-        &#128197; \u00c9conomies mensuelles estim\u00e9es (MAD / mois)
+        <svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:middle;margin-right:3px;"><rect x="1" y="2" width="10" height="9" rx="1.5" fill="none" stroke="{CN}" stroke-width="1.3"/><line x1="1" y1="5" x2="11" y2="5" stroke="{CN}" stroke-width="1"/><line x1="4" y1="1" x2="4" y2="3" stroke="{CN}" stroke-width="1.3" stroke-linecap="round"/><line x1="8" y1="1" x2="8" y2="3" stroke="{CN}" stroke-width="1.3" stroke-linecap="round"/></svg> \u00c9conomies mensuelles estim\u00e9es (MAD / mois)
       </div>
       <div style="font-size:6pt;color:{CG4};font-style:italic;margin-bottom:4px;flex-shrink:0;">Facture ONEE vs \u00e9conomies solaires par mois</div>
       <img src="{img_mon}" style="flex:1;min-height:0;width:100%;object-fit:contain;display:block;">
@@ -1161,7 +1161,7 @@ def page3():
   </div>
 
   <!-- BON POUR ACCORD -->
-  <div style="padding:0 24px;flex-grow:1;display:flex;flex-direction:column;justify-content:flex-end;page-break-inside:auto !important;break-inside:auto !important;">
+  <div style="padding:0 24px;margin-top:auto;page-break-inside:auto !important;break-inside:auto !important;">
     <div style="border-left:4px solid {CA};padding-left:8px;margin-bottom:4px;">
       <div style="font-size:8pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:1.5px;">Bon pour accord</div>
     </div>

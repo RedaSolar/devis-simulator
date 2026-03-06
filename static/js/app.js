@@ -219,15 +219,15 @@ async function initApp() {
     // Apply role-based visibility (buy prices hidden for non-admins)
     applyRoleVisibility(user);
 
-    // Set default doc number
+    // Set default doc number from history (last used + 1), fallback 121 if no history
     try {
         const res = await authFetch('/api/devis');
         if (res && res.ok) {
             const history = await res.json();
             const maxNum = history.reduce((m, d) => Math.max(m, parseInt(d.doc_number) || 0), 0);
             const docNumEl = document.getElementById('doc-number');
-            if (docNumEl && docNumEl.value <= 0) {
-                docNumEl.value = Math.max(121, maxNum + 1);
+            if (docNumEl) {
+                docNumEl.value = maxNum > 0 ? maxNum + 1 : 121;
             }
         }
     } catch (e) { /* non-critical */ }

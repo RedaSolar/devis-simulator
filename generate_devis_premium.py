@@ -612,7 +612,7 @@ body{{font-family:'DM Sans',sans-serif;font-size:9pt;color:{CG7};
 .eq .tl{{font-weight:500;}}
 .eq .tc{{text-align:center;color:{CG4};}}
 .eq .tr{{text-align:right;}}
-.page3-content{{page-break-inside:avoid;}}
+/* page3-content: no individual page-break rules — handled by single wrapper */
 """
 
 # ── PAGE 1 — exact match to v5 ──────────────────────────────────────────────
@@ -793,7 +793,7 @@ def page1():
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Autoconsommation directe</div>
       {_ts_price}
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
-      <div style="display:inline-block;width:auto;align-self:flex-start;background:{CA};color:{CN};border-radius:3px;padding:3px 9px;font-size:6.5pt;font-weight:700;margin-bottom:7px;"><svg style="display:inline;vertical-align:middle;margin-right:2px;" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Retour en {ROI_S} ans</div>
+      <div style="display:inline-block;width:auto;align-self:flex-start;background:{CA};color:{CN};border-radius:3px;padding:3px 9px;font-size:6.5pt;font-weight:700;margin-bottom:7px;"><span style="font-size:8pt;font-weight:900;vertical-align:middle;margin-right:2px;">&#8599;</span> Retour en {ROI_S} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> {NB_PAN} panneaux {WP}&nbsp;W</li>
@@ -817,12 +817,12 @@ def page1():
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
       {_ta_price}
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
-      <div style="display:inline-block;width:auto;align-self:flex-start;background:{CN};color:white;border-radius:3px;padding:3px 9px;font-size:6.5pt;font-weight:700;margin-bottom:7px;"><svg style="display:inline;vertical-align:middle;margin-right:2px;" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Retour en {ROI_A} ans</div>
+      <div style="display:inline-block;width:auto;align-self:flex-start;background:{CN};color:white;border-radius:3px;padding:3px 9px;font-size:6.5pt;font-weight:700;margin-bottom:7px;"><span style="font-size:8pt;font-weight:900;vertical-align:middle;margin-right:2px;">&#8599;</span> Retour en {ROI_A} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> {NB_PAN} panneaux {WP}&nbsp;W</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Onduleur hybride Deye</li>
-        <li style="color:{CN};font-weight:700;"><svg style="display:inline;vertical-align:middle;margin-right:2px;" width="9" height="11" viewBox="0 0 24 24" fill="{CA}"><polygon points="13,2 4,14 12,14 11,22 20,10 12,10"/></svg> Batterie de stockage incluse</li>
+        <li style="color:{CN};font-weight:700;"><span style="color:{CA};font-weight:900;font-size:9pt;vertical-align:middle;margin-right:2px;">&#10022;</span> Batterie de stockage incluse</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Monitoring int&#233;gr&#233; via app Deye</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
       </ul>
@@ -1003,6 +1003,9 @@ def page3():
   </div>
   <div style="height:3px;background:{CA};flex-shrink:0;"></div>
 
+  <!-- SINGLE BODY WRAPPER: page-break-inside:avoid on ONE div only -->
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;page-break-inside:avoid;">
+
   <!-- WHY TAQINOR -->
   <div class="page3-content" style="padding:3px 24px 2px;flex-shrink:0;">
     <div class="serif" style="font-size:19pt;color:{CN};margin-bottom:1px;">Pourquoi choisir TAQINOR&#160;?</div>
@@ -1169,6 +1172,8 @@ def page3():
     </div>
 
   </div>
+
+  </div><!-- /body wrapper -->
 
   {footer_p3()}
 </div>

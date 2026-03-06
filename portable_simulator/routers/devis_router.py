@@ -250,14 +250,13 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     doc_number = request.doc_number
     doc_type = "Devis"
     safe_client = re.sub(r"[^A-Za-z0-9]", "_", request.client_name or "Client")
-    kwp_str = f"{kwp:g}kWc".replace(".", ",")
     if scenario == "Les deux (Sans + Avec)":
-        opt_str = "sans+avec"
+        scen_str = "Hybride+Injection"
     elif scenario == "Avec batterie":
-        opt_str = "avec"
+        scen_str = "Hybride"
     else:
-        opt_str = "sans"
-    pdf_filename = f"{doc_type}_{safe_client}_{int(doc_number)}_{kwp_str}_{opt_str}.pdf"
+        scen_str = "Injection"
+    pdf_filename = f"TAQINOR_Devis_{int(doc_number)}_{safe_client}_{kwp:g}kWc_{scen_str}.pdf"
 
     _onduleur_kw    = request.onduleur_kw
     _onduleur_phase = request.onduleur_phase or "Monophasé"

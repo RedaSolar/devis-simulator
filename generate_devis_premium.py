@@ -612,6 +612,7 @@ body{{font-family:'DM Sans',sans-serif;font-size:9pt;color:{CG7};
 .eq .tl{{font-weight:500;}}
 .eq .tc{{text-align:center;color:{CG4};}}
 .eq .tr{{text-align:right;}}
+.page3-content{{page-break-inside:avoid;}}
 """
 
 # ── PAGE 1 — exact match to v5 ──────────────────────────────────────────────
@@ -965,13 +966,13 @@ def page2(sans_items, img_roi, img_mon):
 def page3():
     # "Option choisie" tick-boxes — only shown when both options are presented
     _opt = (
-        f'<div style="margin-bottom:10px;">'
+        f'<div style="margin-bottom:6px;">'
         f'<div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;'
-        f'letter-spacing:1px;margin-bottom:7px;">Option choisie par le client</div>'
-        f'<div style="display:flex;gap:12px;">'
+        f'letter-spacing:1px;margin-bottom:5px;">Option choisie par le client</div>'
+        f'<div style="display:flex;gap:10px;">'
         # Sans batterie box
-        f'<div style="flex:1;border:1.5px solid {CG2};border-radius:7px;padding:10px 13px;'
-        f'background:white;display:flex;align-items:center;gap:11px;">'
+        f'<div style="flex:1;border:1.5px solid {CG2};border-radius:7px;padding:7px 11px;'
+        f'background:white;display:flex;align-items:center;gap:9px;">'
         f'<div style="width:17px;height:17px;border:2px solid {CG7};border-radius:3px;flex-shrink:0;"></div>'
         f'<div>'
         f'<div style="font-size:9pt;font-weight:700;color:{CN};">Sans batterie</div>'
@@ -979,8 +980,8 @@ def page3():
         f'</div>'
         f'</div>'
         # Avec batterie box
-        f'<div style="flex:1;border:1.5px solid {CA};border-radius:7px;padding:10px 13px;'
-        f'background:{CAL};display:flex;align-items:center;gap:11px;">'
+        f'<div style="flex:1;border:1.5px solid {CA};border-radius:7px;padding:7px 11px;'
+        f'background:{CAL};display:flex;align-items:center;gap:9px;">'
         f'<div style="width:17px;height:17px;border:2px solid {CA};border-radius:3px;flex-shrink:0;"></div>'
         f'<div>'
         f'<div style="font-size:9pt;font-weight:700;color:{CN};">Avec batterie</div>'
@@ -1003,12 +1004,12 @@ def page3():
   <div style="height:3px;background:{CA};flex-shrink:0;"></div>
 
   <!-- WHY TAQINOR -->
-  <div style="padding:8px 24px 6px;flex-shrink:0;">
-    <div class="serif" style="font-size:19pt;color:{CN};margin-bottom:3px;">Pourquoi choisir TAQINOR&#160;?</div>
-    <div style="font-size:7.5pt;color:{CG4};font-style:italic;margin-bottom:8px;">Des experts engag\u00e9s pour votre transition \u00e9nerg\u00e9tique</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+  <div class="page3-content" style="padding:5px 24px 4px;flex-shrink:0;">
+    <div class="serif" style="font-size:19pt;color:{CN};margin-bottom:2px;">Pourquoi choisir TAQINOR&#160;?</div>
+    <div style="font-size:7.5pt;color:{CG4};font-style:italic;margin-bottom:5px;">Des experts engag\u00e9s pour votre transition \u00e9nerg\u00e9tique</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
 
-      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:9px 13px;display:flex;gap:10px;align-items:flex-start;">
+      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:6px 11px;display:flex;gap:9px;align-items:flex-start;">
         <div style="width:36px;height:36px;border-radius:50%;background:{CAL};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{CA}" stroke-width="2" stroke-linecap="round">
             <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
@@ -1020,7 +1021,7 @@ def page3():
         </div>
       </div>
 
-      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:9px 13px;display:flex;gap:10px;align-items:flex-start;">
+      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:6px 11px;display:flex;gap:9px;align-items:flex-start;">
         <div style="width:36px;height:36px;border-radius:50%;background:{CAL};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="{CA}" stroke="{CA}" stroke-width="1">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -1032,7 +1033,7 @@ def page3():
         </div>
       </div>
 
-      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:9px 13px;display:flex;gap:10px;align-items:flex-start;">
+      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:6px 11px;display:flex;gap:9px;align-items:flex-start;">
         <div style="width:36px;height:36px;border-radius:50%;background:{CAL};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{CA}" stroke-width="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -1044,7 +1045,7 @@ def page3():
         </div>
       </div>
 
-      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:9px 13px;display:flex;gap:10px;align-items:flex-start;">
+      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:6px 11px;display:flex;gap:9px;align-items:flex-start;">
         <div style="width:36px;height:36px;border-radius:50%;background:{CAL};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{CA}" stroke-width="2">
             <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
@@ -1061,82 +1062,82 @@ def page3():
   </div>
 
   <!-- GUARANTEE BADGES -->
-  <div style="padding:0 24px 7px;flex-shrink:0;">
-    <div style="display:flex;gap:7px;">
-      <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:7px 8px;text-align:center;background:white;">
+  <div class="page3-content" style="padding:0 24px 4px;flex-shrink:0;">
+    <div style="display:flex;gap:5px;">
+      <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:5px 6px;text-align:center;background:white;">
         <div class="serif" style="font-size:26pt;color:{CN};line-height:1.0;letter-spacing:-1px;">10</div>
         <div style="font-size:7.5pt;font-weight:700;color:{CA};letter-spacing:1px;text-transform:uppercase;">ANS</div>
-        <div style="font-size:6.5pt;color:{CG4};margin-top:2px;">Onduleur</div>
+        <div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Onduleur</div>
       </div>
-      <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:7px 8px;text-align:center;background:white;">
+      <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:5px 6px;text-align:center;background:white;">
         <div class="serif" style="font-size:26pt;color:{CN};line-height:1.0;letter-spacing:-1px;">12</div>
         <div style="font-size:7.5pt;font-weight:700;color:{CA};letter-spacing:1px;text-transform:uppercase;">ANS</div>
-        <div style="font-size:6.5pt;color:{CG4};margin-top:2px;">Panneaux (produit)</div>
+        <div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Panneaux (produit)</div>
       </div>
-      <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:7px 8px;text-align:center;background:white;">
+      <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:5px 6px;text-align:center;background:white;">
         <div class="serif" style="font-size:26pt;color:{CN};line-height:1.0;letter-spacing:-1px;">20</div>
         <div style="font-size:7.5pt;font-weight:700;color:{CA};letter-spacing:1px;text-transform:uppercase;">ANS</div>
-        <div style="font-size:6.5pt;color:{CG4};margin-top:2px;">Structure de montage</div>
+        <div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Structure de montage</div>
       </div>
-      <div style="flex:1;border:2px solid {CA};border-top:4px solid {CN};border-radius:8px;padding:7px 8px;text-align:center;background:{CAL};">
+      <div style="flex:1;border:2px solid {CA};border-top:4px solid {CN};border-radius:8px;padding:5px 6px;text-align:center;background:{CAL};">
         <div class="serif" style="font-size:26pt;color:{CA};line-height:1.0;letter-spacing:-1px;">25</div>
         <div style="font-size:7.5pt;font-weight:700;color:{CN};letter-spacing:1px;text-transform:uppercase;">ANS</div>
-        <div style="font-size:6.5pt;color:{CG4};margin-top:2px;">Performance panneau</div>
+        <div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Performance panneau</div>
       </div>
     </div>
   </div>
 
   <!-- CONDITIONS GENERALES -->
-  <div style="padding:0 24px 7px;flex-shrink:0;">
-    <div style="background:{CG1};border-radius:8px;padding:8px 14px;border:1px solid {CG2};border-left:4px solid {CN};">
-      <div style="font-size:7.5pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">Conditions g\u00e9n\u00e9rales du devis</div>
-      <ul style="list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">
-        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Validit\u00e9 de l&#8217;offre&#160;: 30 jours</li>
-        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Acompte \u00e0 la commande&#160;: 30&#37;</li>
-        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>60&#37; \u00e0 la r\u00e9ception du mat\u00e9riel</li>
-        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>10&#37; apr\u00e8s la mise en marche</li>
-        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>D\u00e9lai d&#8217;installation&#160;: 7\u201314 jours ouvr\u00e9s</li>
-        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>TVA 10&#37; modules / 20&#37; autres</li>
-        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.7;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Tarifs de r\u00e9f\u00e9rence&#160;: bar\u00e8me ONEE/SRM</li>
+  <div class="page3-content" style="padding:0 24px 4px;flex-shrink:0;">
+    <div style="background:{CG1};border-radius:8px;padding:5px 12px;border:1px solid {CG2};border-left:4px solid {CN};">
+      <div style="font-size:7.5pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px;">Conditions g\u00e9n\u00e9rales du devis</div>
+      <ul style="list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:1px 14px;">
+        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Validit\u00e9 de l&#8217;offre&#160;: 30 jours</li>
+        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Acompte \u00e0 la commande&#160;: 30&#37;</li>
+        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>60&#37; \u00e0 la r\u00e9ception du mat\u00e9riel</li>
+        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>10&#37; apr\u00e8s la mise en marche</li>
+        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>D\u00e9lai d&#8217;installation&#160;: 7\u201314 jours ouvr\u00e9s</li>
+        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>TVA 10&#37; modules / 20&#37; autres</li>
+        <li style="font-size:7pt;color:{CG7};padding-left:10px;position:relative;line-height:1.5;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.3;">\u00b7</span>Tarifs de r\u00e9f\u00e9rence&#160;: bar\u00e8me ONEE/SRM</li>
       </ul>
     </div>
   </div>
 
   <!-- NOTRE ENGAGEMENT -->
-  <div style="background:{CA};padding:9px 40px;flex-shrink:0;text-align:center;margin:0 24px 7px;border-radius:8px;">
-    <div style="font-size:6.5pt;letter-spacing:2px;color:{CN};font-weight:800;text-transform:uppercase;margin-bottom:4px;">Notre Engagement</div>
-    <div style="font-style:italic;color:white;font-size:8pt;line-height:1.6;">
+  <div class="page3-content" style="background:{CA};padding:5px 30px;flex-shrink:0;text-align:center;margin:0 24px 4px;border-radius:8px;">
+    <div style="font-size:6.5pt;letter-spacing:2px;color:{CN};font-weight:800;text-transform:uppercase;margin-bottom:2px;">Notre Engagement</div>
+    <div style="font-style:italic;color:white;font-size:8pt;line-height:1.4;">
       Notre \u00e9quipe reste \u00e0 votre disposition pour toute question.<br>
       Nous planifierons l&#8217;installation d\u00e8s validation du devis.
     </div>
   </div>
 
   <!-- PROCHAINES ÉTAPES -->
-  <div style="padding:0 24px;flex-shrink:0;">
-    <div style="background:#F8F6F0;border:1px solid #EAECF0;border-radius:10px;padding:13px 16px;margin:7px 0;">
-      <div style="border-left:4px solid #F5A623;padding-left:10px;margin-bottom:9px;">
+  <div class="page3-content" style="padding:0 24px;flex-shrink:0;">
+    <div style="background:#F8F6F0;border:1px solid #EAECF0;border-radius:10px;padding:8px 12px;margin:4px 0;">
+      <div style="border-left:4px solid #F5A623;padding-left:10px;margin-bottom:6px;">
         <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:{CN};text-transform:uppercase;">PROCHAINES \u00c9TAPES</div>
       </div>
-      <div style="display:flex;gap:9px;">
-        <div style="flex:1;text-align:center;padding:12px 12px;background:white;border-radius:8px;border:1px solid #EAECF0;">
+      <div style="display:flex;gap:7px;">
+        <div style="flex:1;text-align:center;padding:8px 8px;background:white;border-radius:8px;border:1px solid #EAECF0;">
           <div class="serif" style="font-size:36px;font-weight:800;color:{CA};line-height:1.0;">1</div>
-          <div style="font-size:13px;color:{CN};font-weight:700;margin-top:4px;">Signature du devis</div>
-          <div style="font-size:11px;color:{CG4};margin-top:3px;">+ acompte 30&#37;</div>
+          <div style="font-size:13px;color:{CN};font-weight:700;margin-top:2px;">Signature du devis</div>
+          <div style="font-size:11px;color:{CG4};margin-top:2px;">+ acompte 30&#37;</div>
         </div>
-        <div style="flex:1;text-align:center;padding:12px 12px;background:white;border-radius:8px;border:1px solid #EAECF0;">
+        <div style="flex:1;text-align:center;padding:8px 8px;background:white;border-radius:8px;border:1px solid #EAECF0;">
           <div class="serif" style="font-size:36px;font-weight:800;color:{CA};line-height:1.0;">2</div>
-          <div style="font-size:13px;color:{CN};font-weight:700;margin-top:4px;">Visite technique</div>
-          <div style="font-size:11px;color:{CG4};margin-top:3px;">Sous 48\u201372&#160;h</div>
+          <div style="font-size:13px;color:{CN};font-weight:700;margin-top:2px;">Visite technique</div>
+          <div style="font-size:11px;color:{CG4};margin-top:2px;">Sous 48\u201372&#160;h</div>
         </div>
-        <div style="flex:1;text-align:center;padding:12px 12px;background:white;border-radius:8px;border:1px solid #EAECF0;">
+        <div style="flex:1;text-align:center;padding:8px 8px;background:white;border-radius:8px;border:1px solid #EAECF0;">
           <div class="serif" style="font-size:36px;font-weight:800;color:{CA};line-height:1.0;">3</div>
-          <div style="font-size:13px;color:{CN};font-weight:700;margin-top:4px;">Installation</div>
-          <div style="font-size:11px;color:{CG4};margin-top:3px;">7\u201314 jours ouvr\u00e9s</div>
+          <div style="font-size:13px;color:{CN};font-weight:700;margin-top:2px;">Installation</div>
+          <div style="font-size:11px;color:{CG4};margin-top:2px;">7\u201314 jours ouvr\u00e9s</div>
         </div>
-        <div style="flex:1;text-align:center;padding:12px 12px;background:white;border-radius:8px;border:1px solid #EAECF0;">
+        <div style="flex:1;text-align:center;padding:8px 8px;background:white;border-radius:8px;border:1px solid #EAECF0;">
           <div class="serif" style="font-size:36px;font-weight:800;color:{CA};line-height:1.0;">4</div>
-          <div style="font-size:13px;color:{CN};font-weight:700;margin-top:4px;">Mise en service</div>
-          <div style="font-size:11px;color:{CG4};margin-top:3px;">Tests + formation</div>
+          <div style="font-size:13px;color:{CN};font-weight:700;margin-top:2px;">Mise en service</div>
+          <div style="font-size:11px;color:{CG4};margin-top:2px;">Tests + formation</div>
         </div>
       </div>
     </div>
@@ -1144,26 +1145,26 @@ def page3():
 
   <!-- BON POUR ACCORD -->
   <div style="padding:0 24px;flex-grow:1;display:flex;flex-direction:column;justify-content:flex-end;">
-    <div style="border-left:4px solid {CA};padding-left:12px;margin-bottom:7px;">
+    <div style="border-left:4px solid {CA};padding-left:12px;margin-bottom:4px;">
       <div style="font-size:8pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:1.5px;">Bon pour accord</div>
     </div>
     {_opt}
-    <div style="display:flex;gap:16px;margin-bottom:8px;">
-      <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:10px 14px;min-height:80px;background:white;">
-        <div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Signature du client</div>
-        <div style="border-bottom:1px solid {CG2};min-height:22px;margin-bottom:5px;"></div>
-        <div style="font-size:7pt;color:{CG4};margin-top:3px;">Nom&#160;: <strong style="color:{CG7};">{CLIENT_NAME}</strong></div>
-        <div style="border-bottom:1px solid {CG2};min-height:18px;margin-top:7px;margin-bottom:4px;"></div>
+    <div style="display:flex;gap:16px;margin-bottom:5px;">
+      <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:7px 12px;min-height:70px;background:white;">
+        <div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Signature du client</div>
+        <div style="border-bottom:1px solid {CG2};min-height:16px;margin-bottom:3px;"></div>
+        <div style="font-size:7pt;color:{CG4};margin-top:2px;">Nom&#160;: <strong style="color:{CG7};">{CLIENT_NAME}</strong></div>
+        <div style="border-bottom:1px solid {CG2};min-height:12px;margin-top:4px;margin-bottom:2px;"></div>
         <div style="font-size:7pt;color:{CG4};">Date&#160;: _______________</div>
-        <div style="font-size:5.5pt;color:{CG4};margin-top:6px;font-style:italic;">Lu et approuv\u00e9 \u2014 Signature pr\u00e9c\u00e9d\u00e9e de \u00ab\u00a0Bon pour accord\u00a0\u00bb</div>
+        <div style="font-size:5.5pt;color:{CG4};margin-top:3px;font-style:italic;">Lu et approuv\u00e9 \u2014 Signature pr\u00e9c\u00e9d\u00e9e de \u00ab\u00a0Bon pour accord\u00a0\u00bb</div>
       </div>
-      <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:10px 14px;min-height:80px;background:white;">
-        <div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Signature TAQINOR</div>
-        <div style="border-bottom:1px solid {CG2};min-height:22px;margin-bottom:5px;"></div>
-        <div style="font-size:7pt;color:{CG4};margin-top:3px;">Repr\u00e9sentant&#160;: <strong style="color:{CG7};">TAQINOR</strong></div>
-        <div style="border-bottom:1px solid {CG2};min-height:18px;margin-top:7px;margin-bottom:4px;"></div>
+      <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:7px 12px;min-height:70px;background:white;">
+        <div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Signature TAQINOR</div>
+        <div style="border-bottom:1px solid {CG2};min-height:16px;margin-bottom:3px;"></div>
+        <div style="font-size:7pt;color:{CG4};margin-top:2px;">Repr\u00e9sentant&#160;: <strong style="color:{CG7};">TAQINOR</strong></div>
+        <div style="border-bottom:1px solid {CG2};min-height:12px;margin-top:4px;margin-bottom:2px;"></div>
         <div style="font-size:7pt;color:{CG4};">Date&#160;: _______________</div>
-        <div style="font-size:5.5pt;color:{CG4};margin-top:6px;font-style:italic;">Cachet et signature de la soci\u00e9t\u00e9</div>
+        <div style="font-size:5.5pt;color:{CG4};margin-top:3px;font-style:italic;">Cachet et signature de la soci\u00e9t\u00e9</div>
       </div>
     </div>
 
@@ -1337,13 +1338,15 @@ def generate():
     out_dir = BASE_DIR / "devis_client"
     out_dir.mkdir(exist_ok=True)
     import re as _re
-    existing = [
-        int(m.group(1))
-        for f in out_dir.glob(f"devis_taqinor_{ref}_v*.pdf")
-        if (m := _re.search(r"_v(\d+)\.pdf$", f.name))
-    ]
-    next_v = (max(existing) + 1) if existing else 1
-    out = out_dir / f"devis_taqinor_{ref}_v{next_v}.pdf"
+    _safe_c = _re.sub(r"[^A-Za-z0-9]", "_", QUOTE_INPUT.get("client_name", "Client"))
+    _kwc_str = f"{QUOTE_INPUT['puissance_kwc']:g}kWc"
+    if SCENARIO == "Les deux (Sans + Avec)":
+        _scen_str = "Hybride+Injection"
+    elif SCENARIO == "Avec batterie":
+        _scen_str = "Hybride"
+    else:
+        _scen_str = "Injection"
+    out = out_dir / f"TAQINOR_Devis_{ref}_{_safe_c}_{_kwc_str}_{_scen_str}.pdf"
 
     print("[2/3] Writing temp HTML...")
     with tempfile.NamedTemporaryFile(suffix=".html", delete=False,

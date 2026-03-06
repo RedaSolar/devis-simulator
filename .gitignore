@@ -20,3 +20,4 @@ tmp_*.ps1
 tmp/
 *.db
 devis_history.json
+config.json

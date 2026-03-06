@@ -793,14 +793,14 @@ def page1():
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Autoconsommation directe</div>
       {_ts_price}
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
-      <div style="display:inline-block;align-self:flex-start;background:#e8f5e9;color:#2e7d32;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">\u2197 Retour en {ROI_S} ans</div>
+      <div style="display:inline-block;align-self:flex-start;background:#e8f5e9;color:#2e7d32;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">Retour en {ROI_S} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
-        <li>\u2713 {NB_PAN} panneaux {WP}&nbsp;W</li>
-        <li>\u2713 Onduleur r&#233;seau Huawei</li>
-        <li>\u2713 Smart Meter + Wifi Dongle</li>
-        <li>\u2713 Monitoring int&#233;gr&#233; via app Huawei</li>
-        <li>\u2713 Structures + installation compl&#232;te</li>
+        <li><span style="display:inline-block;width:14px;height:14px;background:#2e7d32;color:white;border-radius:50%;text-align:center;font-size:9px;line-height:14px;margin-right:4px;vertical-align:middle;font-weight:700;">v</span>{NB_PAN} panneaux {WP}&nbsp;W</li>
+        <li><span style="display:inline-block;width:14px;height:14px;background:#2e7d32;color:white;border-radius:50%;text-align:center;font-size:9px;line-height:14px;margin-right:4px;vertical-align:middle;font-weight:700;">v</span>Onduleur r&#233;seau Huawei</li>
+        <li><span style="display:inline-block;width:14px;height:14px;background:#2e7d32;color:white;border-radius:50%;text-align:center;font-size:9px;line-height:14px;margin-right:4px;vertical-align:middle;font-weight:700;">v</span>Smart Meter + Wifi Dongle</li>
+        <li><span style="display:inline-block;width:14px;height:14px;background:#2e7d32;color:white;border-radius:50%;text-align:center;font-size:9px;line-height:14px;margin-right:4px;vertical-align:middle;font-weight:700;">v</span>Monitoring int&#233;gr&#233; via app Huawei</li>
+        <li><span style="display:inline-block;width:14px;height:14px;background:#2e7d32;color:white;border-radius:50%;text-align:center;font-size:9px;line-height:14px;margin-right:4px;vertical-align:middle;font-weight:700;">v</span>Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>
       <div style="background:{CG1};border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
@@ -817,14 +817,14 @@ def page1():
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
       {_ta_price}
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
-      <div style="display:inline-block;align-self:flex-start;background:#1a1a2e;color:white;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">\u2197 Retour en {ROI_A} ans</div>
+      <div style="display:inline-block;align-self:flex-start;background:#1a1a2e;color:white;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">Retour en {ROI_A} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
-        <li>\u2713 {NB_PAN} panneaux {WP}&nbsp;W</li>
-        <li>\u2713 Onduleur hybride Deye</li>
-        <li>\u26a1 Batterie de stockage incluse</li>
-        <li>\u2713 Monitoring int&#233;gr&#233; via app Deye</li>
-        <li>\u2713 Structures + installation compl&#232;te</li>
+        <li><span style="display:inline-block;width:14px;height:14px;background:#2e7d32;color:white;border-radius:50%;text-align:center;font-size:9px;line-height:14px;margin-right:4px;vertical-align:middle;font-weight:700;">v</span>{NB_PAN} panneaux {WP}&nbsp;W</li>
+        <li><span style="display:inline-block;width:14px;height:14px;background:#2e7d32;color:white;border-radius:50%;text-align:center;font-size:9px;line-height:14px;margin-right:4px;vertical-align:middle;font-weight:700;">v</span>Onduleur hybride Deye</li>
+        <li><span style="display:inline-block;width:14px;height:14px;background:#d4a84b;color:white;border-radius:50%;text-align:center;font-size:9px;line-height:14px;margin-right:4px;vertical-align:middle;font-weight:700;">+</span>Batterie de stockage incluse</li>
+        <li><span style="display:inline-block;width:14px;height:14px;background:#2e7d32;color:white;border-radius:50%;text-align:center;font-size:9px;line-height:14px;margin-right:4px;vertical-align:middle;font-weight:700;">v</span>Monitoring int&#233;gr&#233; via app Deye</li>
+        <li><span style="display:inline-block;width:14px;height:14px;background:#2e7d32;color:white;border-radius:50%;text-align:center;font-size:9px;line-height:14px;margin-right:4px;vertical-align:middle;font-weight:700;">v</span>Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>
       <div style="background:white;border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
@@ -993,7 +993,7 @@ def page3():
     ) if SCENARIO == "Les deux (Sans + Avec)" else ""
 
     return f"""
-<div class="page">
+<div class="page" style="overflow:visible;">
   <div style="background:{CN};padding:9px 24px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
     <div>
       <div style="color:white;font-size:10pt;font-weight:700;">Confiance, Garanties &amp; Bon pour accord</div>
@@ -1004,7 +1004,7 @@ def page3():
   <div style="height:3px;background:{CA};flex-shrink:0;"></div>
 
   <!-- WHY TAQINOR -->
-  <div style="padding:3px 24px 2px;flex-shrink:0;page-break-inside:auto;break-inside:auto;">
+  <div style="padding:3px 24px 2px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
     <div class="serif" style="font-size:19pt;color:{CN};margin-bottom:1px;">Pourquoi choisir TAQINOR&#160;?</div>
     <div style="font-size:7.5pt;color:{CG4};font-style:italic;margin-bottom:3px;">Des experts engag\u00e9s pour votre transition \u00e9nerg\u00e9tique</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
@@ -1062,7 +1062,7 @@ def page3():
   </div>
 
   <!-- GUARANTEE BADGES -->
-  <div style="padding:0 24px 2px;flex-shrink:0;page-break-inside:auto;break-inside:auto;">
+  <div style="padding:0 24px 2px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
     <div style="display:flex;gap:3px;">
       <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:3px 5px;text-align:center;background:white;">
         <div class="serif" style="font-size:20pt;color:{CN};line-height:1.0;letter-spacing:-1px;">10</div>
@@ -1088,7 +1088,7 @@ def page3():
   </div>
 
   <!-- CONDITIONS GENERALES -->
-  <div style="padding:0 24px 2px;flex-shrink:0;page-break-inside:auto;break-inside:auto;">
+  <div style="padding:0 24px 2px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
     <div style="background:{CG1};border-radius:8px;padding:3px 12px;border:1px solid {CG2};border-left:4px solid {CN};">
       <div style="font-size:7.5pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;">Conditions g\u00e9n\u00e9rales du devis</div>
       <ul style="list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:0px 14px;">
@@ -1104,7 +1104,7 @@ def page3():
   </div>
 
   <!-- NOTRE ENGAGEMENT -->
-  <div style="background:{CA};padding:3px 30px;flex-shrink:0;text-align:center;margin:0 24px 2px;border-radius:8px;page-break-inside:auto;break-inside:auto;">
+  <div style="background:{CA};padding:3px 30px;flex-shrink:0;text-align:center;margin:0 24px 2px;border-radius:8px;page-break-inside:auto !important;break-inside:auto !important;">
     <div style="font-size:6.5pt;letter-spacing:2px;color:{CN};font-weight:800;text-transform:uppercase;margin-bottom:1px;">Notre Engagement</div>
     <div style="font-style:italic;color:white;font-size:8pt;line-height:1.4;">
       Notre \u00e9quipe reste \u00e0 votre disposition pour toute question.<br>
@@ -1113,7 +1113,7 @@ def page3():
   </div>
 
   <!-- PROCHAINES ÉTAPES -->
-  <div style="padding:0 24px;flex-shrink:0;page-break-inside:auto;break-inside:auto;">
+  <div style="padding:0 24px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
     <div style="background:#F8F6F0;border:1px solid #EAECF0;border-radius:10px;padding:5px 10px;margin:2px 0;">
       <div style="border-left:4px solid #F5A623;padding-left:10px;margin-bottom:3px;">
         <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:{CN};text-transform:uppercase;">PROCHAINES \u00c9TAPES</div>
@@ -1144,7 +1144,7 @@ def page3():
   </div>
 
   <!-- BON POUR ACCORD -->
-  <div style="padding:0 24px;flex-grow:1;display:flex;flex-direction:column;justify-content:flex-end;page-break-inside:auto;break-inside:auto;">
+  <div style="padding:0 24px;flex-grow:1;display:flex;flex-direction:column;justify-content:flex-end;page-break-inside:auto !important;break-inside:auto !important;">
     <div style="border-left:4px solid {CA};padding-left:12px;margin-bottom:2px;">
       <div style="font-size:8pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:1.5px;">Bon pour accord</div>
     </div>

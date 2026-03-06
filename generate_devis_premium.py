@@ -625,6 +625,7 @@ body{{font-family:'DM Sans',sans-serif;font-size:9pt;color:{CG7};
 .serif{{font-family:'DM Serif Display',Georgia,serif;}}
 .hc-serif{{font-family:'Playfair Display','Palatino Linotype','Book Antiqua',Georgia,serif;}}
 .eq{{width:100%;border-collapse:collapse;font-size:6.5pt;}}
+.option-check{{color:#2e7d32;font-size:15px;font-weight:700;vertical-align:middle;margin-right:3px;}}
 .eq th{{background:{CG1};color:{CG4};font-size:5.5pt;font-weight:700;text-transform:uppercase;
   letter-spacing:.5px;padding:4px 5px;border-bottom:1px solid {CG2};text-align:left;}}
 .eq td{{padding:3px 4px;border-bottom:1px solid {CG2}80;vertical-align:middle;}}
@@ -652,9 +653,9 @@ def page1():
     _badge_css = (f'position:absolute;top:0;left:0;right:0;background:{CA};color:{CN};'
                   f'font-size:7pt;font-weight:700;letter-spacing:1px;padding:5px 9px;'
                   f'border-radius:4px 4px 0 0;text-transform:uppercase;text-align:center;')
-    _r1   = (f'<div style="{_badge_css}">{SVG_STAR} RECOMMAND\u00c9</div>'
+    _r1   = (f'<div style="{_badge_css}"><span style="color:#d4a84b;font-size:16px;">★</span> RECOMMAND\u00c9</div>'
              if _both and RECOMMENDED == 'Sans batterie' else '')
-    _r2   = (f'<div style="{_badge_css}">{SVG_STAR} RECOMMAND\u00c9</div>'
+    _r2   = (f'<div style="{_badge_css}"><span style="color:#d4a84b;font-size:16px;">★</span> RECOMMAND\u00c9</div>'
              if _both and RECOMMENDED == 'Avec batterie' else '')
     # Price display — crossed-out original + discount badge + new price when discount active
     if DISCOUNT_PCT > 0:
@@ -816,11 +817,11 @@ def page1():
       <div style="display:inline-block;align-self:flex-start;background:#e8f5e9;color:#2e7d32;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">{SVG_CHART}Retour en {ROI_S} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
-        <li>{SVG_CHECK}{NB_PAN} panneaux {WP}&nbsp;W</li>
-        <li>{SVG_CHECK}Onduleur r&#233;seau Huawei</li>
-        <li>{SVG_CHECK}Smart Meter + Wifi Dongle</li>
-        <li>{SVG_CHECK}Monitoring int&#233;gr&#233; via app Huawei</li>
-        <li>{SVG_CHECK}Structures + installation compl&#232;te</li>
+        <li><span class="option-check">✓</span>{NB_PAN} panneaux {WP}&nbsp;W</li>
+        <li><span class="option-check">✓</span>Onduleur r&#233;seau Huawei</li>
+        <li><span class="option-check">✓</span>Smart Meter + Wifi Dongle</li>
+        <li><span class="option-check">✓</span>Monitoring int&#233;gr&#233; via app Huawei</li>
+        <li><span class="option-check">✓</span>Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>
       <div style="background:{CG1};border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
@@ -840,11 +841,11 @@ def page1():
       <div style="display:inline-block;align-self:flex-start;background:#1a1a2e;color:white;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">{SVG_CHART2}Retour en {ROI_A} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
-        <li>{SVG_CHECK}{NB_PAN} panneaux {WP}&nbsp;W</li>
-        <li>{SVG_CHECK}Onduleur hybride Deye</li>
-        <li>{SVG_BOLT}Batterie de stockage incluse</li>
-        <li>{SVG_CHECK}Monitoring int&#233;gr&#233; via app Deye</li>
-        <li>{SVG_CHECK}Structures + installation compl&#232;te</li>
+        <li><span class="option-check">✓</span>{NB_PAN} panneaux {WP}&nbsp;W</li>
+        <li><span class="option-check">✓</span>Onduleur hybride Deye</li>
+        <li><span style="color:#d4a84b;font-weight:bold;">⚡</span> Batterie de stockage incluse</li>
+        <li><span class="option-check">✓</span>Monitoring int&#233;gr&#233; via app Deye</li>
+        <li><span class="option-check">✓</span>Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>
       <div style="background:white;border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
@@ -860,12 +861,12 @@ def page1():
   <!-- BOTTOM DARK STRIP — solid edge-to-edge dark navy, compact height -->
   <div style="background:{CN};flex-shrink:0;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:8px 30px;">
     <div style="display:flex;gap:6px;">
-      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_SUN}3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
-      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_ZAP}Prix ONEE en hausse</span>
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">☀ 3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">⚡ Prix ONEE en hausse</span>
       <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_GLOBE}&#201;nergie 100&#37; propre</span>
     </div>
     <div style="font-size:6.5pt;color:rgba(255,255,255,0.70);white-space:nowrap;">
-      {svg_num(1)} Devis → {svg_num(2)} Visite → {svg_num(3)} Installation 7&#8211;14&#160;j → {svg_num(4)} Mise en service
+      ① Devis → ② Visite → ③ Installation 7&#8211;14&#160;j → ④ Mise en service
     </div>
   </div>
 
@@ -1175,7 +1176,7 @@ def page3():
       <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:4px 8px;min-height:45px;background:white;">
         <div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Signature TAQINOR</div>
         <div style="border-bottom:1px solid {CG2};min-height:10px;margin-bottom:2px;"></div>
-        <div style="font-size:7pt;color:{CG4};margin-top:1px;">Repr\u00e9sentant&#160;: _______________</div>
+        <div style="font-size:7pt;color:{CG4};margin-top:1px;">Repr\u00e9sentant&#160;: <strong style="color:{CG7};">TAQINOR</strong></div>
         <div style="border-bottom:1px solid {CG2};min-height:8px;margin-top:2px;margin-bottom:2px;"></div>
         <div style="font-size:7pt;color:{CG4};">Date&#160;: _______________</div>
         <div style="font-size:5.5pt;color:{CG4};margin-top:3px;font-style:italic;">Cachet et signature de la soci\u00e9t\u00e9</div>

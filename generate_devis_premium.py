@@ -405,7 +405,7 @@ def footer(n, total=3):
 
 def footer_p3():
     """Page 3 footer — dark navy + legal identity line."""
-    return (f'<div style="background:{CN};padding:6px 24px 5px;flex-shrink:0;">'
+    return (f'<div style="background:{CN};padding:6px 24px 5px;flex-shrink:0;margin-top:auto;">'
             f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
             f'<div style="font-size:9pt;font-weight:800;color:{CA};letter-spacing:1px;">TAQINOR</div>'
             f'<div style="font-size:7pt;color:#888;text-align:center;">'
@@ -793,7 +793,7 @@ def page1():
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Autoconsommation directe</div>
       {_ts_price}
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
-      <div style="display:inline-block;width:auto;align-self:flex-start;background:{CA};color:{CN};border-radius:3px;padding:3px 9px;font-size:6.5pt;font-weight:700;margin-bottom:7px;"><span style="font-size:8pt;font-weight:900;vertical-align:middle;margin-right:2px;">&#8599;</span> Retour en {ROI_S} ans</div>
+      <div style="display:inline-block;align-self:flex-start;background:#e8f5e9;color:#2e7d32;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">Retour en {ROI_S} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> {NB_PAN} panneaux {WP}&nbsp;W</li>
@@ -817,12 +817,12 @@ def page1():
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
       {_ta_price}
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
-      <div style="display:inline-block;width:auto;align-self:flex-start;background:{CN};color:white;border-radius:3px;padding:3px 9px;font-size:6.5pt;font-weight:700;margin-bottom:7px;"><span style="font-size:8pt;font-weight:900;vertical-align:middle;margin-right:2px;">&#8599;</span> Retour en {ROI_A} ans</div>
+      <div style="display:inline-block;align-self:flex-start;background:#1a1a2e;color:white;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">Retour en {ROI_A} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> {NB_PAN} panneaux {WP}&nbsp;W</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Onduleur hybride Deye</li>
-        <li style="color:{CN};font-weight:700;"><span style="color:{CA};font-weight:900;font-size:9pt;vertical-align:middle;margin-right:2px;">&#10022;</span> Batterie de stockage incluse</li>
+        <li style="color:#d4a84b;font-weight:bold;"><span style="color:#d4a84b;font-weight:bold;font-size:9pt;vertical-align:middle;margin-right:2px;">&#9650;</span> Batterie de stockage incluse</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Monitoring int&#233;gr&#233; via app Deye</li>
         <li><span style="color:{CGR};font-weight:800;">&#10003;</span> Structures + installation compl&#232;te</li>
       </ul>
@@ -1003,11 +1003,8 @@ def page3():
   </div>
   <div style="height:3px;background:{CA};flex-shrink:0;"></div>
 
-  <!-- SINGLE BODY WRAPPER: page-break-inside:avoid on ONE div only -->
-  <div style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;page-break-inside:avoid;">
-
   <!-- WHY TAQINOR -->
-  <div class="page3-content" style="padding:3px 24px 2px;flex-shrink:0;">
+  <div style="padding:3px 24px 2px;flex-shrink:0;page-break-inside:auto;break-inside:auto;">
     <div class="serif" style="font-size:19pt;color:{CN};margin-bottom:1px;">Pourquoi choisir TAQINOR&#160;?</div>
     <div style="font-size:7.5pt;color:{CG4};font-style:italic;margin-bottom:3px;">Des experts engag\u00e9s pour votre transition \u00e9nerg\u00e9tique</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
@@ -1065,7 +1062,7 @@ def page3():
   </div>
 
   <!-- GUARANTEE BADGES -->
-  <div class="page3-content" style="padding:0 24px 2px;flex-shrink:0;">
+  <div style="padding:0 24px 2px;flex-shrink:0;page-break-inside:auto;break-inside:auto;">
     <div style="display:flex;gap:3px;">
       <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:3px 5px;text-align:center;background:white;">
         <div class="serif" style="font-size:20pt;color:{CN};line-height:1.0;letter-spacing:-1px;">10</div>
@@ -1091,7 +1088,7 @@ def page3():
   </div>
 
   <!-- CONDITIONS GENERALES -->
-  <div class="page3-content" style="padding:0 24px 2px;flex-shrink:0;">
+  <div style="padding:0 24px 2px;flex-shrink:0;page-break-inside:auto;break-inside:auto;">
     <div style="background:{CG1};border-radius:8px;padding:3px 12px;border:1px solid {CG2};border-left:4px solid {CN};">
       <div style="font-size:7.5pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;">Conditions g\u00e9n\u00e9rales du devis</div>
       <ul style="list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:0px 14px;">
@@ -1107,7 +1104,7 @@ def page3():
   </div>
 
   <!-- NOTRE ENGAGEMENT -->
-  <div class="page3-content" style="background:{CA};padding:3px 30px;flex-shrink:0;text-align:center;margin:0 24px 2px;border-radius:8px;">
+  <div style="background:{CA};padding:3px 30px;flex-shrink:0;text-align:center;margin:0 24px 2px;border-radius:8px;page-break-inside:auto;break-inside:auto;">
     <div style="font-size:6.5pt;letter-spacing:2px;color:{CN};font-weight:800;text-transform:uppercase;margin-bottom:1px;">Notre Engagement</div>
     <div style="font-style:italic;color:white;font-size:8pt;line-height:1.4;">
       Notre \u00e9quipe reste \u00e0 votre disposition pour toute question.<br>
@@ -1116,7 +1113,7 @@ def page3():
   </div>
 
   <!-- PROCHAINES ÉTAPES -->
-  <div class="page3-content" style="padding:0 24px;flex-shrink:0;">
+  <div style="padding:0 24px;flex-shrink:0;page-break-inside:auto;break-inside:auto;">
     <div style="background:#F8F6F0;border:1px solid #EAECF0;border-radius:10px;padding:5px 10px;margin:2px 0;">
       <div style="border-left:4px solid #F5A623;padding-left:10px;margin-bottom:3px;">
         <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:{CN};text-transform:uppercase;">PROCHAINES \u00c9TAPES</div>
@@ -1147,7 +1144,7 @@ def page3():
   </div>
 
   <!-- BON POUR ACCORD -->
-  <div style="padding:0 24px;flex-grow:1;display:flex;flex-direction:column;justify-content:flex-end;">
+  <div style="padding:0 24px;flex-grow:1;display:flex;flex-direction:column;justify-content:flex-end;page-break-inside:auto;break-inside:auto;">
     <div style="border-left:4px solid {CA};padding-left:12px;margin-bottom:2px;">
       <div style="font-size:8pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:1.5px;">Bon pour accord</div>
     </div>
@@ -1172,8 +1169,6 @@ def page3():
     </div>
 
   </div>
-
-  </div><!-- /body wrapper -->
 
   {footer_p3()}
 </div>

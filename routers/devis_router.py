@@ -333,6 +333,7 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         "scenario":         scenario,
         "recommended":      request.recommended_option,
         "pdf_mode":         request.pdf_mode,
+        "show_monthly":     request.show_monthly,
         "all_items":        all_items,
         "discount_pct":     request.discount_percent,
         "total_sans_before": total_sans_before,

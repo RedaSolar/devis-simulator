@@ -994,6 +994,7 @@ function collectFormData() {
     const notesAvec = getNotes('avec');
     const discountPct = parseFloat(document.getElementById('discount-pct')?.value) || 0;
     const onepageMode = document.getElementById('onepage-mode')?.checked;
+    const showMonthly = document.getElementById('show-monthly')?.checked !== false;
 
     return {
         doc_number: docNumber,
@@ -1020,6 +1021,7 @@ function collectFormData() {
         onduleur_kw: onduleurKw,
         onduleur_phase: onduleurPhase,
         pdf_mode: onepageMode ? 'onepage' : 'full',
+        show_monthly: showMonthly,
     };
 }
 

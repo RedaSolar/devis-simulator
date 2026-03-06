@@ -1270,6 +1270,7 @@ function collectFormData() {
     const notesAvec = getNotes('avec');
     const discountPct = parseFloat(document.getElementById('discount-pct')?.value) || 0;
     const onepageMode = document.getElementById('onepage-mode')?.checked;
+    const showMonthly = document.getElementById('show-monthly')?.checked !== false;
 
     return {
         doc_number: docNumber,
@@ -1296,6 +1297,7 @@ function collectFormData() {
         onduleur_kw: onduleurKw,
         onduleur_phase: onduleurPhase,
         pdf_mode: onepageMode ? 'onepage' : 'full',
+        show_monthly: showMonthly,
     };
 }
 
@@ -1518,6 +1520,9 @@ async function fillFormFromHistory(devisId) {
         // One-page toggle
         const opEl = document.getElementById('onepage-mode');
         if (opEl) opEl.checked = fd.pdf_mode === 'onepage';
+        // Monthly economies toggle (default true if not stored)
+        const smEl = document.getElementById('show-monthly');
+        if (smEl) smEl.checked = fd.show_monthly !== false;
 
         // Notes — clear and repopulate
         for (const scen of ['sans', 'avec']) {

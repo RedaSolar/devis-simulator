@@ -913,6 +913,23 @@ def page2(sans_items, img_roi, img_mon):
     else:
         tbl_css = ""
 
+    _monthly_card = (
+        f'<div style="flex:1;min-height:0;background:{CG1};border-radius:7px;padding:8px 11px;'
+        f'border:1px solid {CG2};display:flex;flex-direction:column;">'
+        f'<div style="font-size:7pt;font-weight:700;color:{CN};text-transform:uppercase;'
+        f'letter-spacing:.5px;margin-bottom:1px;flex-shrink:0;">'
+        f'<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:middle;margin-right:3px;">'
+        f'<rect x="1" y="2" width="10" height="9" rx="1.5" fill="none" stroke="{CN}" stroke-width="1.3"/>'
+        f'<line x1="1" y1="5" x2="11" y2="5" stroke="{CN}" stroke-width="1"/>'
+        f'<line x1="4" y1="1" x2="4" y2="3" stroke="{CN}" stroke-width="1.3" stroke-linecap="round"/>'
+        f'<line x1="8" y1="1" x2="8" y2="3" stroke="{CN}" stroke-width="1.3" stroke-linecap="round"/>'
+        f'</svg> \u00c9conomies mensuelles estim\u00e9es (MAD\u00a0/\u00a0mois)</div>'
+        f'<div style="font-size:6pt;color:{CG4};font-style:italic;margin-bottom:4px;flex-shrink:0;">'
+        f'Facture ONEE vs \u00e9conomies solaires par mois</div>'
+        f'<img src="{img_mon}" style="flex:1;min-height:0;width:100%;object-fit:contain;display:block;">'
+        f'</div>'
+    ) if img_mon else ""
+
     return f"""
 <div class="page">
   {tbl_css}
@@ -956,9 +973,7 @@ def page2(sans_items, img_roi, img_mon):
     </div>
   </div>
 
-  <!-- Charts section: flex:1 so it always fills the remaining space;
-       each card also flex:1 so both charts share equally;
-       images use flex:1;min-height:0 so they scale to whatever height is available -->
+  <!-- Charts section -->
   <div style="padding:4px 24px 6px;flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;">
     <div style="flex:1;min-height:0;background:{CG1};border-radius:7px;padding:8px 11px;border:1px solid {CG2};display:flex;flex-direction:column;">
       <div style="font-size:7pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;flex-shrink:0;">
@@ -966,13 +981,7 @@ def page2(sans_items, img_roi, img_mon):
       </div>
       <img src="{img_roi}" style="flex:1;min-height:0;width:100%;object-fit:contain;display:block;">
     </div>
-    <div style="flex:1;min-height:0;background:{CG1};border-radius:7px;padding:8px 11px;border:1px solid {CG2};display:flex;flex-direction:column;">
-      <div style="font-size:7pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px;flex-shrink:0;">
-        <svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:middle;margin-right:3px;"><rect x="1" y="2" width="10" height="9" rx="1.5" fill="none" stroke="{CN}" stroke-width="1.3"/><line x1="1" y1="5" x2="11" y2="5" stroke="{CN}" stroke-width="1"/><line x1="4" y1="1" x2="4" y2="3" stroke="{CN}" stroke-width="1.3" stroke-linecap="round"/><line x1="8" y1="1" x2="8" y2="3" stroke="{CN}" stroke-width="1.3" stroke-linecap="round"/></svg> \u00c9conomies mensuelles estim\u00e9es (MAD / mois)
-      </div>
-      <div style="font-size:6pt;color:{CG4};font-style:italic;margin-bottom:4px;flex-shrink:0;">Facture ONEE vs \u00e9conomies solaires par mois</div>
-      <img src="{img_mon}" style="flex:1;min-height:0;width:100%;object-fit:contain;display:block;">
-    </div>
+    {_monthly_card}
   </div>
 
   {footer(2)}
@@ -1200,7 +1209,7 @@ def page3():
 def build_html():
     print("  Generating charts...")
     img_roi = make_chart_roi()
-    img_mon = make_chart_monthly()
+    img_mon = make_chart_monthly() if SHOW_MONTHLY else ""
     return f"""<!DOCTYPE html>
 <html lang="fr" style="background:#FFFFFF !important;"><head><meta charset="UTF-8">
 <title>Devis TAQINOR N\u00b0 {REF}</title>
@@ -1403,7 +1412,7 @@ def generate_premium_pdf(data: dict, out_path) -> str:
     global ECO_S_ANN, ECO_A_ANN, ROI_S, ROI_A, INST_TYPE
     global SANS_ITEMS, AVEC_ITEMS, ECO_S_M, ECO_A_M, CUMUL_S, CUMUL_A
     global FACTURES_M
-    global SCENARIO, RECOMMENDED
+    global SCENARIO, RECOMMENDED, SHOW_MONTHLY
 
     CLIENT_NAME  = data["client_name"]
     CLIENT_ADDR  = data["client_addr"]
@@ -1427,6 +1436,7 @@ def generate_premium_pdf(data: dict, out_path) -> str:
     INST_TYPE    = data["inst_type"]
     SCENARIO     = data.get("scenario", "Les deux (Sans + Avec)")
     RECOMMENDED  = data.get("recommended", "Avec batterie")
+    SHOW_MONTHLY = data.get("show_monthly", True)
     SANS_ITEMS   = data["sans_items"]
     AVEC_ITEMS   = data["avec_items"]
     ECO_S_M      = data["eco_s_monthly"]

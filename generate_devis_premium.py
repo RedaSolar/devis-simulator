@@ -27,6 +27,24 @@ matplotlib.use("Agg")
 
 BASE_DIR = Path(__file__).resolve().parent
 
+# ── Inline SVG icons for Page 1 (WeasyPrint renders inline SVG perfectly) ────
+SVG_CHECK   = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:4px;"><circle cx="7" cy="7" r="7" fill="#2e7d32"/><path d="M4 7l2 2 4-4" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
+SVG_BOLT    = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:4px;"><circle cx="7" cy="7" r="7" fill="#d4a84b"/><path d="M8 3L5 8h3l-1 4 4-5H8l1-4z" fill="white"/></svg>'
+SVG_CHART   = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><rect rx="3" width="14" height="14" fill="#e8f5e9"/><path d="M3 10L6 6l2 2 3-4" stroke="#2e7d32" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
+SVG_CHART2  = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><rect rx="3" width="14" height="14" fill="#1a1a2e"/><path d="M3 10L6 6l2 2 3-4" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
+SVG_STAR    = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><path d="M7 1l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4z" fill="#d4a84b"/></svg>'
+SVG_HOUSE   = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><path d="M7 1L1 7h2v5h3V9h2v3h3V7h2L7 1z" fill="white"/></svg>'
+SVG_FACTORY = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><rect x="1" y="7" width="12" height="6" fill="white" rx="1"/><rect x="3" y="4" width="3" height="3" fill="white"/><rect x="8" y="4" width="3" height="3" fill="white"/><rect x="5" y="1" width="4" height="3" fill="white"/></svg>'
+SVG_SUN     = '<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:middle;margin-right:3px;"><circle cx="6" cy="6" r="3" fill="#d4a84b"/><g stroke="#d4a84b" stroke-width="1"><line x1="6" y1="0" x2="6" y2="2"/><line x1="6" y1="10" x2="6" y2="12"/><line x1="0" y1="6" x2="2" y2="6"/><line x1="10" y1="6" x2="12" y2="6"/></g></svg>'
+SVG_ZAP     = '<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:middle;margin-right:3px;"><path d="M7 1L3 7h3l-1 4 5-6H7l1-4z" fill="#d4a84b"/></svg>'
+SVG_GLOBE   = '<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:middle;margin-right:3px;"><circle cx="6" cy="6" r="5" fill="none" stroke="#4caf50" stroke-width="1"/><ellipse cx="6" cy="6" rx="2.5" ry="5" fill="none" stroke="#4caf50" stroke-width="0.8"/><line x1="1" y1="6" x2="11" y2="6" stroke="#4caf50" stroke-width="0.8"/></svg>'
+
+def svg_num(n):
+    return (f'<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:middle;margin-right:2px;">'
+            f'<circle cx="8" cy="8" r="7" fill="#d4a84b"/>'
+            f'<text x="8" y="11.5" text-anchor="middle" font-size="10" fill="white" font-weight="bold">{n}</text>'
+            f'</svg>')
+
 def _fetch_gfont(family_url, weight=400, style="normal"):
     """Download Google Font woff2 (Latin subset) and return base64; cached in temp dir."""
     import urllib.request, re as _re, tempfile as _tmp
@@ -632,9 +650,9 @@ def page1():
     _badge_css = (f'position:absolute;top:0;left:0;right:0;background:{CA};color:{CN};'
                   f'font-size:7pt;font-weight:700;letter-spacing:1px;padding:5px 9px;'
                   f'border-radius:4px 4px 0 0;text-transform:uppercase;text-align:center;')
-    _r1   = (f'<div style="{_badge_css}">&#9733; RECOMMAND\u00c9</div>'
+    _r1   = (f'<div style="{_badge_css}">{SVG_STAR} RECOMMAND\u00c9</div>'
              if _both and RECOMMENDED == 'Sans batterie' else '')
-    _r2   = (f'<div style="{_badge_css}">&#9733; RECOMMAND\u00c9</div>'
+    _r2   = (f'<div style="{_badge_css}">{SVG_STAR} RECOMMAND\u00c9</div>'
              if _both and RECOMMENDED == 'Avec batterie' else '')
     # Price display — crossed-out original + discount badge + new price when discount active
     if DISCOUNT_PCT > 0:
@@ -744,7 +762,7 @@ def page1():
   <div style="padding:8px 24px 4px;flex-shrink:0;background:#FFFFFF !important;">
     <div style="font-size:13pt;font-weight:700;color:{CA};margin-bottom:2px;">{CLIENT_NAME}</div>
     <div style="font-size:8pt;color:{CG4};line-height:1.6;">{CLIENT_ADDR}<br>{CLIENT_PHONE}{'<br><span style="color:' + CG7 + ';"><span style="font-weight:600;">ICE&#160;:</span>&#160;' + CLIENT_ICE + '</span>' if CLIENT_ICE else ''}</div>
-    <div style="margin-top:4px;display:inline-block;background:{CN};border-radius:3px;padding:2px 7px;font-size:7.5px;color:white;">&#127968; {INST_TYPE}</div>
+    <div style="margin-top:4px;display:inline-block;background:{CN};border-radius:3px;padding:2px 7px;font-size:7.5px;color:white;">{SVG_FACTORY if 'ndustr' in INST_TYPE else SVG_HOUSE}{INST_TYPE}</div>
   </div>
 
   <!-- KPI CARDS -->
@@ -793,14 +811,14 @@ def page1():
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Autoconsommation directe</div>
       {_ts_price}
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
-      <div style="display:inline-block;align-self:flex-start;background:#e8f5e9;color:#2e7d32;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">Retour en {ROI_S} ans</div>
+      <div style="display:inline-block;align-self:flex-start;background:#e8f5e9;color:#2e7d32;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">{SVG_CHART}Retour en {ROI_S} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
-        <li>✓{NB_PAN} panneaux {WP}&nbsp;W</li>
-        <li>✓Onduleur r&#233;seau Huawei</li>
-        <li>✓Smart Meter + Wifi Dongle</li>
-        <li>✓Monitoring int&#233;gr&#233; via app Huawei</li>
-        <li>✓Structures + installation compl&#232;te</li>
+        <li>{SVG_CHECK}{NB_PAN} panneaux {WP}&nbsp;W</li>
+        <li>{SVG_CHECK}Onduleur r&#233;seau Huawei</li>
+        <li>{SVG_CHECK}Smart Meter + Wifi Dongle</li>
+        <li>{SVG_CHECK}Monitoring int&#233;gr&#233; via app Huawei</li>
+        <li>{SVG_CHECK}Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>
       <div style="background:{CG1};border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
@@ -817,14 +835,14 @@ def page1():
       <div style="font-size:7pt;color:{CGR};font-weight:600;margin-bottom:7px;">Stockage + autonomie nocturne</div>
       {_ta_price}
       <div style="font-size:7pt;color:{CG4};margin-bottom:5px;">Prix total TTC</div>
-      <div style="display:inline-block;align-self:flex-start;background:#1a1a2e;color:white;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">Retour en {ROI_A} ans</div>
+      <div style="display:inline-block;align-self:flex-start;background:#1a1a2e;color:white;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;margin-bottom:7px;">{SVG_CHART2}Retour en {ROI_A} ans</div>
       <div style="height:1px;background:{CG2};margin-bottom:6px;"></div>
       <ul style="list-style:none;padding:0;font-size:7pt;line-height:1.8;color:{CG7};margin-bottom:6px;">
-        <li>✓{NB_PAN} panneaux {WP}&nbsp;W</li>
-        <li>✓Onduleur hybride Deye</li>
-        <li>⚡ Batterie de stockage incluse</li>
-        <li>✓Monitoring int&#233;gr&#233; via app Deye</li>
-        <li>✓Structures + installation compl&#232;te</li>
+        <li>{SVG_CHECK}{NB_PAN} panneaux {WP}&nbsp;W</li>
+        <li>{SVG_CHECK}Onduleur hybride Deye</li>
+        <li>{SVG_BOLT}Batterie de stockage incluse</li>
+        <li>{SVG_CHECK}Monitoring int&#233;gr&#233; via app Deye</li>
+        <li>{SVG_CHECK}Structures + installation compl&#232;te</li>
       </ul>
       <div style="height:1px;background:{CG2};margin-top:auto;margin-bottom:6px;"></div>
       <div style="background:white;border:1px solid {CG2};border-radius:5px;padding:5px 9px;">
@@ -840,12 +858,12 @@ def page1():
   <!-- BOTTOM DARK STRIP — solid edge-to-edge dark navy, compact height -->
   <div style="background:{CN};flex-shrink:0;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:8px 30px;">
     <div style="display:flex;gap:6px;">
-      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">☀ 3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
-      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">⚡ Prix ONEE en hausse</span>
-      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">● &#201;nergie 100&#37; propre</span>
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_SUN}3&#8239;000&#160;h/an d&#8217;ensoleillement</span>
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_ZAP}Prix ONEE en hausse</span>
+      <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.40);border-radius:20px;padding:3px 10px;font-size:6.5pt;color:white;white-space:nowrap;">{SVG_GLOBE}&#201;nergie 100&#37; propre</span>
     </div>
     <div style="font-size:6.5pt;color:rgba(255,255,255,0.70);white-space:nowrap;">
-      ① Devis → ② Visite → ③ Installation 7&#8211;14&#160;j → ④ Mise en service
+      {svg_num(1)} Devis → {svg_num(2)} Visite → {svg_num(3)} Installation 7&#8211;14&#160;j → {svg_num(4)} Mise en service
     </div>
   </div>
 

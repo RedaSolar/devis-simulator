@@ -3,6 +3,12 @@ deployment:
   tasks:
     - /bin/chmod o+x /home/taqinorm
     - export DEPLOYPATH=/home/taqinorm/taqinor_app/
-    - rsync -av --exclude='.git' --exclude='config.json' --exclude='devis_history.json' --exclude='users.db' --exclude='.htaccess' --exclude='Passengerfile.json' --exclude='tmp/' . $DEPLOYPATH
+    - /bin/cp config.json /tmp/taqinor_config_backup.json 2>/dev/null; true
+    - /bin/cp devis_history.json /tmp/taqinor_history_backup.json 2>/dev/null; true
+    - /bin/cp users.db /tmp/taqinor_users_backup.db 2>/dev/null; true
+    - /bin/cp -R . $DEPLOYPATH
+    - /bin/cp /tmp/taqinor_config_backup.json $DEPLOYPATH/config.json 2>/dev/null; true
+    - /bin/cp /tmp/taqinor_history_backup.json $DEPLOYPATH/devis_history.json 2>/dev/null; true
+    - /bin/cp /tmp/taqinor_users_backup.db $DEPLOYPATH/users.db 2>/dev/null; true
     - /bin/chmod 755 $DEPLOYPATH
     - /bin/chmod -R o+rX $DEPLOYPATH

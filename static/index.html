@@ -679,6 +679,19 @@
 </div><!-- /container -->
 </main>
 
+<!-- Confirm delete modal -->
+<div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:12px;padding:32px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <div style="font-size:2.5rem;margin-bottom:12px;">&#9888;&#65039;</div>
+    <h3 id="confirm-modal-title" style="margin:0 0 8px;color:#0F1E35;font-size:1.1rem;">Confirmer la suppression</h3>
+    <p id="confirm-modal-msg" style="color:#555;margin:0 0 4px;">Êtes-vous sûr de vouloir supprimer ce devis ? Cette action est irréversible.</p>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:24px;">
+      <button class="btn btn-secondary" onclick="closeConfirmModal()">Annuler</button>
+      <button class="btn btn-danger" id="confirm-modal-ok">Supprimer</button>
+    </div>
+  </div>
+</div>
+
 <script src="/simulator/static/js/auth.js"></script>
 <script src="/simulator/static/js/app.js"></script>
 </body>

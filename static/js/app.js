@@ -227,7 +227,7 @@ async function initApp() {
             const maxNum = history.reduce((m, d) => Math.max(m, parseInt(d.doc_number) || 0), 0);
             const docNumEl = document.getElementById('doc-number');
             if (docNumEl && docNumEl.value <= 0) {
-                docNumEl.value = maxNum + 1;
+                docNumEl.value = Math.max(121, maxNum + 1);
             }
         }
     } catch (e) { /* non-critical */ }
@@ -1368,6 +1368,7 @@ async function loadHistory() {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:1rem;">Aucun devis dans l\'historique</td></tr>';
             return;
         }
+        const admin = isAdmin();
         tbody.innerHTML = history.map(d => `
             <tr>
                 <td><strong>${d.doc_number || d.devis_id}</strong></td>
@@ -1378,11 +1379,15 @@ async function loadHistory() {
                 <td>
                     <div class="btn-group">
                         <button class="btn btn-primary btn-sm"
-                                onclick="downloadPDF('${d.devis_id}')" title="Télécharger PDF">
+                                onclick="downloadPDF('${d.devis_id}', '${escHtml(d.pdf_filename || '')}')" title="Télécharger PDF">
                            ⬇ PDF
                         </button>
-                        <button class="btn btn-danger btn-sm"
-                                onclick="deleteDevis('${d.devis_id}')" title="Supprimer">× Suppr.</button>
+                        <button class="btn btn-secondary btn-sm"
+                                onclick="fillFormFromHistory('${d.devis_id}')" title="Remplir le formulaire">
+                           ✏ Remplir
+                        </button>
+                        ${admin ? `<button class="btn btn-danger btn-sm"
+                                onclick="deleteDevis('${d.devis_id}', '${d.doc_number || d.devis_id}')" title="Supprimer">× Suppr.</button>` : ''}
                     </div>
                 </td>
             </tr>
@@ -1410,20 +1415,132 @@ async function downloadPDF(devisId, filename) {
     }
 }
 
-async function deleteDevis(devisId) {
-    if (!confirm(`Supprimer le devis ${devisId}? Cette action est irréversible.`)) return;
-    try {
-        const res = await authFetch(`/api/devis/${devisId}`, { method: 'DELETE' });
-        if (!res) return;
-        if (res.status === 204 || res.ok) {
-            showToast('Devis supprimé', 'success');
-            loadHistory();
-        } else {
-            const err = await res.json();
-            showToast('Erreur: ' + (err.detail || 'Inconnue'), 'danger');
+// ---- Confirm modal ----
+function openConfirmModal(title, msg, onConfirm) {
+    const modal = document.getElementById('confirm-modal');
+    const titleEl = document.getElementById('confirm-modal-title');
+    const msgEl = document.getElementById('confirm-modal-msg');
+    const okBtn = document.getElementById('confirm-modal-ok');
+    if (!modal) return;
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.textContent = msg;
+    modal.style.display = 'flex';
+    const handler = () => {
+        okBtn.removeEventListener('click', handler);
+        closeConfirmModal();
+        onConfirm();
+    };
+    okBtn.addEventListener('click', handler);
+}
+
+function closeConfirmModal() {
+    const modal = document.getElementById('confirm-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+// Close modal on backdrop click
+document.addEventListener('click', e => {
+    const modal = document.getElementById('confirm-modal');
+    if (modal && e.target === modal) closeConfirmModal();
+});
+
+async function deleteDevis(devisId, docNumber) {
+    openConfirmModal(
+        'Confirmer la suppression',
+        `Supprimer le devis N° ${docNumber || devisId} ? Cette action est irréversible.`,
+        async () => {
+            try {
+                const res = await authFetch(`/api/devis/${devisId}`, { method: 'DELETE' });
+                if (!res) return;
+                if (res.status === 204 || res.ok) {
+                    showToast('Devis supprimé', 'success');
+                    loadHistory();
+                } else {
+                    const err = await res.json();
+                    showToast('Erreur: ' + (err.detail || 'Inconnue'), 'danger');
+                }
+            } catch (e) {
+                showToast('Erreur réseau: ' + e.message, 'danger');
+            }
         }
+    );
+}
+
+async function fillFormFromHistory(devisId) {
+    try {
+        const res = await authFetch(`/api/devis/${devisId}`);
+        if (!res || !res.ok) { showToast('Impossible de charger ce devis', 'danger'); return; }
+        const entry = await res.json();
+        const fd = entry.form_data;
+        if (!fd) { showToast('Données du formulaire non disponibles pour ce devis', 'warning'); return; }
+
+        // Populate scalar fields
+        const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
+        set('doc-number', fd.doc_number);
+        set('install-type', fd.installation_type);
+        set('client-name', fd.client_name);
+        set('client-address', fd.client_address);
+        set('client-phone', fd.client_phone);
+        set('client-ice', fd.client_ice);
+        set('puissance-kwp', fd.puissance_kwp);
+        set('puissance-panneau', fd.puissance_panneau_w);
+        set('day-usage', fd.roi_data?.day_usage_percent);
+        set('discount-pct', fd.discount_percent);
+        set('onduleur-kw', fd.onduleur_kw);
+
+        // Scenario
+        const scenEl = document.getElementById('scenario-choice');
+        if (scenEl && fd.scenario_choice) scenEl.value = fd.scenario_choice;
+
+        // Structure type radio
+        if (fd.structure_type) {
+            const radio = document.querySelector(`input[name="structure-type"][value="${fd.structure_type}"]`);
+            if (radio) radio.checked = true;
+        }
+
+        // Onduleur phase radio
+        if (fd.onduleur_phase) {
+            const radio = document.querySelector(`input[name="onduleur-phase"][value="${fd.onduleur_phase}"]`);
+            if (radio) radio.checked = true;
+        }
+
+        // Monthly bills
+        if (fd.roi_data?.factures_mensuelles?.length) {
+            renderMonthlyInputs(fd.roi_data.factures_mensuelles);
+        }
+
+        // Product lines
+        if (fd.product_lines?.length) {
+            currentProductLines = fd.product_lines.map(ln => ({ ...ln, tva: ln.tva || 20 }));
+            renderProductLines(currentProductLines);
+        }
+
+        // One-page toggle
+        const opEl = document.getElementById('onepage-mode');
+        if (opEl) opEl.checked = fd.pdf_mode === 'onepage';
+
+        // Notes — clear and repopulate
+        for (const scen of ['sans', 'avec']) {
+            const noteList = fd[`notes_${scen}`] || [];
+            const container = document.getElementById(`notes-${scen}`);
+            if (container) {
+                container.innerHTML = '';
+                for (const note of noteList) {
+                    addNote(scen);
+                    const ta = container.lastElementChild?.querySelector('textarea');
+                    if (ta) ta.value = note;
+                }
+            }
+        }
+
+        // Recommended
+        const recEl = document.getElementById('recommended-option');
+        if (recEl && fd.recommended_option) recEl.value = fd.recommended_option;
+
+        showTab('devis');
+        showToast('Formulaire rempli avec les données du devis ' + (fd.doc_number || devisId), 'success');
     } catch (e) {
-        showToast('Erreur réseau: ' + e.message, 'danger');
+        showToast('Erreur: ' + e.message, 'danger');
     }
 }
 

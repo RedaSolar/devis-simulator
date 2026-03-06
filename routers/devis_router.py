@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
 import pandas as pd
 
-from routers.auth_router import get_current_user
+from routers.auth_router import get_current_user, require_admin
 from models.devis_models import DevisRequest
 from constants import GHI, MOIS, DAYS_IN_MONTH, EFFICIENCY, KWH_PRICE
 from roi import roi_figure_buffer, roi_cumulative_buffer
@@ -250,13 +250,16 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     doc_number = request.doc_number
     doc_type = "Devis"
     safe_client = re.sub(r"[^A-Za-z0-9]", "_", request.client_name or "Client")
-    if scenario == "Les deux (Sans + Avec)":
-        scen_str = "Hybride+Injection"
-    elif scenario == "Avec batterie":
-        scen_str = "Hybride"
+    if request.pdf_mode == "onepage":
+        pdf_filename = f"TAQINOR_Devis_{int(doc_number)}_{safe_client}.pdf"
     else:
-        scen_str = "Injection"
-    pdf_filename = f"TAQINOR_Devis_{int(doc_number)}_{safe_client}_{kwp:g}kWc_{scen_str}.pdf"
+        if scenario == "Les deux (Sans + Avec)":
+            scen_str = "Hybride+Injection"
+        elif scenario == "Avec batterie":
+            scen_str = "Hybride"
+        else:
+            scen_str = "Injection"
+        pdf_filename = f"TAQINOR_Devis_{int(doc_number)}_{safe_client}_{kwp:g}kWc_{scen_str}.pdf"
 
     _onduleur_kw    = request.onduleur_kw
     _onduleur_phase = request.onduleur_phase or "Monophasé"
@@ -369,6 +372,7 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         "puissance_kwp": kwp,
         "pdf_filename": pdf_filename,
         "created_at": datetime.utcnow().strftime("%Y-%m-%d"),
+        "form_data": request.dict(),
     }
     _save_history(history)
 
@@ -409,7 +413,7 @@ async def download_devis_pdf(devis_id: str, current_user: dict = Depends(get_cur
 
 
 @router.delete("/{devis_id}", status_code=204)
-async def delete_devis(devis_id: str, current_user: dict = Depends(get_current_user)):
+async def delete_devis(devis_id: str, current_user: dict = Depends(require_admin)):
     history = _load_history()
     if devis_id not in history and str(devis_id) not in history:
         raise HTTPException(status_code=404, detail="Devis not found")

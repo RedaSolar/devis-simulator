@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 # ── Inline SVG icons for Page 1 (WeasyPrint renders inline SVG perfectly) ────
 SVG_CHECK   = '<svg width="13" height="13" viewBox="0 0 13 13" style="vertical-align:middle;margin-right:4px;"><path d="M2 6.5l3.5 3.5 5.5-6" stroke="#2e7d32" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-SVG_BOLT    = '<svg width="13" height="13" viewBox="0 0 13 13" style="vertical-align:middle;margin-right:4px;"><path d="M8 1L4.5 7h3.5L5.5 12 12 5.5H8.5L10 1z" fill="#d4a84b"/></svg>'
+SVG_BOLT    = '<svg width="13" height="13" viewBox="0 0 13 13" style="vertical-align:middle;margin-right:4px;"><path d="M7.5 1.5L3.5 7.5H6.5L5.5 11.5L10 6H7Z" fill="#d4a84b"/></svg>'
 SVG_CHART   = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><rect rx="3" width="14" height="14" fill="#e8f5e9"/><path d="M3 10L6 6l2 2 3-4" stroke="#2e7d32" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
 SVG_CHART2  = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><rect rx="3" width="14" height="14" fill="#1a1a2e"/><path d="M3 10L6 6l2 2 3-4" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
 SVG_STAR    = '<svg width="14" height="14" viewBox="0 0 14 14" style="vertical-align:middle;margin-right:3px;"><path d="M7 1l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4z" fill="#d4a84b"/></svg>'
@@ -42,10 +42,9 @@ SVG_GLOBE   = '<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-a
 SVG_ARROW   = '<svg width="6" height="6" viewBox="0 0 6 6" style="vertical-align:middle;margin:0 2px;"><path d="M1 3h4M3 1l2 2-2 2" stroke="rgba(255,255,255,0.55)" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 
 def svg_num(n):
-    return (f'<svg width="13" height="13" viewBox="0 0 13 13" style="vertical-align:middle;margin-right:2px;">'
-            f'<circle cx="6.5" cy="6.5" r="6" fill="#d4a84b"/>'
-            f'<text x="6.5" y="9.8" text-anchor="middle" font-size="8" fill="white" font-weight="bold">{n}</text>'
-            f'</svg>')
+    return (f'<span style="display:inline-block;width:14px;height:14px;border-radius:50%;'
+            f'background:#d4a84b;color:white;font-size:8px;font-weight:700;'
+            f'text-align:center;line-height:14px;vertical-align:middle;margin-right:2px;">{n}</span>')
 
 def _fetch_gfont(family_url, weight=400, style="normal"):
     """Download Google Font woff2 (Latin subset) and return base64; cached in temp dir."""
@@ -425,7 +424,7 @@ def footer(n, total=3):
 
 def footer_p3():
     """Page 3 footer — dark navy + legal identity line."""
-    return (f'<div style="background:{CN};padding:6px 24px 5px;flex-shrink:0;margin-top:auto;">'
+    return (f'<div style="background:{CN};padding:6px 24px 5px;flex-shrink:0;">'
             f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
             f'<div style="font-size:9pt;font-weight:800;color:{CA};letter-spacing:1px;">TAQINOR</div>'
             f'<div style="font-size:7pt;color:#888;text-align:center;">'
@@ -993,7 +992,7 @@ def page3():
         f'<div style="width:17px;height:17px;border:2px solid {CG7};border-radius:3px;flex-shrink:0;"></div>'
         f'<div>'
         f'<div style="font-size:9pt;font-weight:700;color:{CN};">Sans batterie</div>'
-        f'<div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Option 1 &#8212; R&#233;seau uniquement</div>'
+        f'<div style="font-size:8pt;color:{CG4};margin-top:2px;">Option 1 &#8212; R&#233;seau uniquement</div>'
         f'</div>'
         f'</div>'
         # Avec batterie box
@@ -1002,7 +1001,7 @@ def page3():
         f'<div style="width:17px;height:17px;border:2px solid {CA};border-radius:3px;flex-shrink:0;"></div>'
         f'<div>'
         f'<div style="font-size:9pt;font-weight:700;color:{CN};">Avec batterie</div>'
-        f'<div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Option 2 &#8212; R&#233;seau + Stockage</div>'
+        f'<div style="font-size:8pt;color:{CG4};margin-top:2px;">Option 2 &#8212; R&#233;seau + Stockage</div>'
         f'</div>'
         f'</div>'
         f'</div>'
@@ -1021,57 +1020,57 @@ def page3():
   <div style="height:3px;background:{CA};flex-shrink:0;"></div>
 
   <!-- WHY TAQINOR -->
-  <div style="padding:3px 24px 2px;margin-bottom:4px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
-    <div class="serif" style="font-size:22px;color:{CN};margin-bottom:1px;">Pourquoi choisir TAQINOR&#160;?</div>
-    <div style="font-size:7.5pt;color:{CG4};font-style:italic;margin-bottom:3px;">Des experts engag\u00e9s pour votre transition \u00e9nerg\u00e9tique</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
+  <div style="padding:6px 24px 4px;margin-bottom:6px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
+    <div class="serif" style="font-size:26px;color:{CN};margin-bottom:2px;">Pourquoi choisir TAQINOR&#160;?</div>
+    <div style="font-size:9pt;color:{CG4};font-style:italic;margin-bottom:5px;">Des experts engag\u00e9s pour votre transition \u00e9nerg\u00e9tique</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
 
-      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:4px 9px;display:flex;gap:9px;align-items:flex-start;">
-        <div style="width:28px;height:28px;border-radius:50%;background:{CAL};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:8px 12px;display:flex;gap:10px;align-items:flex-start;">
+        <div style="width:34px;height:34px;border-radius:50%;background:{CAL};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{CA}" stroke-width="2" stroke-linecap="round">
             <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
           </svg>
         </div>
         <div>
-          <div style="font-size:9pt;font-weight:700;color:{CN};margin-bottom:2px;">Ing\u00e9nieurs sp\u00e9cialis\u00e9s</div>
-          <div style="font-size:11px;color:{CG4};line-height:1.4;">Installation conforme aux normes marocaines et internationales, r\u00e9alis\u00e9e par des techniciens certifi\u00e9s.</div>
+          <div style="font-size:10.5pt;font-weight:700;color:{CN};margin-bottom:3px;">Ing\u00e9nieurs sp\u00e9cialis\u00e9s</div>
+          <div style="font-size:13px;color:{CG4};line-height:1.4;">Installation conforme aux normes marocaines et internationales, r\u00e9alis\u00e9e par des techniciens certifi\u00e9s.</div>
         </div>
       </div>
 
-      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:4px 9px;display:flex;gap:9px;align-items:flex-start;">
-        <div style="width:28px;height:28px;border-radius:50%;background:{CAL};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:8px 12px;display:flex;gap:10px;align-items:flex-start;">
+        <div style="width:34px;height:34px;border-radius:50%;background:{CAL};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="{CA}" stroke="{CA}" stroke-width="1">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
         </div>
         <div>
-          <div style="font-size:9pt;font-weight:700;color:{CN};margin-bottom:2px;">\u00c9quipements premium certifi\u00e9s</div>
-          <div style="font-size:11px;color:{CG4};line-height:1.4;">Panneaux Canadian Solar, onduleurs Huawei &amp; Deye \u2014 certifi\u00e9s IEC avec garantie fabricant compl\u00e8te.</div>
+          <div style="font-size:10.5pt;font-weight:700;color:{CN};margin-bottom:3px;">\u00c9quipements premium certifi\u00e9s</div>
+          <div style="font-size:13px;color:{CG4};line-height:1.4;">Panneaux Canadian Solar, onduleurs Huawei &amp; Deye \u2014 certifi\u00e9s IEC avec garantie fabricant compl\u00e8te.</div>
         </div>
       </div>
 
-      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:4px 9px;display:flex;gap:9px;align-items:flex-start;">
-        <div style="width:28px;height:28px;border-radius:50%;background:{CAL};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:8px 12px;display:flex;gap:10px;align-items:flex-start;">
+        <div style="width:34px;height:34px;border-radius:50%;background:{CAL};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{CA}" stroke-width="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
         </div>
         <div>
-          <div style="font-size:9pt;font-weight:700;color:{CN};margin-bottom:2px;">Garanties jusqu&#8217;\u00e0 25 ans</div>
-          <div style="font-size:11px;color:{CG4};line-height:1.4;">Structure 20 ans, panneaux 12 ans produit + 25 ans performance, onduleur 10 ans. S\u00e9r\u00e9nit\u00e9 totale.</div>
+          <div style="font-size:10.5pt;font-weight:700;color:{CN};margin-bottom:3px;">Garanties jusqu&#8217;\u00e0 25 ans</div>
+          <div style="font-size:13px;color:{CG4};line-height:1.4;">Structure 20 ans, panneaux 12 ans produit + 25 ans performance, onduleur 10 ans. S\u00e9r\u00e9nit\u00e9 totale.</div>
         </div>
       </div>
 
-      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:4px 9px;display:flex;gap:9px;align-items:flex-start;">
-        <div style="width:28px;height:28px;border-radius:50%;background:{CAL};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <div style="background:white;border:1px solid {CG2};border-radius:10px;padding:8px 12px;display:flex;gap:10px;align-items:flex-start;">
+        <div style="width:34px;height:34px;border-radius:50%;background:{CAL};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{CA}" stroke-width="2">
             <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
             <line x1="12" y1="18" x2="12.01" y2="18" stroke-width="3"/>
           </svg>
         </div>
         <div>
-          <div style="font-size:9pt;font-weight:700;color:{CN};margin-bottom:2px;">Suivi en temps r\u00e9el</div>
-          <div style="font-size:11px;color:{CG4};line-height:1.4;">Application de monitoring 24/7 pour suivre production, \u00e9conomies et \u00e9tat de votre installation.</div>
+          <div style="font-size:10.5pt;font-weight:700;color:{CN};margin-bottom:3px;">Suivi en temps r\u00e9el</div>
+          <div style="font-size:13px;color:{CG4};line-height:1.4;">Application de monitoring 24/7 pour suivre production, \u00e9conomies et \u00e9tat de votre installation.</div>
         </div>
       </div>
 
@@ -1079,51 +1078,51 @@ def page3():
   </div>
 
   <!-- GUARANTEE BADGES -->
-  <div style="padding:0 24px 2px;margin-bottom:4px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
-    <div style="display:flex;gap:3px;">
-      <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:2px 5px;text-align:center;background:white;">
-        <div class="serif" style="font-size:28px;color:{CN};line-height:1.0;letter-spacing:-1px;">10</div>
-        <div style="font-size:10px;font-weight:700;color:{CA};letter-spacing:1px;text-transform:uppercase;">ANS</div>
-        <div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Onduleur</div>
+  <div style="padding:0 24px 4px;margin-bottom:6px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
+    <div style="display:flex;gap:5px;">
+      <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:6px 5px;text-align:center;background:white;">
+        <div class="serif" style="font-size:38px;color:{CN};line-height:1.0;letter-spacing:-1px;">10</div>
+        <div style="font-size:12px;font-weight:700;color:{CA};letter-spacing:1px;text-transform:uppercase;">ANS</div>
+        <div style="font-size:8pt;color:{CG4};margin-top:2px;">Onduleur</div>
       </div>
-      <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:2px 5px;text-align:center;background:white;">
-        <div class="serif" style="font-size:28px;color:{CN};line-height:1.0;letter-spacing:-1px;">12</div>
-        <div style="font-size:10px;font-weight:700;color:{CA};letter-spacing:1px;text-transform:uppercase;">ANS</div>
-        <div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Panneaux (produit)</div>
+      <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:6px 5px;text-align:center;background:white;">
+        <div class="serif" style="font-size:38px;color:{CN};line-height:1.0;letter-spacing:-1px;">12</div>
+        <div style="font-size:12px;font-weight:700;color:{CA};letter-spacing:1px;text-transform:uppercase;">ANS</div>
+        <div style="font-size:8pt;color:{CG4};margin-top:2px;">Panneaux (produit)</div>
       </div>
-      <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:2px 5px;text-align:center;background:white;">
-        <div class="serif" style="font-size:28px;color:{CN};line-height:1.0;letter-spacing:-1px;">20</div>
-        <div style="font-size:10px;font-weight:700;color:{CA};letter-spacing:1px;text-transform:uppercase;">ANS</div>
-        <div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Structure de montage</div>
+      <div style="flex:1;border:2px solid {CN};border-top:4px solid {CA};border-radius:8px;padding:6px 5px;text-align:center;background:white;">
+        <div class="serif" style="font-size:38px;color:{CN};line-height:1.0;letter-spacing:-1px;">20</div>
+        <div style="font-size:12px;font-weight:700;color:{CA};letter-spacing:1px;text-transform:uppercase;">ANS</div>
+        <div style="font-size:8pt;color:{CG4};margin-top:2px;">Structure de montage</div>
       </div>
-      <div style="flex:1;border:2px solid {CA};border-top:4px solid {CN};border-radius:8px;padding:2px 5px;text-align:center;background:{CAL};">
-        <div class="serif" style="font-size:28px;color:{CA};line-height:1.0;letter-spacing:-1px;">25</div>
-        <div style="font-size:10px;font-weight:700;color:{CN};letter-spacing:1px;text-transform:uppercase;">ANS</div>
-        <div style="font-size:6.5pt;color:{CG4};margin-top:1px;">Performance panneau</div>
+      <div style="flex:1;border:2px solid {CA};border-top:4px solid {CN};border-radius:8px;padding:6px 5px;text-align:center;background:{CAL};">
+        <div class="serif" style="font-size:38px;color:{CA};line-height:1.0;letter-spacing:-1px;">25</div>
+        <div style="font-size:12px;font-weight:700;color:{CN};letter-spacing:1px;text-transform:uppercase;">ANS</div>
+        <div style="font-size:8pt;color:{CG4};margin-top:2px;">Performance panneau</div>
       </div>
     </div>
   </div>
 
   <!-- CONDITIONS GENERALES -->
-  <div style="padding:0 24px 2px;margin-bottom:4px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
-    <div style="background:{CG1};border-radius:8px;padding:4px 8px;border:1px solid {CG2};border-left:4px solid {CN};">
-      <div style="font-size:7.5pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;">Conditions g\u00e9n\u00e9rales du devis</div>
-      <ul style="list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:0px 14px;">
-        <li style="font-size:11px;color:{CG7};padding-left:10px;position:relative;line-height:1.3;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.1;">\u00b7</span>Validit\u00e9 de l&#8217;offre&#160;: 30 jours</li>
-        <li style="font-size:11px;color:{CG7};padding-left:10px;position:relative;line-height:1.3;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.1;">\u00b7</span>Acompte \u00e0 la commande&#160;: 30&#37;</li>
-        <li style="font-size:11px;color:{CG7};padding-left:10px;position:relative;line-height:1.3;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.1;">\u00b7</span>60&#37; \u00e0 la r\u00e9ception du mat\u00e9riel</li>
-        <li style="font-size:11px;color:{CG7};padding-left:10px;position:relative;line-height:1.3;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.1;">\u00b7</span>10&#37; apr\u00e8s la mise en marche</li>
-        <li style="font-size:11px;color:{CG7};padding-left:10px;position:relative;line-height:1.3;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.1;">\u00b7</span>D\u00e9lai d&#8217;installation&#160;: 7\u201314 jours ouvr\u00e9s</li>
-        <li style="font-size:11px;color:{CG7};padding-left:10px;position:relative;line-height:1.3;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.1;">\u00b7</span>TVA 10&#37; modules / 20&#37; autres</li>
-        <li style="font-size:11px;color:{CG7};padding-left:10px;position:relative;line-height:1.3;"><span style="position:absolute;left:0;color:{CA};font-size:10pt;line-height:1.1;">\u00b7</span>Tarifs de r\u00e9f\u00e9rence&#160;: bar\u00e8me ONEE/SRM</li>
+  <div style="padding:0 24px 4px;margin-bottom:6px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
+    <div style="background:{CG1};border-radius:8px;padding:7px 12px;border:1px solid {CG2};border-left:4px solid {CN};">
+      <div style="font-size:9pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">Conditions g\u00e9n\u00e9rales du devis</div>
+      <ul style="list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">
+        <li style="font-size:12px;color:{CG7};padding-left:12px;position:relative;line-height:1.4;"><span style="position:absolute;left:0;color:{CA};font-size:11pt;line-height:1.1;">\u00b7</span>Validit\u00e9 de l&#8217;offre&#160;: 30 jours</li>
+        <li style="font-size:12px;color:{CG7};padding-left:12px;position:relative;line-height:1.4;"><span style="position:absolute;left:0;color:{CA};font-size:11pt;line-height:1.1;">\u00b7</span>Acompte \u00e0 la commande&#160;: 30&#37;</li>
+        <li style="font-size:12px;color:{CG7};padding-left:12px;position:relative;line-height:1.4;"><span style="position:absolute;left:0;color:{CA};font-size:11pt;line-height:1.1;">\u00b7</span>60&#37; \u00e0 la r\u00e9ception du mat\u00e9riel</li>
+        <li style="font-size:12px;color:{CG7};padding-left:12px;position:relative;line-height:1.4;"><span style="position:absolute;left:0;color:{CA};font-size:11pt;line-height:1.1;">\u00b7</span>10&#37; apr\u00e8s la mise en marche</li>
+        <li style="font-size:12px;color:{CG7};padding-left:12px;position:relative;line-height:1.4;"><span style="position:absolute;left:0;color:{CA};font-size:11pt;line-height:1.1;">\u00b7</span>D\u00e9lai d&#8217;installation&#160;: 7\u201314 jours ouvr\u00e9s</li>
+        <li style="font-size:12px;color:{CG7};padding-left:12px;position:relative;line-height:1.4;"><span style="position:absolute;left:0;color:{CA};font-size:11pt;line-height:1.1;">\u00b7</span>TVA 10&#37; modules / 20&#37; autres</li>
+        <li style="font-size:12px;color:{CG7};padding-left:12px;position:relative;line-height:1.4;"><span style="position:absolute;left:0;color:{CA};font-size:11pt;line-height:1.1;">\u00b7</span>Tarifs de r\u00e9f\u00e9rence&#160;: bar\u00e8me ONEE/SRM</li>
       </ul>
     </div>
   </div>
 
   <!-- NOTRE ENGAGEMENT -->
-  <div style="background:{CA};padding:4px 15px;flex-shrink:0;text-align:center;margin:0 24px 4px;border-radius:8px;page-break-inside:auto !important;break-inside:auto !important;">
-    <div style="font-size:6.5pt;letter-spacing:2px;color:{CN};font-weight:800;text-transform:uppercase;margin-bottom:1px;">Notre Engagement</div>
-    <div style="font-style:italic;color:white;font-size:8pt;line-height:1.4;">
+  <div style="background:{CA};padding:7px 18px;flex-shrink:0;text-align:center;margin:0 24px 6px;border-radius:8px;page-break-inside:auto !important;break-inside:auto !important;">
+    <div style="font-size:8pt;letter-spacing:2px;color:{CN};font-weight:800;text-transform:uppercase;margin-bottom:2px;">Notre Engagement</div>
+    <div style="font-style:italic;color:white;font-size:9.5pt;line-height:1.4;">
       Notre \u00e9quipe reste \u00e0 votre disposition pour toute question.<br>
       Nous planifierons l&#8217;installation d\u00e8s validation du devis.
     </div>
@@ -1131,30 +1130,30 @@ def page3():
 
   <!-- PROCHAINES ÉTAPES -->
   <div style="padding:0 24px;margin-bottom:4px;flex-shrink:0;page-break-inside:auto !important;break-inside:auto !important;">
-    <div style="background:#F8F6F0;border:1px solid #EAECF0;border-radius:10px;padding:4px 8px;margin:2px 0;">
-      <div style="border-left:4px solid #F5A623;padding-left:10px;margin-bottom:3px;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:{CN};text-transform:uppercase;">PROCHAINES \u00c9TAPES</div>
+    <div style="background:#F8F6F0;border:1px solid #EAECF0;border-radius:10px;padding:8px 12px;margin:2px 0;">
+      <div style="border-left:4px solid #F5A623;padding-left:10px;margin-bottom:5px;">
+        <div style="font-size:12px;font-weight:700;letter-spacing:2px;color:{CN};text-transform:uppercase;">PROCHAINES \u00c9TAPES</div>
       </div>
-      <div style="display:flex;gap:4px;">
-        <div style="flex:1;text-align:center;padding:4px 6px;background:white;border-radius:8px;border:1px solid #EAECF0;">
-          <div class="serif" style="font-size:28px;font-weight:800;color:{CA};line-height:1.0;">1</div>
-          <div style="font-size:11px;color:{CN};font-weight:700;margin-top:1px;">Signature du devis</div>
-          <div style="font-size:9px;color:{CG4};margin-top:1px;">+ acompte 30&#37;</div>
+      <div style="display:flex;gap:6px;">
+        <div style="flex:1;text-align:center;padding:7px 6px;background:white;border-radius:8px;border:1px solid #EAECF0;">
+          <div class="serif" style="font-size:36px;font-weight:800;color:{CA};line-height:1.0;">1</div>
+          <div style="font-size:12px;color:{CN};font-weight:700;margin-top:2px;">Signature du devis</div>
+          <div style="font-size:10px;color:{CG4};margin-top:2px;">+ acompte 30&#37;</div>
         </div>
-        <div style="flex:1;text-align:center;padding:4px 6px;background:white;border-radius:8px;border:1px solid #EAECF0;">
-          <div class="serif" style="font-size:28px;font-weight:800;color:{CA};line-height:1.0;">2</div>
-          <div style="font-size:11px;color:{CN};font-weight:700;margin-top:1px;">Visite technique</div>
-          <div style="font-size:9px;color:{CG4};margin-top:1px;">Sous 48\u201372&#160;h</div>
+        <div style="flex:1;text-align:center;padding:7px 6px;background:white;border-radius:8px;border:1px solid #EAECF0;">
+          <div class="serif" style="font-size:36px;font-weight:800;color:{CA};line-height:1.0;">2</div>
+          <div style="font-size:12px;color:{CN};font-weight:700;margin-top:2px;">Visite technique</div>
+          <div style="font-size:10px;color:{CG4};margin-top:2px;">Sous 48\u201372&#160;h</div>
         </div>
-        <div style="flex:1;text-align:center;padding:4px 6px;background:white;border-radius:8px;border:1px solid #EAECF0;">
-          <div class="serif" style="font-size:28px;font-weight:800;color:{CA};line-height:1.0;">3</div>
-          <div style="font-size:11px;color:{CN};font-weight:700;margin-top:1px;">Installation</div>
-          <div style="font-size:9px;color:{CG4};margin-top:1px;">7\u201314 jours ouvr\u00e9s</div>
+        <div style="flex:1;text-align:center;padding:7px 6px;background:white;border-radius:8px;border:1px solid #EAECF0;">
+          <div class="serif" style="font-size:36px;font-weight:800;color:{CA};line-height:1.0;">3</div>
+          <div style="font-size:12px;color:{CN};font-weight:700;margin-top:2px;">Installation</div>
+          <div style="font-size:10px;color:{CG4};margin-top:2px;">7\u201314 jours ouvr\u00e9s</div>
         </div>
-        <div style="flex:1;text-align:center;padding:4px 6px;background:white;border-radius:8px;border:1px solid #EAECF0;">
-          <div class="serif" style="font-size:28px;font-weight:800;color:{CA};line-height:1.0;">4</div>
-          <div style="font-size:11px;color:{CN};font-weight:700;margin-top:1px;">Mise en service</div>
-          <div style="font-size:9px;color:{CG4};margin-top:1px;">Tests + formation</div>
+        <div style="flex:1;text-align:center;padding:7px 6px;background:white;border-radius:8px;border:1px solid #EAECF0;">
+          <div class="serif" style="font-size:36px;font-weight:800;color:{CA};line-height:1.0;">4</div>
+          <div style="font-size:12px;color:{CN};font-weight:700;margin-top:2px;">Mise en service</div>
+          <div style="font-size:10px;color:{CG4};margin-top:2px;">Tests + formation</div>
         </div>
       </div>
     </div>
@@ -1162,26 +1161,26 @@ def page3():
 
   <!-- BON POUR ACCORD -->
   <div style="padding:0 24px;margin-top:auto;page-break-inside:auto !important;break-inside:auto !important;">
-    <div style="border-left:4px solid {CA};padding-left:8px;margin-bottom:4px;">
-      <div style="font-size:8pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:1.5px;">Bon pour accord</div>
+    <div style="border-left:4px solid {CA};padding-left:10px;margin-bottom:6px;">
+      <div style="font-size:10pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:1.5px;">Bon pour accord</div>
     </div>
     {_opt}
-    <div style="display:flex;gap:16px;margin-bottom:3px;">
-      <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:4px 8px;min-height:45px;background:white;">
-        <div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Signature du client</div>
-        <div style="border-bottom:1px solid {CG2};min-height:10px;margin-bottom:2px;"></div>
-        <div style="font-size:7pt;color:{CG4};margin-top:1px;">Nom&#160;: <strong style="color:{CG7};">{CLIENT_NAME}</strong></div>
-        <div style="border-bottom:1px solid {CG2};min-height:8px;margin-top:2px;margin-bottom:2px;"></div>
-        <div style="font-size:7pt;color:{CG4};">Date&#160;: _______________</div>
-        <div style="font-size:5.5pt;color:{CG4};margin-top:2px;font-style:italic;">Lu et approuv\u00e9 \u2014 Signature pr\u00e9c\u00e9d\u00e9e de \u00ab\u00a0Bon pour accord\u00a0\u00bb</div>
+    <div style="display:flex;gap:18px;margin-bottom:4px;">
+      <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:8px 12px;min-height:65px;background:white;">
+        <div style="font-size:8pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Signature du client</div>
+        <div style="border-bottom:1px solid {CG2};min-height:14px;margin-bottom:3px;"></div>
+        <div style="font-size:9pt;color:{CG4};margin-top:2px;">Nom&#160;: <strong style="color:{CG7};">{CLIENT_NAME}</strong></div>
+        <div style="border-bottom:1px solid {CG2};min-height:12px;margin-top:3px;margin-bottom:3px;"></div>
+        <div style="font-size:9pt;color:{CG4};">Date&#160;: _______________</div>
+        <div style="font-size:7pt;color:{CG4};margin-top:3px;font-style:italic;">Lu et approuv\u00e9 \u2014 Signature pr\u00e9c\u00e9d\u00e9e de \u00ab\u00a0Bon pour accord\u00a0\u00bb</div>
       </div>
-      <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:4px 8px;min-height:45px;background:white;">
-        <div style="font-size:6.5pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Signature TAQINOR</div>
-        <div style="border-bottom:1px solid {CG2};min-height:10px;margin-bottom:2px;"></div>
-        <div style="font-size:7pt;color:{CG4};margin-top:1px;">Repr\u00e9sentant&#160;: <strong style="color:{CG7};">TAQINOR</strong></div>
-        <div style="border-bottom:1px solid {CG2};min-height:8px;margin-top:2px;margin-bottom:2px;"></div>
-        <div style="font-size:7pt;color:{CG4};">Date&#160;: _______________</div>
-        <div style="font-size:5.5pt;color:{CG4};margin-top:3px;font-style:italic;">Cachet et signature de la soci\u00e9t\u00e9</div>
+      <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:8px 12px;min-height:65px;background:white;">
+        <div style="font-size:8pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Signature TAQINOR</div>
+        <div style="border-bottom:1px solid {CG2};min-height:14px;margin-bottom:3px;"></div>
+        <div style="font-size:9pt;color:{CG4};margin-top:2px;">Repr\u00e9sentant&#160;: <strong style="color:{CG7};">TAQINOR</strong></div>
+        <div style="border-bottom:1px solid {CG2};min-height:12px;margin-top:3px;margin-bottom:3px;"></div>
+        <div style="font-size:9pt;color:{CG4};">Date&#160;: _______________</div>
+        <div style="font-size:7pt;color:{CG4};margin-top:3px;font-style:italic;">Cachet et signature de la soci\u00e9t\u00e9</div>
       </div>
     </div>
 

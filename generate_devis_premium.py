@@ -591,6 +591,9 @@ def equip_rows(items, hi_bat=False):
         des = it["designation"]; qty = it["quantite"]; pu = it["prix_unit_ttc"]
         mar = (it.get("marque") or "").strip()
         total += qty * pu
+        # Enrich panel designation with watt info
+        if "panneaux" in des.lower() and WP:
+            des = f"{des} {WP}\u00a0Wc"
         ico = icon_img(des, mar); bdg = badge(mar)
         gar = "\u2014"
         for k, v in _GAR.items():
@@ -1192,7 +1195,7 @@ def page3():
       <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:8px 12px;min-height:65px;background:white;">
         <div style="font-size:8pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Signature TAQINOR</div>
         <div style="border-bottom:1px solid {CG2};min-height:14px;margin-bottom:3px;"></div>
-        <div style="font-size:9pt;color:{CG4};margin-top:2px;">Repr\u00e9sentant&#160;: <strong style="color:{CG7};">TAQINOR</strong></div>
+        <div style="font-size:9pt;color:{CG4};margin-top:2px;">Repr\u00e9sentant&#160;: <span style="display:inline-block;min-width:80px;border-bottom:1px solid {CG2};">&nbsp;</span></div>
         <div style="border-bottom:1px solid {CG2};min-height:12px;margin-top:3px;margin-bottom:3px;"></div>
         <div style="font-size:9pt;color:{CG4};">Date&#160;: _______________</div>
         <div style="font-size:7pt;color:{CG4};margin-top:3px;font-style:italic;">Cachet et signature de la soci\u00e9t\u00e9</div>

@@ -70,6 +70,15 @@ def load_catalog():
             except Exception:
                 # If normalization fails, silently continue with original catalog
                 pass
+            # Seed missing panel brands so they appear in the dropdown
+            panel_brands = catalog.setdefault("Panneaux", {})
+            seeded = False
+            for brand in ("Huawei",):
+                if brand not in panel_brands:
+                    panel_brands[brand] = {}
+                    seeded = True
+            if seeded:
+                save_catalog(catalog)
             return catalog
     return {
         "Onduleur Injection": {},

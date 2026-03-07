@@ -3,6 +3,8 @@ deployment:
   tasks:
     - /bin/chmod o+x /home/taqinorm
     - export DEPLOYPATH=/home/taqinorm/taqinor_app/
+    - cd $DEPLOYPATH && /usr/local/cpanel/3rdparty/bin/git checkout -- . 2>/dev/null; true
+    - cd $DEPLOYPATH && /usr/local/cpanel/3rdparty/bin/git clean -fd 2>/dev/null; true
     - /bin/cp -R . $DEPLOYPATH
     - /bin/chmod 755 $DEPLOYPATH
     - /bin/chmod -R o+rX $DEPLOYPATH

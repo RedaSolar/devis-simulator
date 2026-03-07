@@ -14,10 +14,15 @@ devis_client/
 # Old scripts
 run_devis_old.bat
 
-# Temporary scripts
+# Temporary scripts and files
 tmp_*.py
 tmp_*.ps1
 tmp/
+*.tmp
+*.bak
+*.log
+stderr.log
+test_weasyprint.pdf
 *.db
 devis_history.json
 config.json

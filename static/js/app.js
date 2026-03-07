@@ -1358,9 +1358,10 @@ async function generatePDF() {
         showDownloadBanner(result);
         showToast('Devis PDF généré avec succès!', 'success', 6000);
 
-        // Update doc counter
+        // Update doc counter from server-assigned number (may differ from what we sent
+        // if a concurrent user claimed the number during PDF generation)
         const docNumEl = document.getElementById('doc-number');
-        if (docNumEl) docNumEl.value = parseInt(data.doc_number) + 1;
+        if (docNumEl) docNumEl.value = (result.doc_number || parseInt(result.devis_id) || data.doc_number) + 1;
     } catch (e) {
         showToast('Erreur réseau: ' + e.message, 'danger');
     } finally {

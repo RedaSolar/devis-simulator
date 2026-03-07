@@ -1,5 +1,6 @@
 import json
 import re
+import shutil
 from datetime import datetime
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Depends
@@ -262,20 +263,35 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     type_label = type_label_map.get(install_type, "résidentielle")
     type_phrase = type_phrase_map.get(install_type, "Installation photovoltaïque")
 
+    # ── Resolve doc_number ── always re-read history so we never overwrite a
+    # concurrent user's quote. If the requested number is already taken, advance
+    # to the next free one and claim it immediately in config.
+    _snap = _load_history()
+    doc_number = int(request.doc_number)
+    if str(doc_number) in _snap:
+        _nums = [int(k) for k in _snap if k.isdigit()]
+        doc_number = (max(_nums) if _nums else doc_number) + 1
+    # Claim the number immediately so a concurrent request won't steal it
+    _cfg = _load_config()
+    _cfg["devis_counter"] = max(_cfg.get("devis_counter", 1), doc_number)
+    _save_config(_cfg)
+
     # Generate PDF
-    doc_number = request.doc_number
     doc_type = "Devis"
     safe_client = re.sub(r"[^A-Za-z0-9]", "_", request.client_name or "Client")
-    if request.pdf_mode == "onepage":
-        pdf_filename = f"TAQINOR_Devis_{int(doc_number)}_{safe_client}.pdf"
+    if scenario == "Les deux (Sans + Avec)":
+        scen_str = "Hybride+Injection"
+    elif scenario == "Avec batterie":
+        scen_str = "Hybride"
     else:
-        if scenario == "Les deux (Sans + Avec)":
-            scen_str = "Hybride+Injection"
-        elif scenario == "Avec batterie":
-            scen_str = "Hybride"
-        else:
-            scen_str = "Injection"
-        pdf_filename = f"TAQINOR_Devis_{int(doc_number)}_{safe_client}_{kwp:g}kWc_{scen_str}.pdf"
+        scen_str = "Injection"
+
+    def _build_pdf_filename(num):
+        if request.pdf_mode == "onepage":
+            return f"TAQINOR_Devis_{num}_{safe_client}.pdf"
+        return f"TAQINOR_Devis_{num}_{safe_client}_{kwp:g}kWc_{scen_str}.pdf"
+
+    pdf_filename = _build_pdf_filename(doc_number)
 
     # Per-type fallbacks (used when a row has no spec_power from the catalog dropdown)
     _reseau_kw    = request.onduleur_reseau_kw or request.onduleur_kw
@@ -387,9 +403,21 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
     
 
 
-    # Save to history
-    devis_id = str(doc_number)
+    # Save to history — re-read after PDF generation (which is slow) and advance
+    # again if another concurrent request claimed our number in the meantime.
     history = _load_history()
+    if str(doc_number) in history:
+        _nums2 = [int(k) for k in history if k.isdigit()]
+        doc_number = (max(_nums2) if _nums2 else doc_number) + 1
+        _cfg2 = _load_config()
+        _cfg2["devis_counter"] = max(_cfg2.get("devis_counter", 1), doc_number)
+        _save_config(_cfg2)
+        new_filename = _build_pdf_filename(doc_number)
+        shutil.move(str(out_path), str(DEVIS_DIR / new_filename))
+        pdf_filename = new_filename
+        out_path = DEVIS_DIR / pdf_filename
+
+    devis_id = str(doc_number)
     history[devis_id] = {
         "client_name": request.client_name,
         "client_address": request.client_address,
@@ -421,6 +449,7 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
 
     return {
         "devis_id": devis_id,
+        "doc_number": doc_number,          # actual assigned number (may differ from request)
         "pdf_filename": pdf_filename,
         "download_url": f"/api/devis/{devis_id}/pdf",
         "total_sans": round(total_sans, 2),

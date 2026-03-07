@@ -88,11 +88,22 @@ def _calc_roi(factures, kwp, day_pct, battery_kwh):
     return eco_sans, eco_avec
 
 
+def _is_admin(user: dict) -> bool:
+    return user.get("role") == "admin"
+
+def _owns(entry: dict, user: dict) -> bool:
+    """True when the entry was created by this user, or the user is admin."""
+    return _is_admin(user) or entry.get("created_by") == user.get("username")
+
+
 @router.get("")
 async def list_devis(current_user: dict = Depends(get_current_user)):
     history = _load_history()
+    admin = _is_admin(current_user)
     result = []
     for devis_id, entry in history.items():
+        if not admin and entry.get("created_by") != current_user.get("username"):
+            continue
         result.append({
             "devis_id": devis_id,
             "client_name": entry.get("client_name", ""),
@@ -100,6 +111,7 @@ async def list_devis(current_user: dict = Depends(get_current_user)):
             "total_ttc": entry.get("total_ttc", 0),
             "created_at": entry.get("created_at", ""),
             "scenario_choice": entry.get("scenario_choice", ""),
+            "created_by": entry.get("created_by", ""),
         })
     result.sort(key=lambda x: str(x.get("devis_id", "")), reverse=True)
     return result
@@ -111,6 +123,8 @@ async def get_devis(devis_id: str, current_user: dict = Depends(get_current_user
     entry = history.get(devis_id) or history.get(str(devis_id))
     if not entry:
         raise HTTPException(status_code=404, detail="Devis not found")
+    if not _owns(entry, current_user):
+        raise HTTPException(status_code=403, detail="Access denied")
     return {"devis_id": devis_id, **entry}
 
 
@@ -395,6 +409,7 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         "puissance_kwp": kwp,
         "pdf_filename": pdf_filename,
         "created_at": datetime.utcnow().strftime("%Y-%m-%d"),
+        "created_by": current_user.get("username", ""),
         "form_data": request.dict(),
     }
     _save_history(history)
@@ -419,6 +434,8 @@ async def download_devis_pdf(devis_id: str, current_user: dict = Depends(get_cur
     entry = history.get(devis_id) or history.get(str(devis_id))
     if not entry:
         raise HTTPException(status_code=404, detail="Devis not found")
+    if not _owns(entry, current_user):
+        raise HTTPException(status_code=403, detail="Access denied")
     pdf_filename = entry.get("pdf_filename")
     if not pdf_filename:
         # Try to reconstruct filename
@@ -436,10 +453,13 @@ async def download_devis_pdf(devis_id: str, current_user: dict = Depends(get_cur
 
 
 @router.delete("/{devis_id}", status_code=204)
-async def delete_devis(devis_id: str, current_user: dict = Depends(require_admin)):
+async def delete_devis(devis_id: str, current_user: dict = Depends(get_current_user)):
     history = _load_history()
-    if devis_id not in history and str(devis_id) not in history:
+    entry = history.get(devis_id) or history.get(str(devis_id))
+    if not entry:
         raise HTTPException(status_code=404, detail="Devis not found")
+    if not _owns(entry, current_user):
+        raise HTTPException(status_code=403, detail="Access denied")
     history.pop(devis_id, None)
     history.pop(str(devis_id), None)
     _save_history(history)

@@ -1392,24 +1392,28 @@ function showDownloadBanner(result) {
 async function loadHistory() {
     const tbody = document.getElementById('history-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1rem;"><span class="spinner spinner-dark"></span> Chargement...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:1rem;"><span class="spinner spinner-dark"></span> Chargement...</td></tr>';
     try {
         const res = await authFetch('/api/devis');
         if (!res) return;
-        if (!res.ok) { tbody.innerHTML = '<tr><td colspan="6">Erreur chargement</td></tr>'; return; }
+        if (!res.ok) { tbody.innerHTML = '<tr><td colspan="7">Erreur chargement</td></tr>'; return; }
         const history = await res.json();
         if (!history.length) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:1rem;">Aucun devis dans l\'historique</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888;padding:1rem;">Aucun devis dans l\'historique</td></tr>';
             return;
         }
         const admin = isAdmin();
-        tbody.innerHTML = history.map(d => `
+        const me = getUser()?.username;
+        tbody.innerHTML = history.map(d => {
+            const canDelete = admin || d.created_by === me;
+            return `
             <tr>
                 <td><strong>${d.doc_number || d.devis_id}</strong></td>
                 <td>${escHtml(d.client_name || '—')}</td>
                 <td>${d.created_at || '—'}</td>
                 <td>${formatMoney(d.total_ttc)}</td>
                 <td>${escHtml(d.scenario_choice || '—')}</td>
+                <td>${escHtml(d.created_by || '—')}</td>
                 <td>
                     <div class="btn-group">
                         <button class="btn btn-primary btn-sm"
@@ -1420,14 +1424,14 @@ async function loadHistory() {
                                 onclick="fillFormFromHistory('${d.devis_id}')" title="Remplir le formulaire">
                            ✏ Remplir
                         </button>
-                        ${admin ? `<button class="btn btn-danger btn-sm"
+                        ${canDelete ? `<button class="btn btn-danger btn-sm"
                                 onclick="deleteDevis('${d.devis_id}', '${d.doc_number || d.devis_id}')" title="Supprimer">× Suppr.</button>` : ''}
                     </div>
                 </td>
-            </tr>
-        `).join('');
+            </tr>`;
+        }).join('');
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="6" style="color:red;">Erreur: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="color:red;">Erreur: ${e.message}</td></tr>`;
     }
 }
 

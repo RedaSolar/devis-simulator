@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
 import pandas as pd
 
+import db
 from routers.auth_router import get_current_user, require_admin
 from models.devis_models import DevisRequest
 from constants import GHI, MOIS, DAYS_IN_MONTH, EFFICIENCY, KWH_PRICE

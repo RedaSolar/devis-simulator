@@ -100,12 +100,13 @@ def _can_view(entry: dict, user: dict, admin_names: set) -> bool:
     """A user can view an entry if:
     - they are admin (sees everything), OR
     - they created it, OR
-    - it was created by an admin (admin quotes are visible to all team members).
+    - it was created by an admin (admin quotes are shared with the team), OR
+    - it has no creator (old/uncategorised quotes — visible to everyone).
     """
     if _is_admin(user):
         return True
     creator = entry.get("created_by", "")
-    return creator == user.get("username") or creator in admin_names
+    return not creator or creator == user.get("username") or creator in admin_names
 
 def _owns(entry: dict, user: dict) -> bool:
     """True when the entry was created by this user, or the user is admin."""

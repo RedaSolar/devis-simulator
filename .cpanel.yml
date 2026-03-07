@@ -2,15 +2,12 @@
 deployment:
   tasks:
     - /bin/chmod o+x /home/taqinorm
-    # Backup server-managed files from the LIVE deployment directory (not git checkout)
-    - /bin/cp /home/taqinorm/taqinor_app/config.json /tmp/taqinor_config_backup.json 2>/dev/null; true
-    - /bin/cp /home/taqinorm/taqinor_app/devis_history.json /tmp/taqinor_history_backup.json 2>/dev/null; true
-    - /bin/cp /home/taqinorm/taqinor_app/users.db /tmp/taqinor_users_backup.db 2>/dev/null; true
-    # Deploy code from git checkout
-    - /bin/cp -R . /home/taqinorm/taqinor_app/
-    # Restore server-managed files (these are gitignored and must not be overwritten by git)
-    - /bin/cp /tmp/taqinor_config_backup.json /home/taqinorm/taqinor_app/config.json 2>/dev/null; true
-    - /bin/cp /tmp/taqinor_history_backup.json /home/taqinorm/taqinor_app/devis_history.json 2>/dev/null; true
-    - /bin/cp /tmp/taqinor_users_backup.db /home/taqinorm/taqinor_app/users.db 2>/dev/null; true
-    - /bin/chmod 755 /home/taqinorm/taqinor_app/
-    - /bin/chmod -R o+rX /home/taqinorm/taqinor_app/
+    - export DEPLOYPATH=/home/taqinorm/taqinor_app/
+    - /bin/cp -R . $DEPLOYPATH
+    - /bin/chmod 755 $DEPLOYPATH
+    - /bin/chmod -R o+rX $DEPLOYPATH
+    - echo 'PassengerAppRoot "/home/taqinorm/taqinor_app"' > $DEPLOYPATH/.htaccess
+    - echo 'PassengerBaseURI "/simulator"' >> $DEPLOYPATH/.htaccess
+    - echo 'PassengerPython "/home/taqinorm/virtualenv/taqinor_app/3.12/bin/python"' >> $DEPLOYPATH/.htaccess
+    - echo 'PassengerAppType wsgi' >> $DEPLOYPATH/.htaccess
+    - echo 'PassengerStartupFile app_wsgi.py' >> $DEPLOYPATH/.htaccess

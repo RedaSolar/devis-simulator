@@ -24,7 +24,8 @@
       "Bash(cp:*)",
       "Bash(echo.:*)",
       "Bash(rm:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(sed:*)"
     ]
   }
 }

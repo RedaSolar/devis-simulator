@@ -713,7 +713,8 @@ function renderProductLines(lines, onduleurMeta) {
             <td class="text-right">
                 <span class="row-total" data-idx="${i}">${formatMoney(line.prix_unit_ttc * line.quantite)}</span>
             </td>
-            <td>
+            <td style="white-space:nowrap;">
+                ${stype && stype.startsWith('onduleur') ? `<button class="btn btn-sm" onclick="addOnduleurLine(${i})" title="Ajouter un onduleur similaire" style="background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;margin-right:2px;">+</button>` : ''}
                 <button class="btn btn-danger btn-sm" onclick="removeProductLine(${i})" title="Supprimer">×</button>
             </td>
         `;
@@ -779,7 +780,8 @@ function _applySpecPower(e) {
         line.prix_unit_ttc = opt.sell_ttc || 0;
         line.prix_achat_ttc = opt.buy_ttc || 0;
         line._specPower = opt.power;
-        if (opt.phase) line._specPhase = opt.phase;
+        line.spec_power = opt.power ?? null;
+        if (opt.phase) { line._specPhase = opt.phase; line.spec_phase = opt.phase; }
         // Sync brand from the sibling brand select
         const tr = sel.closest('tr');
         const brandSel = tr?.querySelector('.spec-brand');
@@ -789,15 +791,17 @@ function _applySpecPower(e) {
         const paIn = tr?.querySelector('[data-field="prix_achat_ttc"]');
         if (puIn) puIn.value = opt.sell_ttc || 0;
         if (paIn) paIn.value = opt.buy_ttc || 0;
-        // Sync Section 3 for onduleurs
+        // Sync Section 3 fallback inputs for the correct onduleur type
         if (stype && stype.startsWith('onduleur')) {
+            const kwId    = stype === 'onduleur_reseau' ? 'onduleur-reseau-kw'    : 'onduleur-hybride-kw';
+            const phaseNm = stype === 'onduleur_reseau' ? 'onduleur-reseau-phase' : 'onduleur-hybride-phase';
             if (opt.power) {
-                const kwInput = document.getElementById('onduleur-kw');
+                const kwInput = document.getElementById(kwId);
                 if (kwInput) kwInput.value = opt.power;
             }
             if (opt.phase) {
                 const phaseVal = opt.phase.toLowerCase().includes('tri') ? 'Triphasé' : 'Monophasé';
-                const phaseRadio = document.querySelector(`input[name="onduleur-phase"][value="${phaseVal}"]`);
+                const phaseRadio = document.querySelector(`input[name="${phaseNm}"][value="${phaseVal}"]`);
                 if (phaseRadio) phaseRadio.checked = true;
             }
         }
@@ -828,14 +832,17 @@ function onProductLineChange(e) {
                 if (puIn) puIn.value = opt.sell_ttc;
                 if (paIn) paIn.value = opt.buy_ttc || 0;
             }
-            // Sync Section 3 onduleur kW/phase fields
+            // Sync Section 3 onduleur kW/phase fields (separate réseau vs hybride inputs)
+            const _des = (currentProductLines[idx]?.designation || '').toLowerCase();
+            const _kwId    = _des.includes('réseau') ? 'onduleur-reseau-kw'    : 'onduleur-hybride-kw';
+            const _phaseNm = _des.includes('réseau') ? 'onduleur-reseau-phase' : 'onduleur-hybride-phase';
             if (opt.power) {
-                const kwInput = document.getElementById('onduleur-kw');
+                const kwInput = document.getElementById(_kwId);
                 if (kwInput) kwInput.value = opt.power;
             }
             if (opt.phase) {
                 const phaseVal = opt.phase.toLowerCase().includes('tri') ? 'Triphasé' : 'Monophasé';
-                const phaseRadio = document.querySelector(`input[name="onduleur-phase"][value="${phaseVal}"]`);
+                const phaseRadio = document.querySelector(`input[name="${_phaseNm}"][value="${phaseVal}"]`);
                 if (phaseRadio) phaseRadio.checked = true;
             }
         } catch (_) { /* ignore JSON parse errors */ }
@@ -874,6 +881,25 @@ function addProductLine() {
 function removeProductLine(idx) {
     currentProductLines.splice(idx, 1);
     renderProductLines(currentProductLines);
+}
+
+function addOnduleurLine(idx) {
+    const src = currentProductLines[idx];
+    if (!src) return;
+    // Insert a fresh onduleur row of the same type right after the current one
+    const newLine = {
+        designation: src.designation,
+        marque: '',
+        quantite: 1,
+        prix_achat_ttc: 0,
+        prix_unit_ttc: 0,
+        tva: src.tva || 20,
+        spec_power: null,
+        spec_phase: '',
+    };
+    currentProductLines.splice(idx + 1, 0, newLine);
+    renderProductLines(currentProductLines);
+    updateTotals();
 }
 
 function applyDiscount() {
@@ -949,6 +975,8 @@ function getCurrentProductLines() {
             prix_unit_ttc: parseFloat(g('prix_unit_ttc')?.value ?? base.prix_unit_ttc) || 0,
             prix_achat_ttc:parseFloat(g('prix_achat_ttc')?.value ?? base.prix_achat_ttc) || 0,
             tva:           parseFloat(g('tva')?.value ?? base.tva) || 20,
+            spec_power:    base._specPower ?? null,
+            spec_phase:    base._specPhase ?? '',
         });
     });
     return result.length ? result : currentProductLines;
@@ -1259,8 +1287,10 @@ function collectFormData() {
     const panW = parseInt(document.getElementById('puissance-panneau')?.value) || 710;
     const dayUsage = parseInt(document.getElementById('day-usage')?.value) || 50;
     const structType = document.querySelector('input[name="structure-type"]:checked')?.value || 'acier';
-    const onduleurKw = parseFloat(document.getElementById('onduleur-kw')?.value) || null;
-    const onduleurPhase = document.querySelector('input[name="onduleur-phase"]:checked')?.value || 'Monophasé';
+    const onduleurReseauKw    = parseFloat(document.getElementById('onduleur-reseau-kw')?.value) || null;
+    const onduleurReseauPhase = document.querySelector('input[name="onduleur-reseau-phase"]:checked')?.value || 'Monophasé';
+    const onduleurHybrideKw   = parseFloat(document.getElementById('onduleur-hybride-kw')?.value) || null;
+    const onduleurHybridePhase = document.querySelector('input[name="onduleur-hybride-phase"]:checked')?.value || 'Monophasé';
 
     const factures = getMonthlyValues();
     const lines = getCurrentProductLines();
@@ -1294,8 +1324,10 @@ function collectFormData() {
         notes_sans: notesSans,
         notes_avec: notesAvec,
         structure_type: structType,
-        onduleur_kw: onduleurKw,
-        onduleur_phase: onduleurPhase,
+        onduleur_reseau_kw:    onduleurReseauKw,
+        onduleur_reseau_phase: onduleurReseauPhase,
+        onduleur_hybride_kw:   onduleurHybrideKw,
+        onduleur_hybride_phase: onduleurHybridePhase,
         pdf_mode: onepageMode ? 'onepage' : 'full',
         show_monthly: showMonthly,
     };
@@ -1488,7 +1520,15 @@ async function fillFormFromHistory(devisId) {
         set('puissance-panneau', fd.puissance_panneau_w);
         set('day-usage', fd.roi_data?.day_usage_percent);
         set('discount-pct', fd.discount_percent);
-        set('onduleur-kw', fd.onduleur_kw);
+        // Onduleur réseau kW/phase (new fields; fall back to legacy onduleur_kw)
+        set('onduleur-reseau-kw',  fd.onduleur_reseau_kw  ?? fd.onduleur_kw);
+        set('onduleur-hybride-kw', fd.onduleur_hybride_kw ?? fd.onduleur_kw);
+        const reseauPhase  = fd.onduleur_reseau_phase  || fd.onduleur_phase || 'Monophasé';
+        const hybridePhase = fd.onduleur_hybride_phase || fd.onduleur_phase || 'Monophasé';
+        const reseauRadio  = document.querySelector(`input[name="onduleur-reseau-phase"][value="${reseauPhase}"]`);
+        if (reseauRadio) reseauRadio.checked = true;
+        const hybrideRadio = document.querySelector(`input[name="onduleur-hybride-phase"][value="${hybridePhase}"]`);
+        if (hybrideRadio) hybrideRadio.checked = true;
 
         // Scenario
         const scenEl = document.getElementById('scenario-choice');
@@ -1500,20 +1540,20 @@ async function fillFormFromHistory(devisId) {
             if (radio) radio.checked = true;
         }
 
-        // Onduleur phase radio
-        if (fd.onduleur_phase) {
-            const radio = document.querySelector(`input[name="onduleur-phase"][value="${fd.onduleur_phase}"]`);
-            if (radio) radio.checked = true;
-        }
-
         // Monthly bills
         if (fd.roi_data?.factures_mensuelles?.length) {
             renderMonthlyInputs(fd.roi_data.factures_mensuelles);
         }
 
-        // Product lines
+        // Product lines — restore spec_power/spec_phase so dropdowns show correct selection
         if (fd.product_lines?.length) {
-            currentProductLines = fd.product_lines.map(ln => ({ ...ln, tva: ln.tva || 20 }));
+            currentProductLines = fd.product_lines.map(ln => ({
+                ...ln,
+                tva:        ln.tva || 20,
+                _specPower: ln.spec_power ?? undefined,
+                _specPhase: ln.spec_phase || undefined,
+                _specBrand: ln.marque || undefined,
+            }));
             renderProductLines(currentProductLines);
         }
 

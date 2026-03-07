@@ -213,24 +213,47 @@
 
             <!-- Advanced fields (hidden for commercial) -->
             <div id="tech-params-advanced">
-                <!-- Onduleur kW + Phase -->
+                <!-- Onduleur réseau kW + Phase -->
                 <div class="form-grid" style="margin-top:0.75rem;">
                     <div class="form-group">
-                        <label for="onduleur-kw">Puissance Onduleur (kW)</label>
-                        <input type="number" id="onduleur-kw" class="form-control"
-                               placeholder="ex: 10" min="0.5" max="200" step="0.5">
+                        <label for="onduleur-reseau-kw">Onduleur réseau (kW) <span style="font-size:0.75rem;color:#888;">— fallback si non sélectionné dans le tableau</span></label>
+                        <input type="number" id="onduleur-reseau-kw" class="form-control"
+                               placeholder="ex: 50" min="0.5" max="500" step="0.5">
                     </div>
                     <div class="form-group">
-                        <label>Phase onduleur</label>
+                        <label>Phase onduleur réseau</label>
                         <div class="radio-group" style="margin-top:0.35rem;">
-                            <label class="radio-option selected" id="phase-mono-label">
-                                <input type="radio" name="onduleur-phase" value="Monophasé" checked
-                                       onchange="document.getElementById('phase-mono-label').classList.add('selected');document.getElementById('phase-tri-label').classList.remove('selected');">
+                            <label class="radio-option selected" id="phase-reseau-mono-label">
+                                <input type="radio" name="onduleur-reseau-phase" value="Monophasé" checked
+                                       onchange="document.getElementById('phase-reseau-mono-label').classList.add('selected');document.getElementById('phase-reseau-tri-label').classList.remove('selected');">
                                 Monophasé
                             </label>
-                            <label class="radio-option" id="phase-tri-label">
-                                <input type="radio" name="onduleur-phase" value="Triphasé"
-                                       onchange="document.getElementById('phase-tri-label').classList.add('selected');document.getElementById('phase-mono-label').classList.remove('selected');">
+                            <label class="radio-option" id="phase-reseau-tri-label">
+                                <input type="radio" name="onduleur-reseau-phase" value="Triphasé"
+                                       onchange="document.getElementById('phase-reseau-tri-label').classList.add('selected');document.getElementById('phase-reseau-mono-label').classList.remove('selected');">
+                                Triphasé
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <!-- Onduleur hybride kW + Phase -->
+                <div class="form-grid" style="margin-top:0.5rem;">
+                    <div class="form-group">
+                        <label for="onduleur-hybride-kw">Onduleur hybride (kW) <span style="font-size:0.75rem;color:#888;">— fallback si non sélectionné dans le tableau</span></label>
+                        <input type="number" id="onduleur-hybride-kw" class="form-control"
+                               placeholder="ex: 20" min="0.5" max="500" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Phase onduleur hybride</label>
+                        <div class="radio-group" style="margin-top:0.35rem;">
+                            <label class="radio-option selected" id="phase-hybride-mono-label">
+                                <input type="radio" name="onduleur-hybride-phase" value="Monophasé" checked
+                                       onchange="document.getElementById('phase-hybride-mono-label').classList.add('selected');document.getElementById('phase-hybride-tri-label').classList.remove('selected');">
+                                Monophasé
+                            </label>
+                            <label class="radio-option" id="phase-hybride-tri-label">
+                                <input type="radio" name="onduleur-hybride-phase" value="Triphasé"
+                                       onchange="document.getElementById('phase-hybride-tri-label').classList.add('selected');document.getElementById('phase-hybride-mono-label').classList.remove('selected');">
                                 Triphasé
                             </label>
                         </div>

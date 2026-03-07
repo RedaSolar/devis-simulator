@@ -10,6 +10,8 @@ class ProductLine(BaseModel):
     prix_unit_ttc: float = 0
     tva: float = 20
     photo: str = ""
+    spec_power: Optional[float] = None  # per-row onduleur kW (from catalog dropdown)
+    spec_phase: str = ""                # per-row onduleur phase
 
 
 class RoiData(BaseModel):
@@ -34,6 +36,12 @@ class DevisRequest(BaseModel):
     notes_sans: List[str] = []
     notes_avec: List[str] = []
     structure_type: str = "acier"
+    # Per-type onduleur fallback (used when row has no spec_power from catalog)
+    onduleur_reseau_kw: Optional[float] = None
+    onduleur_reseau_phase: str = "Monophasé"
+    onduleur_hybride_kw: Optional[float] = None
+    onduleur_hybride_phase: str = "Monophasé"
+    # Legacy single-field fallback (backward compat with old history entries)
     onduleur_kw: Optional[float] = None
     onduleur_phase: str = "Monophasé"
     client_ice: str = ""

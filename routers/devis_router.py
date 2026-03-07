@@ -65,9 +65,11 @@ def _build_df(lines) -> pd.DataFrame:
             "Prix Achat TTC": line.prix_achat_ttc,
             "Prix Unit. TTC": line.prix_unit_ttc,
             "TVA (%)": line.tva,
+            "Puissance kW": line.spec_power,
+            "Phase": line.spec_phase or "",
         })
     return pd.DataFrame(rows) if rows else pd.DataFrame(
-        columns=["Désignation", "Marque", "Quantité", "Prix Achat TTC", "Prix Unit. TTC", "TVA (%)"]
+        columns=["Désignation", "Marque", "Quantité", "Prix Achat TTC", "Prix Unit. TTC", "TVA (%)", "Puissance kW", "Phase"]
     )
 
 
@@ -261,8 +263,11 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
             scen_str = "Injection"
         pdf_filename = f"TAQINOR_Devis_{int(doc_number)}_{safe_client}_{kwp:g}kWc_{scen_str}.pdf"
 
-    _onduleur_kw    = request.onduleur_kw
-    _onduleur_phase = request.onduleur_phase or "Monophasé"
+    # Per-type fallbacks (used when a row has no spec_power from the catalog dropdown)
+    _reseau_kw    = request.onduleur_reseau_kw or request.onduleur_kw
+    _reseau_phase = request.onduleur_reseau_phase or request.onduleur_phase or "Monophasé"
+    _hybride_kw   = request.onduleur_hybride_kw or request.onduleur_kw
+    _hybride_phase = request.onduleur_hybride_phase or request.onduleur_phase or "Monophasé"
 
     def _df_to_items(df):
         items = []
@@ -270,9 +275,20 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
             if float(row.get("Quantité", 0) or 0) == 0:
                 continue
             des = row.get("Désignation", "")
-            # Append kW and phase to any onduleur row when the user filled them in
-            if _onduleur_kw and "onduleur" in des.lower():
-                des = f"{des} {_onduleur_kw:g}kW {_onduleur_phase}"
+            des_lower = des.lower()
+            row_kw    = row.get("Puissance kW")   # set when catalog dropdown was used
+            row_phase = row.get("Phase") or ""
+            # Determine power label: per-row spec_power takes priority, then type-specific fallback
+            if row_kw and not (isinstance(row_kw, float) and row_kw != row_kw):  # not NaN
+                kw_label = f"{row_kw:g}kW {row_phase}".strip()
+            elif "onduleur réseau" in des_lower and _reseau_kw:
+                kw_label = f"{_reseau_kw:g}kW {_reseau_phase}".strip()
+            elif "onduleur hybride" in des_lower and _hybride_kw:
+                kw_label = f"{_hybride_kw:g}kW {_hybride_phase}".strip()
+            else:
+                kw_label = ""
+            if kw_label:
+                des = f"{des} {kw_label}"
             items.append({
                 "designation":   des,
                 "marque":        row.get("Marque", ""),
@@ -291,9 +307,15 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         if not (ln.quantite and ln.quantite > 0):
             continue
         des = ln.designation
-        if _onduleur_kw and "onduleur" in des.lower():
-            des = f"{des} {_onduleur_kw:g}kW {_onduleur_phase}"
-        elif "batterie" in des.lower() and ln.marque and ln.prix_unit_ttc > 0:
+        des_lower = des.lower()
+        if "onduleur" in des_lower:
+            if ln.spec_power:
+                des = f"{des} {ln.spec_power:g}kW {(ln.spec_phase or '').strip()}".strip()
+            elif "onduleur réseau" in des_lower and _reseau_kw:
+                des = f"{des} {_reseau_kw:g}kW {_reseau_phase}".strip()
+            elif "onduleur hybride" in des_lower and _hybride_kw:
+                des = f"{des} {_hybride_kw:g}kW {_hybride_phase}".strip()
+        elif "batterie" in des_lower and ln.marque and ln.prix_unit_ttc > 0:
             brand_entries = _bat_catalog.get(ln.marque, {})
             for cap_str, entry in brand_entries.items():
                 if isinstance(entry, dict) and abs(entry.get("sell_ttc", 0) - ln.prix_unit_ttc) < 1:

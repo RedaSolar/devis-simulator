@@ -92,6 +92,21 @@ def _calc_roi(factures, kwp, day_pct, battery_kwh):
 def _is_admin(user: dict) -> bool:
     return user.get("role") == "admin"
 
+def _admin_usernames() -> set:
+    """Return the set of usernames that have the admin role."""
+    return {u["username"] for u in db.get_all_users() if u.get("role") == "admin"}
+
+def _can_view(entry: dict, user: dict, admin_names: set) -> bool:
+    """A user can view an entry if:
+    - they are admin (sees everything), OR
+    - they created it, OR
+    - it was created by an admin (admin quotes are visible to all team members).
+    """
+    if _is_admin(user):
+        return True
+    creator = entry.get("created_by", "")
+    return creator == user.get("username") or creator in admin_names
+
 def _owns(entry: dict, user: dict) -> bool:
     """True when the entry was created by this user, or the user is admin."""
     return _is_admin(user) or entry.get("created_by") == user.get("username")
@@ -100,10 +115,10 @@ def _owns(entry: dict, user: dict) -> bool:
 @router.get("")
 async def list_devis(current_user: dict = Depends(get_current_user)):
     history = _load_history()
-    admin = _is_admin(current_user)
+    admin_names = _admin_usernames()
     result = []
     for devis_id, entry in history.items():
-        if not admin and entry.get("created_by") != current_user.get("username"):
+        if not _can_view(entry, current_user, admin_names):
             continue
         result.append({
             "devis_id": devis_id,
@@ -124,7 +139,7 @@ async def get_devis(devis_id: str, current_user: dict = Depends(get_current_user
     entry = history.get(devis_id) or history.get(str(devis_id))
     if not entry:
         raise HTTPException(status_code=404, detail="Devis not found")
-    if not _owns(entry, current_user):
+    if not _can_view(entry, current_user, _admin_usernames()):
         raise HTTPException(status_code=403, detail="Access denied")
     return {"devis_id": devis_id, **entry}
 
@@ -463,7 +478,7 @@ async def download_devis_pdf(devis_id: str, current_user: dict = Depends(get_cur
     entry = history.get(devis_id) or history.get(str(devis_id))
     if not entry:
         raise HTTPException(status_code=404, detail="Devis not found")
-    if not _owns(entry, current_user):
+    if not _can_view(entry, current_user, _admin_usernames()):
         raise HTTPException(status_code=403, detail="Access denied")
     pdf_filename = entry.get("pdf_filename")
     if not pdf_filename:

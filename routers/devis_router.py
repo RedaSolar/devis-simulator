@@ -407,6 +407,9 @@ async def generate_devis(request: DevisRequest, current_user: dict = Depends(get
         "discount_pct":     request.discount_percent,
         "total_sans_before": total_sans_before,
         "total_avec_before": total_avec_before,
+        "devis_final":      request.devis_final,
+        "payment_mode":     request.payment_mode,
+        "custom_acompte":   request.custom_acompte,
     }
 
     out_path = DEVIS_DIR / pdf_filename

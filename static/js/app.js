@@ -331,6 +331,27 @@ function getRecommended() {
     return 'Avec batterie'; // Both options → recommend Avec batterie by default
 }
 
+// ---- Devis Final / Payment Mode toggles ----
+function toggleDevisFinal(on) {
+    const el = document.getElementById('payment-options');
+    if (el) el.style.display = on ? 'block' : 'none';
+    if (on) _syncDefaultAcompte();
+}
+function togglePaymentMode() {
+    const mode = document.querySelector('input[name="payment-mode"]:checked')?.value;
+    const row = document.getElementById('custom-acompte-row');
+    if (row) row.style.display = mode === 'custom' ? 'block' : 'none';
+    if (mode === 'custom') _syncDefaultAcompte();
+}
+function _syncDefaultAcompte() {
+    // Set default custom acompte (~10% rounded to nearest 1000) based on recommended total
+    const inp = document.getElementById('custom-acompte');
+    if (!inp || inp.value) return; // don't overwrite user input
+    const rec = getRecommended();
+    const total = rec === 'Sans batterie' ? (currentTotals.sans || 0) : (currentTotals.avec || 0);
+    if (total > 0) inp.value = Math.round(total * 0.10 / 1000) * 1000;
+}
+
 function applyRoleVisibility(user) {
     const admin = user?.role === 'admin';
     const commercial = user?.role === 'commercial';
@@ -1301,6 +1322,11 @@ function collectFormData() {
     const discountPct = parseFloat(document.getElementById('discount-pct')?.value) || 0;
     const onepageMode = document.getElementById('onepage-mode')?.checked;
     const showMonthly = document.getElementById('show-monthly')?.checked !== false;
+    const devisFinal = document.getElementById('devis-final')?.checked || false;
+    const paymentMode = document.querySelector('input[name="payment-mode"]:checked')?.value || 'standard';
+    const customAcompte = devisFinal && paymentMode === 'custom'
+        ? parseFloat(document.getElementById('custom-acompte')?.value) || null
+        : null;
 
     return {
         doc_number: docNumber,
@@ -1330,6 +1356,9 @@ function collectFormData() {
         onduleur_hybride_phase: onduleurHybridePhase,
         pdf_mode: onepageMode ? 'onepage' : 'full',
         show_monthly: showMonthly,
+        devis_final: devisFinal,
+        payment_mode: paymentMode,
+        custom_acompte: customAcompte,
     };
 }
 
@@ -1568,6 +1597,18 @@ async function fillFormFromHistory(devisId) {
         // Monthly economies toggle (default true if not stored)
         const smEl = document.getElementById('show-monthly');
         if (smEl) smEl.checked = fd.show_monthly !== false;
+
+        // Devis Final + payment mode
+        const dfEl = document.getElementById('devis-final');
+        if (dfEl) { dfEl.checked = !!fd.devis_final; toggleDevisFinal(dfEl.checked); }
+        if (fd.payment_mode) {
+            const pmRadio = document.querySelector(`input[name="payment-mode"][value="${fd.payment_mode}"]`);
+            if (pmRadio) { pmRadio.checked = true; togglePaymentMode(); }
+        }
+        if (fd.custom_acompte != null) {
+            const caEl = document.getElementById('custom-acompte');
+            if (caEl) caEl.value = fd.custom_acompte;
+        }
 
         // Notes — clear and repopulate
         for (const scen of ['sans', 'avec']) {

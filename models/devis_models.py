@@ -48,3 +48,6 @@ class DevisRequest(BaseModel):
     discount_percent: float = 0.0
     pdf_mode: str = "full"   # "full" = 3-page premium | "onepage" = 1-page product list
     show_monthly: bool = True  # include monthly economies chart on page 2
+    devis_final: bool = False  # add payment terms + RIB to BON POUR ACCORD
+    payment_mode: str = "standard"  # "standard" (30/60/10) or "custom"
+    custom_acompte: Optional[float] = None  # user-defined acompte amount (MAD)

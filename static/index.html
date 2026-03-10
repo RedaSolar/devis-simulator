@@ -450,13 +450,38 @@
                 <span style="font-size:0.8rem;color:#666;">(liste produits uniquement, sans graphiques)</span>
             </div>
             <!-- Monthly economies toggle -->
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.6rem;">
                 <label class="toggle-switch">
                     <input type="checkbox" id="show-monthly" checked>
                     <span class="toggle-slider"></span>
                 </label>
                 <span style="font-weight:500;">Économies mensuelles</span>
                 <span style="font-size:0.8rem;color:#666;">(graphique mensuel page 2 — désactiver pour garder ROI uniquement)</span>
+            </div>
+            <!-- Devis Final toggle -->
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.6rem;">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="devis-final" onchange="toggleDevisFinal(this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span style="font-weight:500;">Devis Final</span>
+                <span style="font-size:0.8rem;color:#666;">(ajoute modalités de paiement + RIB au PDF)</span>
+            </div>
+            <!-- Payment mode options (visible when devis-final checked) -->
+            <div id="payment-options" style="display:none;margin-left:2.5rem;margin-bottom:1rem;padding:0.6rem 1rem;background:#f8f9fa;border-radius:8px;border:1px solid #eee;">
+                <div style="display:flex;gap:1.2rem;align-items:center;margin-bottom:0.4rem;">
+                    <label style="cursor:pointer;font-size:0.9rem;">
+                        <input type="radio" name="payment-mode" value="standard" checked onchange="togglePaymentMode()"> Standard (30/60/10)
+                    </label>
+                    <label style="cursor:pointer;font-size:0.9rem;">
+                        <input type="radio" name="payment-mode" value="custom" onchange="togglePaymentMode()"> Acompte personnalisé
+                    </label>
+                </div>
+                <div id="custom-acompte-row" style="display:none;margin-top:0.3rem;">
+                    <label style="font-size:0.85rem;">Montant acompte (MAD) :
+                        <input type="number" id="custom-acompte" class="form-control" style="width:160px;display:inline-block;" step="1000" min="0">
+                    </label>
+                </div>
             </div>
             <div class="btn-group">
                 <button class="btn btn-primary btn-lg" id="btn-generate-pdf" onclick="generatePDF()">

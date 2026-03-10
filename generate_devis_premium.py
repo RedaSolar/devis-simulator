@@ -258,6 +258,10 @@ CUMUL_A = [-TOTAL_AVEC + QUOTE_INPUT["eco_a_cumul"] * y for y in YEARS]
 SCENARIO    = "Les deux (Sans + Avec)"
 RECOMMENDED = "Avec batterie"
 
+DEVIS_FINAL    = False
+PAYMENT_MODE   = "standard"   # "standard" or "custom"
+CUSTOM_ACOMPTE = None          # user-defined acompte (MAD) for custom mode
+
 # ── SVG equipment icons ──────────────────────────────────────────────────────
 _SVG = {
 "onduleur":     '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="#1A2B4A"/><rect x="6" y="8" width="28" height="20" rx="3" fill="none" stroke="#F5A623" stroke-width="2"/><circle cx="14" cy="18" r="4" fill="none" stroke="#F5A623" stroke-width="1.5"/><path d="M22 14 L28 18 L22 22" fill="none" stroke="#F5A623" stroke-width="1.5" stroke-linejoin="round"/><rect x="10" y="30" width="20" height="3" rx="1.5" fill="#F5A623" opacity="0.6"/></svg>',
@@ -1021,6 +1025,68 @@ def page3():
         f'</div>'
     ) if SCENARIO == "Les deux (Sans + Avec)" else ""
 
+    # ── Payment section (Devis Final only) ──
+    _payment_html = ""
+    if DEVIS_FINAL:
+        # Pick the relevant total based on scenario / recommendation
+        if SCENARIO == "Sans batterie":
+            _pay_total = TOTAL_SANS
+        elif SCENARIO == "Avec batterie":
+            _pay_total = TOTAL_AVEC
+        elif RECOMMENDED == "Sans batterie":
+            _pay_total = TOTAL_SANS
+        else:
+            _pay_total = TOTAL_AVEC
+
+        if PAYMENT_MODE == "custom" and CUSTOM_ACOMPTE is not None:
+            _acompte = int(CUSTOM_ACOMPTE)
+        else:
+            _acompte = round(_pay_total * 0.30 / 1000) * 1000
+        _solde = round(_pay_total * 0.10 / 1000) * 1000
+        _materiel = int(_pay_total - _acompte - _solde)
+
+        _pct_a = round(_acompte / _pay_total * 100) if _pay_total else 0
+        _pct_m = round(_materiel / _pay_total * 100) if _pay_total else 0
+        _pct_s = round(_solde / _pay_total * 100) if _pay_total else 0
+
+        _payment_html = (
+            f'<div style="margin-bottom:4px;">'
+            f'<div style="border-left:3px solid {CN};padding-left:8px;margin-bottom:4px;">'
+            f'<div style="font-size:8pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:1px;">Modalit\u00e9s de paiement</div>'
+            f'</div>'
+            f'<div style="display:flex;gap:6px;margin-bottom:3px;">'
+            # Box 1 — Acompte
+            f'<div style="flex:1;text-align:center;padding:6px 5px;background:white;border-radius:8px;border:1px solid {CG2};">'
+            f'<div class="serif" style="font-size:22px;font-weight:800;color:{CA};line-height:1.0;">{_pct_a}%</div>'
+            f'<div style="font-size:12px;color:{CN};font-weight:700;margin-top:2px;">{fmt(_acompte)}\u00a0MAD</div>'
+            f'<div style="font-size:9px;color:{CG4};margin-top:2px;">Acompte \u00b7 \u00c0 la signature</div>'
+            f'</div>'
+            # Box 2 — Matériel
+            f'<div style="flex:1;text-align:center;padding:6px 5px;background:white;border-radius:8px;border:1px solid {CG2};">'
+            f'<div class="serif" style="font-size:22px;font-weight:800;color:{CA};line-height:1.0;">{_pct_m}%</div>'
+            f'<div style="font-size:12px;color:{CN};font-weight:700;margin-top:2px;">{fmt(_materiel)}\u00a0MAD</div>'
+            f'<div style="font-size:9px;color:{CG4};margin-top:2px;">Mat\u00e9riel \u00b7 Avant installation</div>'
+            f'</div>'
+            # Box 3 — Solde
+            f'<div style="flex:1;text-align:center;padding:6px 5px;background:white;border-radius:8px;border:1px solid {CG2};">'
+            f'<div class="serif" style="font-size:22px;font-weight:800;color:{CA};line-height:1.0;">{_pct_s}%</div>'
+            f'<div style="font-size:12px;color:{CN};font-weight:700;margin-top:2px;">{fmt(_solde)}\u00a0MAD</div>'
+            f'<div style="font-size:9px;color:{CG4};margin-top:2px;">Solde \u00b7 Apr\u00e8s installation</div>'
+            f'</div>'
+            f'</div>'
+            # Note
+            f'<div style="font-size:7pt;color:{CG4};font-style:italic;margin-bottom:3px;">'
+            f'* La r\u00e9ception du mat\u00e9riel et le solde s\u2019appliquent m\u00eame si r\u00e9alis\u00e9s le m\u00eame jour.'
+            f'</div>'
+            # RIB bar
+            f'<div style="background:{CG1};border-radius:5px;padding:4px 10px;margin-bottom:5px;">'
+            f'<div style="font-size:7pt;color:{CG4};">Virement bancaire\u00a0: '
+            f'<strong style="color:{CG7};">TAQINOR SOLUTION</strong> \u00b7 Saham Bank \u00b7 '
+            f'RIB 022\u2009780\u20090002720029379418\u200974 \u00b7 BIC SGMBMAMCXXX</div>'
+            f'</div>'
+            f'</div>'
+        )
+
     return f"""
 <div class="page" style="display:block;position:relative;overflow:hidden;">
   <div style="background:{CN};padding:9px 24px;display:flex;align-items:center;justify-content:space-between;">
@@ -1178,27 +1244,28 @@ def page3():
   </div><!-- end content wrapper -->
 
   <!-- BON POUR ACCORD — always pinned above footer via position:absolute -->
-  <div style="position:absolute;bottom:43px;left:0;right:0;padding:0 24px;">
-    <div style="border-left:4px solid {CA};padding-left:10px;margin-bottom:6px;">
+  <div style="position:absolute;bottom:{'28' if DEVIS_FINAL else '43'}px;left:0;right:0;padding:0 24px;">
+    <div style="border-left:4px solid {CA};padding-left:10px;margin-bottom:{'4' if DEVIS_FINAL else '6'}px;">
       <div style="font-size:10pt;font-weight:700;color:{CN};text-transform:uppercase;letter-spacing:1.5px;">Bon pour accord</div>
     </div>
     {_opt}
+    {_payment_html}
     <div style="display:flex;gap:18px;margin-bottom:4px;">
-      <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:8px 12px;min-height:65px;background:white;">
-        <div style="font-size:8pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Signature du client</div>
-        <div style="border-bottom:1px solid {CG2};min-height:14px;margin-bottom:3px;"></div>
-        <div style="font-size:9pt;color:{CG4};margin-top:2px;">Nom&#160;: <strong style="color:{CG7};">{CLIENT_NAME}</strong></div>
-        <div style="border-bottom:1px solid {CG2};min-height:12px;margin-top:3px;margin-bottom:3px;"></div>
-        <div style="font-size:9pt;color:{CG4};">Date&#160;: _______________</div>
-        <div style="font-size:7pt;color:{CG4};margin-top:3px;font-style:italic;">Lu et approuv\u00e9 \u2014 Signature pr\u00e9c\u00e9d\u00e9e de \u00ab\u00a0Bon pour accord\u00a0\u00bb</div>
+      <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:{'6px 10px' if DEVIS_FINAL else '8px 12px'};min-height:{'50' if DEVIS_FINAL else '65'}px;background:white;">
+        <div style="font-size:8pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:{'4' if DEVIS_FINAL else '6'}px;">Signature du client</div>
+        <div style="border-bottom:1px solid {CG2};min-height:{'10' if DEVIS_FINAL else '14'}px;margin-bottom:3px;"></div>
+        <div style="font-size:{'8' if DEVIS_FINAL else '9'}pt;color:{CG4};margin-top:2px;">Nom&#160;: <strong style="color:{CG7};">{CLIENT_NAME}</strong></div>
+        <div style="border-bottom:1px solid {CG2};min-height:{'8' if DEVIS_FINAL else '12'}px;margin-top:3px;margin-bottom:3px;"></div>
+        <div style="font-size:{'8' if DEVIS_FINAL else '9'}pt;color:{CG4};">Date&#160;: _______________</div>
+        <div style="font-size:7pt;color:{CG4};margin-top:{'2' if DEVIS_FINAL else '3'}px;font-style:italic;">Lu et approuv\u00e9 \u2014 Signature pr\u00e9c\u00e9d\u00e9e de \u00ab\u00a0Bon pour accord\u00a0\u00bb</div>
       </div>
-      <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:8px 12px;min-height:65px;background:white;">
-        <div style="font-size:8pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Signature TAQINOR</div>
-        <div style="border-bottom:1px solid {CG2};min-height:14px;margin-bottom:3px;"></div>
-        <div style="font-size:9pt;color:{CG4};margin-top:2px;">Repr\u00e9sentant&#160;: <span style="display:inline-block;min-width:80px;border-bottom:1px solid {CG2};">&nbsp;</span></div>
-        <div style="border-bottom:1px solid {CG2};min-height:12px;margin-top:3px;margin-bottom:3px;"></div>
-        <div style="font-size:9pt;color:{CG4};">Date&#160;: _______________</div>
-        <div style="font-size:7pt;color:{CG4};margin-top:3px;font-style:italic;">Cachet et signature de la soci\u00e9t\u00e9</div>
+      <div style="flex:1;border:1px solid {CG2};border-radius:8px;padding:{'6px 10px' if DEVIS_FINAL else '8px 12px'};min-height:{'50' if DEVIS_FINAL else '65'}px;background:white;">
+        <div style="font-size:8pt;font-weight:700;color:{CG4};text-transform:uppercase;letter-spacing:1px;margin-bottom:{'4' if DEVIS_FINAL else '6'}px;">Signature TAQINOR</div>
+        <div style="border-bottom:1px solid {CG2};min-height:{'10' if DEVIS_FINAL else '14'}px;margin-bottom:3px;"></div>
+        <div style="font-size:{'8' if DEVIS_FINAL else '9'}pt;color:{CG4};margin-top:2px;">Repr\u00e9sentant&#160;: <span style="display:inline-block;min-width:80px;border-bottom:1px solid {CG2};">&nbsp;</span></div>
+        <div style="border-bottom:1px solid {CG2};min-height:{'8' if DEVIS_FINAL else '12'}px;margin-top:3px;margin-bottom:3px;"></div>
+        <div style="font-size:{'8' if DEVIS_FINAL else '9'}pt;color:{CG4};">Date&#160;: _______________</div>
+        <div style="font-size:7pt;color:{CG4};margin-top:{'2' if DEVIS_FINAL else '3'}px;font-style:italic;">Cachet et signature de la soci\u00e9t\u00e9</div>
       </div>
     </div>
 
@@ -1416,6 +1483,7 @@ def generate_premium_pdf(data: dict, out_path) -> str:
     global SANS_ITEMS, AVEC_ITEMS, ECO_S_M, ECO_A_M, CUMUL_S, CUMUL_A
     global FACTURES_M
     global SCENARIO, RECOMMENDED, SHOW_MONTHLY
+    global DEVIS_FINAL, PAYMENT_MODE, CUSTOM_ACOMPTE
 
     CLIENT_NAME  = data["client_name"]
     CLIENT_ADDR  = data["client_addr"]
@@ -1440,6 +1508,9 @@ def generate_premium_pdf(data: dict, out_path) -> str:
     SCENARIO     = data.get("scenario", "Les deux (Sans + Avec)")
     RECOMMENDED  = data.get("recommended", "Avec batterie")
     SHOW_MONTHLY = data.get("show_monthly", True)
+    DEVIS_FINAL    = data.get("devis_final", False)
+    PAYMENT_MODE   = data.get("payment_mode", "standard")
+    CUSTOM_ACOMPTE = data.get("custom_acompte", None)
     SANS_ITEMS   = data["sans_items"]
     AVEC_ITEMS   = data["avec_items"]
     ECO_S_M      = data["eco_s_monthly"]
